@@ -1,0 +1,23 @@
+Package: PEcAn.RothC
+Type: Package
+Title: PEcAn Package for Integration of the RothC Model
+Version: 0.0.0.9000
+Authors@R: c(
+    person("Chris", "Black", role = c("aut", "cre"), email = "chris@ckblack.org"),
+    person("Rothamsted Research", role = c("cph"))
+            )
+Description: This module provides functions to link the Rothamstead soil carbon model "RothC" to PEcAn.
+  A copy of the Python implementation of RothC 1.0.0, made available by Rothamstead Research under the Apache License 2.0,
+  is included in the package. TODO: get copyright notice and license rewquirements met.
+Imports:
+    PEcAn.DB,
+    PEcAn.logger,
+    PEcAn.utils (>= 1.4.8)
+Suggests:
+    testthat (>= 1.0.2)
+SystemRequirements: RothC_Py
+OS_type: unix
+License: BSD_3_clause + file LICENSE
+Copyright: Authors
+Encoding: UTF-8
+RoxygenNote: 7.3.2

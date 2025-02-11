@@ -73,6 +73,7 @@ Suggests:
     PEcAn.settings,
     progress,
     reticulate,
+    rmarkdown,
     testthat (>= 3.1.7),
     withr
 Remotes:
@@ -84,6 +85,6 @@ License: BSD_3_clause + file LICENSE
 Copyright: Authors
 LazyLoad: yes
 LazyData: FALSE
-VignetteBuilder: knitr
+VignetteBuilder: knitr, rmarkdown
 Encoding: UTF-8
 RoxygenNote: 7.3.2

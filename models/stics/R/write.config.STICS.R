@@ -425,8 +425,18 @@ write.config.STICS <- function(defaults, trait.values, settings, run.id) {
   #### Note this has changed now, if all is working might delete these comments
   sols_file <- file.path(rundir, "sols.xml")
   
-  str_ns <- paste0(as.numeric(settings$run$site$id) %/% 1e+09, "-", as.numeric(settings$run$site$id) %% 1e+09)
-  
+  site_id <- tryCatch(
+    as.numeric(settings$run$site$id),
+    warning = function(w) as.character(settings$run$site$id)
+  )
+  if (is.numeric(site_id) && site_id > 1e9) {
+    # assume this is a BETYdb id, condense for readability
+    str_ns <- paste0(site_id %/% 1e9, "-", site_id %% 1e9)
+  } else {
+    #treat as string, leave as-is
+    str_ns <- site_id
+  }
+
   soils_df <- data.frame(soil_name = paste0("sol", str_ns))
   
   if(!is.null(settings$run$inputs$poolinitcond)){

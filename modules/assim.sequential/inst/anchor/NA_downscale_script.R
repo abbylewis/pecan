@@ -5,9 +5,10 @@ setwd("/projectnb/dietzelab/dongchen/anchorSites/NA_runs/")
 # average ERA5 to climatic covariates.
 outdir <- "/projectnb/dietzelab/dongchen/anchorSites/NA_runs/GridMET"
 in.path <- "/projectnb/dietzelab/dongchen/anchorSites/ERA5/"
-dates <- c(as.Date("2012-01-01"), seq(as.Date("2012-07-15"), as.Date("2021-07-15"), "1 year"))
-start.dates <- dates[1:10]
-end.dates <- dates[2:11]
+# dates <- c(as.Date("2012-01-01"), seq(as.Date("2012-07-15"), as.Date("2021-07-15"), "1 year"))
+# dates <- seq(as.Date("2012-01-01"), as.Date("2024-12-31"), "1 year")
+start.dates <- seq(as.Date("2012-01-01"), as.Date("2024-01-01"), "1 year")
+end.dates <- seq(as.Date("2012-12-31"), as.Date("2024-12-31"), "1 year")
 # parallel average ERA5 into covariates.
 future::plan(future::multisession, workers = 5)
 paths <- start.dates %>% furrr::future_map2(end.dates, function(d1, d2){

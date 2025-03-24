@@ -29,28 +29,25 @@ Average.ERA5.2.GeoTIFF <- function (start.date, end.date, in.path, outdir) {
     } else {
       end <- as.Date(paste0(lubridate::year(dates[i]), "-12-31"))
     }
-    # loop over years.
-    for (j in seq_along(dates)) {
-      # open ERA5 nc file.
-      met.nc <- ncdf4::nc_open(file.path(in.path, paste0("ERA5_", lubridate::year(dates[i]), ".nc")))
-      # find index for the date.
-      times <- as.POSIXct(met.nc$dim$time$vals*3600, origin="1900-01-01 00:00:00", tz = "UTC")
-      time.inds <- which(lubridate::date(times) >= start & lubridate::date(times) <= end)
-      # extract temperature.
-      PEcAn.logger::logger.info("entering temperature.")
-      temp.all <- abind::abind(temp.all, apply(ncdf4::ncvar_get(met.nc, "t2m")[,,,time.inds], c(1,2,4), mean), along = 3)
-      # extract precipitation.
-      PEcAn.logger::logger.info("entering precipitation.")
-      precip.all <- abind::abind(precip.all, apply(ncdf4::ncvar_get(met.nc, "tp")[,,,time.inds], c(1,2,4), mean), along = 3)
-      # extract shortwave solar radiation.
-      PEcAn.logger::logger.info("entering solar radiation.")
-      srd.all <- abind::abind(srd.all, apply(ncdf4::ncvar_get(met.nc, "ssrd")[,,,time.inds], c(1,2,4), mean), along = 3)
-      # extract dewpoint.
-      PEcAn.logger::logger.info("entering dewpoint.")
-      dewpoint.all <- abind::abind(dewpoint.all, apply(ncdf4::ncvar_get(met.nc, "d2m")[,,,time.inds], c(1,2,4), mean), along = 3)
-      # close the NC connection.
-      ncdf4::nc_close(met.nc)
-    }
+    # open ERA5 nc file.
+    met.nc <- ncdf4::nc_open(file.path(in.path, paste0("ERA5_", lubridate::year(dates[i]), ".nc")))
+    # find index for the date.
+    times <- as.POSIXct(met.nc$dim$time$vals*3600, origin="1900-01-01 00:00:00", tz = "UTC")
+    time.inds <- which(lubridate::date(times) >= start & lubridate::date(times) <= end)
+    # extract temperature.
+    PEcAn.logger::logger.info("entering temperature.")
+    temp.all <- abind::abind(temp.all, apply(ncdf4::ncvar_get(met.nc, "t2m")[,,,time.inds], c(1,2,4), mean), along = 3)
+    # extract precipitation.
+    PEcAn.logger::logger.info("entering precipitation.")
+    precip.all <- abind::abind(precip.all, apply(ncdf4::ncvar_get(met.nc, "tp")[,,,time.inds], c(1,2,4), mean), along = 3)
+    # extract shortwave solar radiation.
+    PEcAn.logger::logger.info("entering solar radiation.")
+    srd.all <- abind::abind(srd.all, apply(ncdf4::ncvar_get(met.nc, "ssrd")[,,,time.inds], c(1,2,4), mean), along = 3)
+    # extract dewpoint.
+    PEcAn.logger::logger.info("entering dewpoint.")
+    dewpoint.all <- abind::abind(dewpoint.all, apply(ncdf4::ncvar_get(met.nc, "d2m")[,,,time.inds], c(1,2,4), mean), along = 3)
+    # close the NC connection.
+    ncdf4::nc_close(met.nc)
   }
   # aggregate across time.
   # temperature.

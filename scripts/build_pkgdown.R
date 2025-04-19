@@ -19,58 +19,22 @@ if (requireNamespace("PEcAn.logger", quietly = TRUE)) {
   }
 }
 
-pkg_config <- function(pkg) {
-  pkgname <- desc::desc_get("Package", pkg)
+pkg_config <- function() {
 
   list(
     url = "https://pecanproject.github.io/",
-    home = list(
-      title = sprintf("%s Functions for PEcAn", pkgname),
-    ),
     template = list(
       bootstrap = 5,
-      bslib = list(
-        primary = "#0054AD", 
-        `border-radius` = "0.5rem",
-        `btn-border-radius` = "0.25rem"
-      ),
-      `light-switch` = TRUE, 
-    ),
-    navbar = list(
-      structure = list(
-        left = c("pecan_home", "reference", "news"),
-        right = c("search", "github", "light-switch") 
-      ),
-      components = list(
-        pecan_home = list(
-        text = "PEcAn Home",
-        href = "../../../index.html",
-        `aria-label` = "PEcAn Project Home"
-      ),
-        reference = list(
-        text = "Reference",
-        href = "reference/index.html"
-      ),
-        github = list(
-        icon = "fab fa-github",
-        href = "https://github.com/PecanProject/pecan",
-        `aria-label` = "GitHub"
+      includes = list(
+        before_navbar = paste0(
+          "<style>",
+          ".custom-back-button{position: absolute; top: 10px;left:10px; z-index: 1000; background-color: #f5f5f5; color: #000;border:none }.navbar-brand{ margin-left: 50px }",
+          "</style>\n",
+          "<button onclick='window.location.href=\"../index.html\"' ",
+          "class='custom-back-button btn btn-primary'>",
+          "← All Packages</button>"
+        )
       )
-    )
-  ),
-    reference = list(
-      list(
-        title = "All Functions",
-        desc = "All functions exported by this package",
-        contents = list("matches('.*')")
-      )
-    ),
-    news = list(
-      text = "News",
-      href = "news/index.html"
-    ),
-    development = list(
-      mode = "auto"
     )
   )
 }
@@ -84,16 +48,8 @@ for (pkg in packages) {
       stop(paste("Package directory does not exist:", pkg))
     }
     pkg_config_path <- file.path(pkg, "_pkgdown.yml")
-    pkg_config <- pkg_config(pkg)
-    # If _pkgdown.yml exists, merge with our config, otherwise create new
-    if (file.exists(pkg_config_path)) {
-      exist_config <- yaml::read_yaml(pkg_config_path)
-      # Merge configurations, preserving existing settings
-      merged_config <- modifyList(exist_config, pkg_config)
-      yaml::write_yaml(merged_config, pkg_config_path)
-    } else {
-      yaml::write_yaml(pkg_config, pkg_config_path)
-    }
+    pkg_config_data <- pkg_config()
+    yaml::write_yaml(pkg_config_data, pkg_config_path) 
     setwd(pkg) 
     pkgdown::build_site() 
     setwd(current_wd) 
@@ -103,7 +59,7 @@ for (pkg in packages) {
       next 
     }
     pkgname <- desc::desc_get("Package", pkg)
-    dest <- file.path(output_dir, strsplit(pkg, "/")[[1]][1], pkgname)
+    dest <- file.path(output_dir, pkgname)
     if (!dir.exists(dest)) {
       dir.create(dest, recursive = TRUE, showWarnings = FALSE)
     }
@@ -126,63 +82,32 @@ for (pkg in packages) {
 logger("Creating index page")
 
 built_pkg_dirs <- list.dirs(output_dir, recursive=FALSE, full.names = FALSE)
-html_header <- c(
+before_text <- c(
   '<!DOCTYPE html>',
   '<html lang="en">',
   '<head>',
   '  <title>Package-specific documentation for the PEcAn R packages</title>',
-  '  <style>',
-  '    body { font-family: Arial, sans-serif; margin: 20px; }',
-  '    .dir-struct { margin-top: 20px; }',
-  '    .dir-group { margin-bottom: 10px; }',
-  '    .pkg-list { display: none; margin-left: 20px; list-style-type: none; padding-left: 20px; }',
-  '    .top-dir { cursor: pointer; font-weight: bold; color: #333; }',
-  '    .top-dir::before { content: "▶"; margin-right: 5px; display: inline-block; }',
-  '    .top-dir.expanded::before { content: "▼"; }',
-  '    .expanded + .pkg-list { display: block; }',
-  '    .pkg-list li { margin: 5px 0; }',
-  '    .pkg-list a { text-decoration: none; color: #0366d6; }',
-  '    .pkg-list a:hover { text-decoration: underline; }',
-  '  </style>',
-  '  <script>',
-  '    function togglePackages(element) {',
-  '      element.classList.toggle("expanded");',
-  '    }',
-  '  </script>',
   '</head>',
   '<body>',
   '<h1>PEcAn package documentation</h1>',
   '<p>Function documentation and articles for each PEcAn package,',
   '   generated from the package source using <a href="https://pkgdown.r-lib.org/" target="_blank">pkgdown</a> package.</p>',
   '',
-  '<div class="dir-struct">'
+  '<ul>'
 )
-content <- character(0)
-for (dir in built_pkg_dirs) {
-  content <- c(content,
-    sprintf('  <div class="dir-group">'),
-    sprintf('    <div class="top-dir" onclick="togglePackages(this)">%s</div>', dir)
-  )
-  pkg_dirs <- list.dirs(file.path(output_dir, dir), recursive=FALSE, full.names=FALSE)
-  content <- c(content, '    <ul class="pkg-list">')
-  for (pkg in pkg_dirs) {
-    pkg_path <- file.path(dir, pkg, "dev/index.html")
-    content <- c(content,
-      sprintf('      <li><a href="%s">%s</a></li>', pkg_path, pkg)
-    )
-  }
-  content <- c(content,
-    '    </ul>',
-    '  </div>'
-  )
-}
-html_footer <- c(
-  '</div>',
+listing_text <- paste0(
+  '  <li><a href="', built_pkg_dirs, '/index.html">',
+  built_pkg_dirs,
+  '</a></li>'
+)
+after_text <- c(
+  '  </ul>',
+  '',
   '</body>',
   '</html>'
 )
 writeLines(
-  text = c(html_header, content, html_footer),
+  text = c(before_text, listing_text, after_text),
   con = file.path(output_dir, "index.html")
 )
 

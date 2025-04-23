@@ -8,7 +8,7 @@ Authors@R: c(person("Mike", "Dietze", role = c("aut"),
                      email = "araiho@nd.edu"),
              person("University of Illinois, NCSA", role = c("cph")))
 Description: This module provides functions to link the (LINKAGES) to PEcAn.
-URL: https://pecanproject.github.io, https://github.com/PecanProject/pecan
+URL: https://pecanproject.github.io
 BugReports: https://github.com/PecanProject/pecan/issues
 Imports:
     PEcAn.data.land,

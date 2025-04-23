@@ -14,7 +14,6 @@ Implementation of a Gaussian Process model (both likelihood and bayesian approac
 Useful links:
 \itemize{
   \item \url{https://pecanproject.github.io}
-  \item \url{https://github.com/PecanProject/pecan}
   \item Report bugs at \url{https://github.com/PecanProject/pecan/issues}
 }
 

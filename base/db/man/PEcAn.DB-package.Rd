@@ -13,7 +13,6 @@ For usage examples, please see \code{vignette("betydb_access")}
 Useful links:
 \itemize{
   \item \url{https://pecanproject.github.io}
-  \item \url{https://github.com/PecanProject/pecan}
   \item Report bugs at \url{https://github.com/PecanProject/pecan/issues}
 }
 

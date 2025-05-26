@@ -21,3 +21,11 @@ settings_path <- "~/pecan.xml"
 settings <- PEcAn.settings::read.settings(settings_path)
 ```
 
+# Prepare and Validate Settings
+
+PEcAn provides utilities to process and validate settings before execution, ensuring that all required fields are correctly configured.
+
+```{r prepare-settings}
+settings <- PEcAn.settings::prepare.settings(settings)
+```
+

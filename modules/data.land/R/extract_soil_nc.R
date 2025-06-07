@@ -126,11 +126,8 @@ extract_soil_gssurgo<-function(outdir, lat, lon, size=1, radius=500, depths=c(0.
   #- see if we need to generate soil ensemble and add that to the list of all
   tryCatch({
     # find the soil depth levels based on the depth argument 
-    # if soil profile is deeper than what is specified in the argument then i go as deep as the soil profile.
-    current_max_depth <- max(soilprop.new$soil_depth, na.rm = TRUE)
-    if (!is.na(current_max_depth) && current_max_depth > max(depths)) {
-      depths <- sort(c(depths, current_max_depth))
-    }
+    # if soil profile is deeper than what is specified in the argument then I go as deep as the soil profile.
+    if (max(soilprop.new$soil_depth) > max(depths)) depths <- sort (c(depths, max(soilprop.new$soil_depth)))
     
     depth.levs<-findInterval(soilprop.new$soil_depth, depths)
     depth.levs[depth.levs==0] <-1
@@ -166,8 +163,8 @@ extract_soil_gssurgo<-function(outdir, lat, lon, size=1, radius=500, depths=c(0.
           
           simulated.soil<-simulated.soil %>%
             as.data.frame %>%
-            dplyr::mutate(DepthL=rep(DepthL.Data[1,6], size),
-                   mukey=rep(DepthL.Data[1,5], size),
+            dplyr::mutate(DepthL=rep(DepthL.Data[1,12], size),
+                   mukey=rep(DepthL.Data[1,8], size),
                    soil_organic_carbon_stock = simulated_soc) %>%
             `colnames<-`(c("fraction_of_sand_in_soil",
                            "fraction_of_silt_in_soil",
@@ -184,34 +181,37 @@ extract_soil_gssurgo<-function(outdir, lat, lon, size=1, radius=500, depths=c(0.
       }) 
     
     # estimating the proportion of areas for those mukeys which are modeled
+
+    # defining mukey_area
+    unique_mukeys <- unique(soilprop.new$mukey)
     mukey_area <- data.frame(
-      mukeys = unique(simulated.soil.props$mukey),
-      Area = rep(1/length(unique(simulated.soil.props$mukey)), 
-                length(unique(simulated.soil.props$mukey)))
+      mukey = unique_mukeys,
+      Area = rep(1/length(unique_mukeys), length(unique_mukeys))
     ) 
     mukey_area <- mukey_area %>%
-  dplyr::filter(mukeys %in% simulated.soil.props$mukey) %>%
-  dplyr::mutate(Area = Area/sum(Area))
+  dplyr::filter(mukey %in% unique(simulated.soil.props$mukey)) %>%
+  dplyr::mutate(Area=.data$Area/sum(.data$Area, na.rm = TRUE))
     #--- Mixing the depths
     soil.profiles<-simulated.soil.props %>% 
       split(.$mukey)%>% 
       purrr::map(function(soiltype.sim){
-        sizein <- (mukey_area$Area[mukey_area$mukey == unique(soiltype.sim$mukey)])*size
+        sizein <- (mukey_area$Area[ mukey_area$mukey == unique(soiltype.sim$mukey)[1]])*size
         
         1:ceiling(sizein) %>%
           purrr::map(function(x){
             soiltype.sim %>% 
               split(.$soil_depth)%>%
-              purrr::map_dfr(~.x[min(x, nrow(.x)),])
+              purrr::map_dfr(~.x[x,])
           })
       }) %>%
       purrr::flatten()
     #- add them to the list of all the ensembles ready to be converted to .nc file
     all.soil.ens<-soil.profiles %>%
       purrr::map(function(SEns){
+        SEns <- SEns[, setdiff(names(SEns), "mukey")]
         names(SEns) %>%
           purrr::map(function(var){
-            SEns[,var]
+            as.numeric(unlist(SEns[, var]))
           })%>% 
           stats::setNames(names(SEns))
       })%>%

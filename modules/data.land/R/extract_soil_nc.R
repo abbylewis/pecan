@@ -393,6 +393,11 @@ extract_soil_nc <- function(in.file,outdir,lat,lon){
 #'  * `soil_thermal_conductivity_at_saturation`
 #'  * `soil_thermal_capacity`
 #'  * `soil_albedo`
+#'  * `slpotwp`
+#'  * `slpotcp`
+#'  * `slcpd`
+#'  * `slden`
+#'  * `soil_organic_carbon_stock`
 #'
 #' @param varname character vector. See details
 #'

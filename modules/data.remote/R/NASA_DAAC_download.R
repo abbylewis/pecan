@@ -122,7 +122,8 @@ NASA_DAAC_download <- function(ul_lat,
   # remove non-image files.
   inds <- which(grepl(".h5", basename(granules_href)) |
                   grepl(".tif", basename(granules_href)) |
-                  grepl(".hdf", basename(granules_href)))
+                  grepl(".hdf", basename(granules_href)) |
+                  grepl(".nc", basename(granules_href)))
   granules_href <- granules_href[inds]
   # detect existing files if we want to download the files.
   if (!just_path) {
@@ -198,7 +199,8 @@ NASA_DAAC_download <- function(ul_lat,
           # if it's HDF4 or regular GeoTIFF file.
         } else if (grepl(pattern = ".tif", x = basename(granules_href)[i], fixed = T) |
                    grepl(pattern = ".tiff", x = basename(granules_href)[i], fixed = T) |
-                   grepl(pattern = ".hdf", x = basename(granules_href)[i], fixed = T)) {
+                   grepl(pattern = ".hdf", x = basename(granules_href)[i], fixed = T) |
+                   grepl(pattern = ".nc", x = basename(granules_href)[i], fixed = T)) {
           while ("try-error" %in% class(try(terra::rast(file.path(outdir, basename(granules_href)[i])), silent = T))) {
             response <-
               httr::GET(

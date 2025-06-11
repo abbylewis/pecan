@@ -114,11 +114,11 @@ PEcAn.MA::runModule.run.meta.analysis(settings)
 
 This section executes the actual model simulations and retrieves the results. The process is managed by PEcAn's workflow system, which handles the execution of your chosen ecosystem model.
 
-*   `runModulr_start_model_runs(settings)`: This function initiates the model runs based on your configuration. It manages the execution of your chosen ecosystem model, using the configuration files generated in the previous step.
+*   `start_model_runs(settings)`: This function initiates the model runs based on your configuration. It manages the execution of your chosen ecosystem model, using the configuration files generated in the previous step.
 
 ```{r run-model}
 # Start the model simulations
-PEcAn.workflow::runModule_start_model_runs(settings)
+PEcAn.workflow::start_model_runs(settings)
 ```
 
 ```{r get-plot-vars}

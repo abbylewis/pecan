@@ -1,0 +1,69 @@
+---
+title: "PEcAn Multisite Flat-File Workflow Example"
+format: html
+editor: visual
+---
+
+## Introduction
+
+This notebook demonstrates how to use a flat-file (`site_info.csv`) to set up a multisite workflow in PEcAn, without querying the database.  
+You will learn how to read site metadata, filter by group, and create a MultiSettings object for your runs.
+
+---
+
+## Example `site_info.csv`
+
+Suppose you have a CSV file like this: 
+
+| id  | lat   | lon    | site_group |
+|-----|-------|--------|------------|
+| 101 | 40.1  | -88.2  | NEON       |
+| 102 | 41.2  | -87.9  | NEON       |
+| 201 | 39.9  | -90.0  | Ameriflux  |
+| 202 | 38.5  | -89.5  | Ameriflux  |
+
+Save this as `site_info.csv` in your working directory.
+
+---
+
+## Load Required Libraries
+
+```{r}
+library(dplyr)
+# library(PEcAn.settings) # Uncomment if needed
+# library(PEcAn.all)      # Uncomment if needed
+```
+
+---
+
+## Add the following lines to your workflow code .
+
+```{r}
+site_info <- read.csv("site_info.csv")
+# Filter for NEON sites (change "NEON" to your desired group)
+selected_sites <- site_info %>% filter(site_group == "NEON")  
+print(selected_sites)           ## prints demo output (not required in main code) 
+settings <- createMultiSiteSettings(settings, selected_sites) ## populates settings with metadata for each site in the sitegroup
+
+```
+
+---
+
+## (Optional) Integrate with workflow 
+
+```{r}
+settings$site_info <- selected_sites
+```
+Now, any downstream function that receives settings can access the filtered site info.
+
+--- 
+
+
+## Summary
+- You can use a flat-file (site_info.csv) to manage multisite workflows in PEcAn.
+- Filter your sites in R, then pass the filtered data frame to createMultiSiteSettings().
+- No database queries are needed for site metadata.
+
+
+---
+

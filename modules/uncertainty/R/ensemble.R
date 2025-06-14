@@ -149,22 +149,18 @@ get.ensemble.samples <- function(ensemble.size, pft.samples, env.samples,
       # meaning we want to keep MCMC samples together
       if(length(pft.samples[[pft.i]])>0 & !is.null(param.names)){ 
         if (method == "halton") {
-          same.i <- round(randtoolbox::halton(ensemble.size) * length(pft.samples[[pft.i]][[1]]))
+          same.i <- floor(randtoolbox::halton(ensemble.size) * length(pft.samples[[pft.i]][[1]]))+1
         } else if (method == "sobol") {
-          same.i <- round(randtoolbox::sobol(ensemble.size, scrambling = 3) * length(pft.samples[[pft.i]][[1]]))
+          same.i <- floor(randtoolbox::sobol(ensemble.size, scrambling = 3) * length(pft.samples[[pft.i]][[1]]))+1
         } else if (method == "torus") {
-          same.i <- round(randtoolbox::torus(ensemble.size) * length(pft.samples[[pft.i]][[1]]))
+          same.i <- floor(randtoolbox::torus(ensemble.size) * length(pft.samples[[pft.i]][[1]]))+1
         } else if (method == "lhc") {
-          same.i <- round(c(PEcAn.emulator::lhc(t(matrix(0:1, ncol = 1, nrow = 2)), ensemble.size) * length(pft.samples[[pft.i]][[1]])))
+          same.i <- floor(c(PEcAn.emulator::lhc(t(matrix(0:1, ncol = 1, nrow = 2)), ensemble.size) * length(pft.samples[[pft.i]][[1]])))+1
         } else if (method == "uniform") {
           same.i <- sample.int(length(pft.samples[[pft.i]][[1]]), ensemble.size)
         } else if (method == "random") {
             PEcAn.logger::logger.info("Using random row sampling for MCMC draws")
            same.i <- sample(nrow(pft.samples[[pft.i]][[1]]), ensemble.size, replace = TRUE)
-        }
-     else {
-           PEcAn.logger::logger.info("Method ", method, " has not been implemented yet, using uniform random sampling")
-           random.samples <- matrix(stats::runif(ensemble.size * total.sample.num), ensemble.size, total.sample.num)
         }
         
       }
@@ -182,12 +178,12 @@ get.ensemble.samples <- function(ensemble.size, pft.samples, env.samples,
           ensemble.samples[[pft.i]][, trait.i] <- stats::quantile(pft.samples[[pft.i]][[trait.i]],
                                                                   random.samples[, col.i])
           sampled.indices[[pft.i]][, trait.i] <- sapply(sampled.values, function(val) {which.min(abs(trait.values - val)) })
-      }  # end trait  
-    }  #end pft
+      }   
+    }  
           ensemble.samples[[pft.i]] <- as.data.frame(ensemble.samples[[pft.i]])
           colnames(ensemble.samples[[pft.i]]) <- names(pft.samples[[pft.i]])
     
-  }
+  }  #end pft
    names(ensemble.samples) <- names(pft.samples)
    ans <- ensemble.samples
     return(list(ans,sampled.indices))

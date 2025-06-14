@@ -2,7 +2,7 @@
 % Please edit documentation in R/ERA5_download.R
 \name{download.ERA5_cds}
 \alias{download.ERA5_cds}
-\title{ERA5_cds_annual_download}
+\title{Download ERA5 Climate Data from the Copernicus CDS API}
 \usage{
 download.ERA5_cds(
   outfolder,
@@ -10,30 +10,65 @@ download.ERA5_cds(
   end_date,
   extent,
   variables,
+  time = NULL,
+  dataset = "reanalysis-era5-single-levels",
+  product_type = "ensemble_members",
   auto.create.key = T,
   timeout = 36000
 )
 }
 \arguments{
-\item{outfolder}{Character: physical path where the ERA5 data are stored.}
+\item{outfolder}{Character. Directory where downloaded NetCDF files will be saved.}
 
 \item{start_date}{character: the start date of the data to be downloaded. Format is YYYY-MM-DD (will only use the year part of the date)}
 
 \item{end_date}{character: the end date of the data to be downloaded. Format is YYYY-MM-DD (will only use the year part of the date)}
 
-\item{extent}{numeric: a vector of numbers contains the bounding box (formatted as xmin, xmax, ymin, ymax) to be downloaded.}
+\item{extent}{numeric: a vector of numbers contains the bounding box (formatted as xmin, xmax, ymin, ymax) (longitude and latitude in degrees).}
 
 \item{variables}{character: a vector contains variables to be downloaded (e.g., c("2m_temperature","surface_pressure")).}
+
+\item{time}{Character vector or NULL. Hours of the day to download (e.g., c("00:00", "12:00")). Default to NULL to download all hours.}
+
+\item{dataset}{Character. Name of the CDS dataset to use (default: "reanalysis-era5-single-levels").}
+
+\item{product_type}{Character. Product type to request from CDS (default: "ensemble_members").}
 
 \item{auto.create.key}{Boolean: decide if we want to generate the CDS RC file if it doesn't exist, the default is TRUE.}
 
 \item{timeout}{numeric: the maximum time (in seconds) allowed to download the data. The default is 36000 seconds.}
 }
 \value{
-A vector containing file paths to the downloaded files.
+A list where each element is a list containing:
+  \item{file}{File path to the downloaded NetCDF file.}
+  \item{host}{Host name where the file was downloaded.}
+  \item{startdate}{Start date and time of the data in the file.}
+  \item{enddate}{End date and time of the data in the file.}
+  \item{mimetype}{MIME type of the file ("application/x-netcdf").}
+  \item{formatname}{Format name ("ERA5_year.nc").}
 }
 \description{
-This function helps to download the yearly ERA5 data based on the prescribed features using the CDS API.
+Download ERA5 climate data from the Copernicus Climate Data Store (CDS) API as NetCDF files, year by year, according to user-specified parameters.
+The function saves one NetCDF file per year in the specified output directory.
+}
+\details{
+This function requires a valid CDS API key and the Python `cdsapi` package installed and accessible via the `reticulate` package in R.
+If you do not have a `.cdsapirc` file with your API credentials, set `auto.create.key = TRUE` to be prompted for your CDS API URL and key.
+To get a Copernicus CDS API key, register at \url{https://cds.climate.copernicus.eu/profile}.
+The API URL is \url{https://cds.climate.copernicus.eu/api/v2}.
+}
+\examples{
+\dontrun{
+era5_files <- download.ERA5_cds(
+  outfolder = "D:/working/era5_func_test",
+  start_date = "2020-01-01",
+  end_date = "2022-12-31",
+  extent = c(-72.2215, -72.1215, 42.4878, 42.5878),
+  variables = c("2m_temperature","surface_pressure"),
+  time = NULL,
+  product_type = "reanalysis"
+)
+}
 }
 \author{
 Dongchen Zhang

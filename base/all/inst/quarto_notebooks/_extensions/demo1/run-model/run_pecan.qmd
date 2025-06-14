@@ -40,7 +40,7 @@ Let's get started!
 
 #### Objective
 
-This demo illustrates how to run a basic PEcAn workflow using an R-based Quarto notebook. We will cover loading settings, performing trait and meta-analysis, writing model configuration files, and running model simulations. This approach provides a programmatic alternative to the web-based PEcAn interface for executing ecosystem models.
+This demo illustrates how to run a basic PEcAn workflow using an R-based Quarto notebook. It will cover loading settings, writing model configuration files, and running model simulations. This approach provides a programmatic alternative to the web-based PEcAn interface for executing ecosystem models.
 
 # Load PEcAn packages
 
@@ -55,7 +55,7 @@ library("PEcAn.all")
 
 This section handles the crucial step of loading the PEcAn settings. 
 
--   If you have a `pecan.xml` file generated from the web interface, place it in your working directory and copy its file path. Assign this path to the **settings_path** variable.
+-   If you have a `pecan.xml` file precofigured, place it in your working directory and copy its file path. Assign this path to the **settings_path** variable.
 -   Alternatively, for a sample or initial run, you can use the example `pecan.xml` file available at: `/pecan/base/all/inst/quarto_notebooks/_extensions/demo1/run-model`.
  
 ```{r load-settings}

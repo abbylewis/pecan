@@ -103,18 +103,20 @@ PEcAn.workflow::start_model_runs(settings)
 ```
 
 ```{r get-plot-vars}
-run_file <- file.path(settings$rundir, "runs.txt")
-run_id <- as.numeric(readLines(run_file)[1])  # Get first run ID
+runid<-as.character(read.table(paste(settings$outdir, "/run/","runs.txt", sep=""))[1,1]) # Note: if you are using an xml from a run with multiple ensembles this line will provide only the first run id
+outdir<- paste(settings$outdir,"/out/",runid,sep= "")
+start.year<-as.numeric(lubridate::year(settings$run$start.date))
+end.year<-as.numeric(lubridate::year(settings$run$end.date))
 
 # Load PEcAn output using read.output()
 model_output <- PEcAn.utils::read.output(
-  runid  = settings$workflow$id,
-  outdir = file.path(settings$outdir, "out", run_id),
-  start.year = as.numeric(format(as.Date(settings$run$start.date), "%Y")),
-  end.year = as.numeric(format(as.Date(settings$run$end.date), "%Y")),
+  runid,
+  outdir,
+  start.year,
+  end.year,
   variables = NULL,  
   dataframe = TRUE, 
-  verbose = FALSE    # Set to FALSE to avoid warning messages
+  verbose = FALSE  
 )
 
 # Store variable names for later use

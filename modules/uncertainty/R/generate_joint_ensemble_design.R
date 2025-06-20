@@ -1,4 +1,4 @@
-generate_joint_ensemble_design_indices_only <- function(settings, ensemble_size) {
+generate_joint_ensemble_design<- function(settings, ensemble_size) {
   design_matrix <- data.frame()
   sampled_inputs <- list()
   

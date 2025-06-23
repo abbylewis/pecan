@@ -22,9 +22,10 @@
 #' @export
 #'
 #' @author David LeBauer, Shawn Serbin, Ryan Kelly, Mike Dietze
-run.write.configs <- function(settings, write = TRUE, ens.sample.method = "uniform", 
+run.write.configs <- function(settings, write = TRUE,  
                               posterior.files = rep(NA, length(settings$pfts)), 
-                              overwrite = TRUE) {
+                              overwrite = TRUE,
+                              input_design) {
   ## Skip database connection if settings$database is NULL or write is False
   if (!isTRUE(write) && is.null(settings$database)) {
     PEcAn.logger::logger.info("Not writing this run to database, so database connection skipped")

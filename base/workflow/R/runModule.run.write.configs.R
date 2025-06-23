@@ -7,6 +7,12 @@
 #' @export
 runModule.run.write.configs <- function(settings, overwrite = TRUE) {
 
+ensemble_size <- settings[[1]]$ensemble$size
+input_design <- PEcAn.uncertainty::generate_joint_ensemble_design(settings=settings[[1]],ensemble_size=ensemble_size)
+
+
+
+
   if (PEcAn.settings::is.MultiSettings(settings)) {
     if (overwrite && file.exists(file.path(settings$rundir, "runs.txt"))) {
       PEcAn.logger::logger.warn("Existing runs.txt file will be removed.")
@@ -27,9 +33,9 @@ runModule.run.write.configs <- function(settings, overwrite = TRUE) {
     return(PEcAn.workflow::run.write.configs(
       settings = settings,
       write = isTRUE(settings$database$bety$write), # treat null as FALSE
-      ens.sample.method = settings$ensemble$samplingspace$parameters$method,
       posterior.files = posterior.files,
-      overwrite = overwrite
+      overwrite = overwrite,
+      input_design = input_design
     ))
   } else {
     stop("runModule.run.write.configs only works with Settings or MultiSettings")

@@ -118,6 +118,7 @@ pecan_settings_2_pts <- function(settings) {
 #' @return list containing the data frame of covariates for vegetated pixels and the corresponding index of the pixels.
 #' 
 #' @author Dongchen Zhang
+#' @importFrom foreach %dopar%
 stack_covariates_2_df <- function(rast.dir, cores = parallel::detectCores()) {
   # load maps.
   all.rast <- terra::rast(rast.dir)
@@ -245,9 +246,9 @@ parallel_train <- function(full_data, method = "randomForest", cores = parallel:
                                # if it's xgboost.
                                if (method == "xgboost") {
                                  formula <- stats::as.formula(paste0("~ ", paste(predictor_col, collapse = " + "), " - 1"))
-                                 train.df  <- model.matrix(pred_formula, data = full_data)
-                                 train.df  <- xgb.DMatrix(data = train.df, label = full_data[[ensemble_col]])
-                                 model <- xgb.train(
+                                 train.df  <- stats::model.matrix(formula, data = full_data)
+                                 train.df  <- xgboost::xgb.DMatrix(data = train.df, label = full_data[[ensemble_col]])
+                                 model <- xgboost::xgb.train(
                                    params   = list(
                                      objective        = "reg:squarederror",
                                      eta              = 0.1,

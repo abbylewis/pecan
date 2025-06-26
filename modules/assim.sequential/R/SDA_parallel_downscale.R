@@ -32,6 +32,7 @@ stack_covariates_2_geotiff <- function(outdir, year, base.map.dir, cov.tif.file.
   progress <- function(n) utils::setTxtProgressBar(pb, n)
   opts <- list(progress=progress)
   # foreach loop.
+  f <- NULL
   paths <- foreach::foreach(f = cov.tif.file.list, 
                             .packages=c("Kendall", "terra"),
                             .options.snow=opts) %dopar% {
@@ -133,6 +134,7 @@ stack_covariates_2_df <- function(rast.dir, cores = parallel::detectCores()) {
   progress <- function(n) utils::setTxtProgressBar(pb, n)
   opts <- list(progress=progress)
   # foreach loop.
+  r <- NULL
   vecs <- foreach::foreach(r = seq_along(layer.names), 
                            .packages=c("Kendall", "terra"),
                            .options.snow=opts) %dopar% {
@@ -224,6 +226,7 @@ parallel_train <- function(full_data, method = "randomForest", cores = parallel:
   progress <- function(n) utils::setTxtProgressBar(pb, n)
   opts <- list(progress=progress)
   # foreach loop.
+  i <- NULL
   models <- foreach::foreach(i = ensemble.inds, 
                              .packages=c("Kendall", "stats", method),
                              .options.snow=opts) %dopar% {
@@ -305,6 +308,7 @@ parallel_prediction <- function(base.map.dir, models, cov.vecs, non.na.inds, out
     doSNOW::registerDoSNOW(cl)
     # foreach parallel.
     model <- models[[i]]
+    d <- NULL
     output <- foreach::foreach(d=itertools::isplitRows(cov.vecs, chunks=cores),
                                .packages=c("stats", "randomForest")) %dopar% {
                                  stats::predict(model, d)

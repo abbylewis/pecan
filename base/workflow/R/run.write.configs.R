@@ -94,13 +94,21 @@ run.write.configs <- function(settings, write = TRUE,
   scipen <- getOption("scipen")
   options(scipen = 12)
   
-  PEcAn.uncertainty::get.parameter.samples(settings, posterior.files, ens.sample.method)
   samples.file <- file.path(settings$outdir, "samples.Rdata")
   if (file.exists(samples.file)) {
     samples <- new.env()
     load(samples.file, envir = samples) ## loads ensemble.samples, trait.samples, sa.samples, runs.samples, env.samples
     trait.samples <- samples$trait.samples
-    ensemble.samples <- samples$ensemble.samples
+    ensemble.samples <- list()
+    for (pft in names(trait.samples)) {
+        pft_traits <- trait.samples[[pft]]
+        ensemble.samples[[pft]] <- as.data.frame(
+        lapply(names(pft_traits), function(trait) {
+        pft_traits[[trait]][trait_sample_indices]
+    })
+  )
+  names(ensemble.samples[[pft]]) <- names(pft_traits)
+}
     sa.samples <- samples$sa.samples
     runs.samples <- samples$runs.samples
     ## env.samples <- samples$env.samples

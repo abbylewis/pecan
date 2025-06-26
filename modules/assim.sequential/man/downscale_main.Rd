@@ -23,17 +23,17 @@ downscale_main(
 
 \item{covariates.dir}{character: path to the exported covariates GeoTIFF file.}
 
+\item{time}{character: the time tag used to differentiate the outputs from others.}
+
+\item{variable}{character: name of state variable. It should match up with the column names of the analysis data frame.}
+
 \item{outdir}{character: the output directory where the downscaled maps will be stored.}
 
 \item{base.map.dir}{character: path to the GeoTIFF file within which the extents and CRS will be used to generate the ensemble maps.}
 
+\item{method}{character: machine learning method, default is randomForest (currently support randomForest and xgboost).}
+
 \item{cores}{numeric: how many CPus to be used in the calculation, the default is the total CPU number you have.}
-
-\item{time:}{character: the time tag used to differentiate the outputs from others.}
-
-\item{variable:}{character: name of state variable. It should match up with the column names of the analysis data frame.}
-
-\item{method:}{character: machine learning method, default is randomForest (currently support randomForest and xgboost).}
 }
 \value{
 paths to the ensemble downscaled maps.

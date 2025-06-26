@@ -404,11 +404,11 @@ parallel_prediction <- function(base.map.dir, models, cov.vecs, non.na.inds, out
 #' @param settings character: physical path that points to the pecan settings XML file.
 #' @param analysis numeric: data frame (rows: ensemble member; columns: site*state_variables) of updated ensemble analysis results from the `sda_enkf` function.
 #' @param covariates.dir character: path to the exported covariates GeoTIFF file.
-#' @param time: character: the time tag used to differentiate the outputs from others.
-#' @param variable: character: name of state variable. It should match up with the column names of the analysis data frame. 
+#' @param time character: the time tag used to differentiate the outputs from others.
+#' @param variable character: name of state variable. It should match up with the column names of the analysis data frame. 
 #' @param outdir character: the output directory where the downscaled maps will be stored.
 #' @param base.map.dir character: path to the GeoTIFF file within which the extents and CRS will be used to generate the ensemble maps.
-#' @param method: character: machine learning method, default is randomForest (currently support randomForest and xgboost).
+#' @param method character: machine learning method, default is randomForest (currently support randomForest and xgboost).
 #' @param cores numeric: how many CPus to be used in the calculation, the default is the total CPU number you have.
 #'
 #' @return paths to the ensemble downscaled maps.

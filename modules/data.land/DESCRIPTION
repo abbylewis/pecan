@@ -40,6 +40,7 @@ Imports:
     ncdf4 (>= 1.15),
     neonUtilities,
     neonstore,
+    terra,
     PEcAn.benchmark,
     PEcAn.DB,
     PEcAn.logger,

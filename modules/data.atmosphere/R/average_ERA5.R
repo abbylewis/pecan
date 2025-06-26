@@ -12,10 +12,6 @@
 #' @export
 #' @author Dongchen Zhang
 Average_ERA5_2_GeoTIFF <- function (start.date, end.date, in.path, outdir) {
-  if (!require("abind")) {
-    PEcAn.logger::logger.info("The package: abind is not installed.")
-    return(0)
-  }
   # create dates.
   years <- sort(unique(lubridate::year(start.date):lubridate::year(end.date)))
   # initialize final outcomes.

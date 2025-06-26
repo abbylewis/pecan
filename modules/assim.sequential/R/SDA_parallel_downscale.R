@@ -342,19 +342,19 @@ parallel_prediction <- function(base.map.dir, models, cov.vecs, non.na.inds, out
 #' @author Dongchen Zhang
 downscale_main <- function(settings, analysis, covariates.dir, time, variable, outdir, base.map.dir, method = "randomForest", cores = parallel::detectCores()) {
   # check packages.
-  if (!require(method, character.only = T)) {
+  if (method %in% rownames(installed.packages())) {
     PEcAn.logger::logger.info(paste("The package:", method, "is not installed."))
     return(0)
   }
-  if (!require("itertools")) {
+  if ("itertools" %in% rownames(installed.packages())) {
     PEcAn.logger::logger.info("The package: itertools is not installed.")
     return(0)
   }
-  if (!require("doSNOW")) {
+  if ("doSNOW" %in% rownames(installed.packages())) {
     PEcAn.logger::logger.info("The package: doSNOW is not installed.")
     return(0)
   }
-  if (!require("foreach")) {
+  if ("foreach" %in% rownames(installed.packages())) {
     PEcAn.logger::logger.info("The package: foreach is not installed.")
     return(0)
   }

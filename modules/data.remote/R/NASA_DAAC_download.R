@@ -94,36 +94,30 @@ NASA_DAAC_download <- function(ul_lat,
       if (length(granules) == 0) 
         break
       # if it's GLANCE product.
-      # GLANCE product has special data archive.
-      if (doi == "10.5067/MEaSUREs/GLanCE/GLanCE30.001") {
-        granules_href <- c(granules_href, sapply(granules, function(x) {
-          links <- c()
-          for (j in seq_along(x$links)) {
-            links <- c(links, x$links[[j]]$href)
-          }
-          return(links)
-        }))
+      # GLANCE and HLS products have special data archive.
+      if (doi %in% c("10.5067/MEaSUREs/GLanCE/GLanCE30.001", "10.5067/HLS/HLSS30.002")) {
+        granules_href <- c(granules_href, sapply(granules, function(x) {sapply(x$links,function(y) y$href)}))
       } else {
         granules_href <- c(granules_href, sapply(granules, function(x) x$links[[1]]$href))
       }
       # grab specific band.
       if (!is.null(band)) {
-        granules_href <- granules_href[which(grepl(paste(band, collapse = "|"), granules_href))]
+        granules_href <- granules_href[which(grepl(band, granules_href, fixed = T))]
       }
       page <- page + 1
     }
+  }
+  # remove non-target files (e.g. s3)
+  granules_href <- granules_href[which(grepl("https*", granules_href))]
+  # remove duplicated files.
+  inds <- which(duplicated(basename(granules_href)))
+  if (length(inds) > 0) {
+    granules_href <- granules_href[-inds]
   }
   # if no files are found.
   if (is.null(granules_href)) {
     PEcAn.logger::logger.info("No files found. Please check the spatial and temporal search window.")
     return(NA)
-  }
-  # remove any urls that are not starting with https.
-  granules_href = granules_href[which(grepl("http*",granules_href))]
-  # remove duplicated files.
-  inds <- which(duplicated(basename(granules_href)))
-  if (length(inds) > 0) {
-    granules_href <- granules_href[-inds]
   }
   # remove non-image files.
   inds <- which(grepl(".h5", basename(granules_href)) |

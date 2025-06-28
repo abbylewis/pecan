@@ -1,3 +1,8 @@
+# This function generates a single joint ensemble design matrix (input indices)
+# which is reused across all sites. This ensures consistent sampling of inputs
+# (e.g., meteorology, parameters) to preserve spatial correlation and enable 
+# meaningful multi-site Sobol sensitivity analysis.
+
 generate_joint_ensemble_design <- function(settings, ensemble_size, 
                                            posterior.files = rep(NA, length(settings$pfts)), 
                                            ens.sample.method = "uniform") {

@@ -4,11 +4,10 @@
 # meaningful multi-site Sobol sensitivity analysis.
 
 generate_joint_ensemble_design <- function(settings, ensemble_size, 
-                                           posterior.files = rep(NA, length(settings$pfts)), 
                                            ens.sample.method = "uniform") {
   design_matrix <- data.frame()
   sampled_inputs <- list()
-
+  posterior.files = rep(NA, length(settings$pfts))
   samp <- settings$ensemble$samplingspace
   parents <- lapply(samp, '[[', 'parent')
   order <- names(samp)[lapply(parents, function(tr) which(names(samp) %in% tr)) %>% unlist()]

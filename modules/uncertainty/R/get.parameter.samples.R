@@ -201,6 +201,7 @@ get.parameter.samples <- function(settings,
         quantiles = 0.5
       )
     } else if (settings$ensemble$size > 1) {
+      
       ## subset the trait.samples to ensemble size using Halton sequence
       ensemble.samples <- get.ensemble.samples(settings$ensemble$size, trait.samples, 
                                                env.samples, ens.sample.method, param.names)

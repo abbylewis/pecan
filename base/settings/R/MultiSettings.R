@@ -176,7 +176,7 @@ printAll.MultiSettings <- function(x) {
 .expandableItemsTag <- "multisettings"
 
 #' @export
-listToXml.MultiSettings <- function(item, tag, collapse = TRUE) {
+listToXml.MultiSettings <- function(item, tag = "pecan", collapse = TRUE) {
   if (collapse) {
     if (.expandableItemsTag %in% names(item)) {
       stop("Settings can't contain reserved tag 'multisettings'.")

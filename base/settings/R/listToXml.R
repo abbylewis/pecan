@@ -24,7 +24,7 @@ listToXml <- function(x, ...) {
 listToXml.default <- function(x, ...) {
   args <- list(...)
   if (length(args) == 0) {
-    PEcAn.logger::logger.error("no tag provided")
+    tag <- "pecan"
   } else if ("tag" %in% names(args)) {
     tag <- args$tag
   } else {

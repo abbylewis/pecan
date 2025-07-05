@@ -13,6 +13,7 @@
   </pft>
  </pfts>
  <ensemble>
+   <size>1</size>
    <samplingspace>
    <parameters>
     <method>uniform</method>
@@ -20,7 +21,6 @@
    </samplingspace>
   </ensemble>
  <model>
-  <id>99000000003</id>
   <type>SIPNET</type>
   <revision>git</revision>
   <delete.raw>FALSE</delete.raw>

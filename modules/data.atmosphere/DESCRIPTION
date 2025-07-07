@@ -26,6 +26,7 @@ Imports:
     arrow,
     curl,
     dplyr (>= 0.8.1),
+    foreach,
     geonames (> 0.998),
     ggplot2,
     glue,

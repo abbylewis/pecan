@@ -12,6 +12,7 @@ You will learn how to read site metadata, filter by group, and create a MultiSet
 Sites stored in the BETY database can be queried by `sitegroup` to retrieve predefined sets of sites. Inside the database a sitegroup is nothing but a name given to a list of siteIDs, so in a flat file context we can do the same thing by adding one or more grouping columns.
 
 ## Example `site_info.csv`
+## You can either use this tibble for running demo , or can also use the site_info_example.csv in the document/tutorial/multisite-workflow/site_info_example.csv
 Suppose you have a CSV file like this: 
 
 ```{r}

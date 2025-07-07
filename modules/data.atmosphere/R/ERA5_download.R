@@ -5,10 +5,10 @@
 #' The function saves one NetCDF file per year in the specified output directory.
 #'
 #' @details
-#' This function requires a valid CDS API key and the Python `cdsapi` package installed and accessible via the `reticulate` package in R.
-#' If you do not have a `.cdsapirc` file with your API credentials, set `auto.create.key = TRUE` to be prompted for your CDS API URL and key.
+#' This function requires a valid CDS API key and the \code{ecmwfr} package for accessing the Copernicus Climate Data Store.
+#' The function will automatically prompt to install \code{ecmwfr} if not present in interactive sessions.
 #' To get a Copernicus CDS API key, register at \url{https://cds.climate.copernicus.eu/profile}.
-#' The API URL is \url{https://cds.climate.copernicus.eu/api/v2}.
+#' You must provide both \code{user} (UID) and \code{key} parameters from your CDS profile.
 #'
 #' @param outfolder Character. Directory where downloaded NetCDF files will be saved.
 #' @param start_date character: the start date of the data to be downloaded. Format is YYYY-MM-DD (will only use the year part of the date)
@@ -18,7 +18,8 @@
 #' @param time Character vector or NULL. Hours of the day to download (e.g., c("00:00", "12:00")). Default to NULL to download all hours.
 #' @param dataset Character. Name of the CDS dataset to use (default: "reanalysis-era5-single-levels").
 #' @param product_type Character. Product type to request from CDS (default: "ensemble_members").
-#' @param auto.create.key Boolean: decide if we want to generate the CDS RC file if it doesn't exist, the default is TRUE.
+#' @param user Character. CDS user ID (UID) from your CDS profile. Required for authentication.
+#' @param key Character. CDS API key from your CDS profile. Required for authentication.
 #' @param timeout numeric: the maximum time (in seconds) allowed to download the data. The default is 36000 seconds.
 #'
 #' @return
@@ -32,23 +33,57 @@
 #'
 #' @examples
 #' \dontrun{
+#' # Download ERA5 reanalysis data for 2020-2021
 #' era5_files <- download.ERA5_cds(
-#'   outfolder = "D:/working/era5_func_test",
+#'   outfolder = "~/output/era5_data",
 #'   start_date = "2020-01-01",
-#'   end_date = "2022-12-31",
+#'   end_date = "2021-12-31",
 #'   extent = c(-72.2215, -72.1215, 42.4878, 42.5878),
-#'   variables = c("2m_temperature","surface_pressure"),
-#'   time = NULL,
-#'   product_type = "reanalysis"
+#'   variables = c("2m_temperature", "surface_pressure"),
+#'   product_type = "reanalysis",
+#'   user = "your_cds_user_id",
+#'   key = "your_cds_api_key"
+#' )
+#' 
+#' # Download ensemble data for specificed hours only
+#' era5_files <- download.ERA5_cds(
+#'   outfolder = "~/output/era5_data",
+#'   start_date = "2020-01-01",
+#'   end_date = "2020-12-31",
+#'   extent = c(-84.0, -82.0, 42.0, 44.0),
+#'   variables = "surface_solar_radiation_downwards",
+#'   time = c("00:00", "12:00"),
+#'   user = "your_cds_user_id",
+#'   key = "your_cds_api_key"
 #' )
 #' }
 #' @export
 #' 
 #' @importFrom purrr %>%
+#' @importFrom ecmwfr wf_set_key wf_request
+#' @importFrom lubridate year month day date
 #' @author Dongchen Zhang
+
 download.ERA5_cds <- function(outfolder, start_date, end_date, 
                               extent, variables, time = NULL, dataset = "reanalysis-era5-single-levels",
-                              product_type = "ensemble_members", auto.create.key = T, timeout = 36000) {
+                              product_type = "ensemble_members", user = NULL, key = NULL, timeout = 36000) {
+  
+  # check and install for ecmwfr if not present
+  if (!requireNamespace("ecmwfr", quietly = TRUE)) {
+    PEcAn.logger::logger.info("ecmwfr package required but not installed")
+    if (interactive() && readline("Install ecmwfr from CRAN? (1/0): ") == "1") {
+      tryCatch({
+        install.packages("ecmwfr")
+        if (!requireNamespace("ecmwfr", quietly = TRUE)) {
+          PEcAn.logger::logger.severe("ecmwfr installation failed - please install manually")
+        }
+      }, error = function(e) PEcAn.logger::logger.severe("ecmwfr installation error: ", conditionMessage(e)))
+    } else {
+      PEcAn.logger::logger.severe("ecmwfr package required - please install to proceed")
+    }
+  }
+  
+  if (!dir.exists(outfolder)) dir.create(outfolder, recursive = TRUE)
   
   # setup timeout for download.
   options(timeout=timeout)
@@ -65,100 +100,56 @@ download.ERA5_cds <- function(outfolder, start_date, end_date,
   } else {
     times <- time
   }
-
+  
   # Format area for CDS API (North, West, South, East)
   area <- round(c(extent[4], extent[1], extent[3], extent[2]), 2)
   variables <- as.list(variables)
-  #load cdsapi from python environment.
-  tryCatch({
-    cdsapi <- reticulate::import("cdsapi")
-  }, error = function(e) {
+  
+  # Set CDS credentials
+  if (is.null(user) || is.null(key)) {
     PEcAn.logger::logger.severe(
-      "Failed to load `cdsapi` Python library. ",
-      "Please make sure it is installed to a location accessible to `reticulate`.",
-      "You should be able to install it with the following command: ",
-      "`pip install --user cdsapi`.",
-      "The following error was thrown by `reticulate::import(\"cdsapi\")`: ",
-      conditionMessage(e)
-    )
-  })
-  #define function for building credential file.
-  #maybe as a helper function.
-  getnetrc <- function (dl_dir) {
-    netrc <- file.path(dl_dir, ".cdsapirc")
-    if (file.exists(netrc) == FALSE ||
-        any(grepl("https://cds.climate.copernicus.eu/api/v2",
-                  readLines(netrc))) == FALSE) {
-      netrc_conn <- file(netrc)
-      writeLines(c(
-        sprintf(
-          "url: %s",
-          getPass::getPass(msg = "Enter URL from the following link \n (https://cds.climate.copernicus.eu/api-how-to#install-the-cds-api-key):")
-        ),
-        sprintf(
-          "key: %s",
-          getPass::getPass(msg = "Enter KEY from the following link \n (https://cds.climate.copernicus.eu/api-how-to#install-the-cds-api-key):")
-        )
-      ),
-      netrc_conn)
-      close(netrc_conn)
-      message(
-        "A netrc file with your CDS Login credentials was stored in the output directory "
-      )
-    }
-    return(netrc)
-  }
-  #check if the token exists for the cdsapi.
-  if (!file.exists(file.path(Sys.getenv("HOME"), ".cdsapirc")) & auto.create.key) {
-    if ("try-error" %in% class(try(find.package("getPass")))) {
-      PEcAn.logger::logger.info("The getPass pacakge is not installed for creating the API key.")
-      return(NA)
-    } else {
-      getnetrc(Sys.getenv("HOME"))
-    }
-  } else if (!file.exists(file.path(Sys.getenv("HOME"), ".cdsapirc")) & !auto.create.key) {
-    PEcAn.logger::logger.severe(
-      "Please create a `${HOME}/.cdsapirc` file as described here:",
-      "https://cds.climate.copernicus.eu/api-how-to#install-the-cds-api-key ."
+      "CDS 'user' and 'key' must be provided. ",
+      "Get them from: https://cds.climate.copernicus.eu/profile"
     )
   }
-  #grab the client object.
-  tryCatch({
-    c <- cdsapi$Client()
-  }, error = function(e) {
-    PEcAn.logger::logger.severe(
-      "The following error was thrown by `cdsapi$Client()`: ",
-      conditionMessage(e)
-    )
-  })
+  ecmwfr::wf_set_key(user = user, key = key)
+  
   # loop over years.
   nc.paths <- c()
   for (y in years) {
     fname <- file.path(outfolder, paste0("ERA5_", y, ".nc"))
-    # start retrieving data.
-    # you need to have an account for downloaing the files
-    # Read the documantion for how to setup your account and settings before trying this
-    # https://confluence.ecmwf.int/display/CKB/How+to+download+ERA5#HowtodownloadERA5-3-DownloadERA5datathroughtheCDSAPI
-    c$retrieve(
-      'reanalysis-era5-single-levels',
-      list(
-        'product_type' = list(product_type),
-        'data_format' = 'netcdf',
-        "download_format" = "unarchived",
-        'day' = days,
-        'time' = times,
-        'month' = months,
-        'year' = list(as.character(y)),
-        "area" = area,
-        'variable' = variables
-      ),
-      fname
+    
+    request <- list(
+      dataset_short_name = dataset,
+      product_type = list(product_type),
+      data_format = 'netcdf',
+      download_format = "unarchived",
+      day = days,
+      time = times,
+      month = months,
+      year = list(as.character(y)),
+      area = area,
+      variable = variables,
+      target = basename(fname)
     )
-
-    # store the path.
-    nc.paths <- c(nc.paths, fname)
-
+    
+    # Submit request using ecmwfr
+    tryCatch({
+      ecmwfr::wf_request(
+        request = request,
+        user = user,
+        path = outfolder,
+        time_out = timeout
+      )
+      nc.paths <- c(nc.paths, fname)
+    }, error = function(e) {
+      PEcAn.logger::logger.error(
+        "Failed to download data for year ", y, ": ",
+        conditionMessage(e)
+      )
+    })
   }
+  
   # construct results to meet the requirements of pecan.met workflow.
   results <- vector("list", length = length(years))
   for (i in seq_along(results)) {

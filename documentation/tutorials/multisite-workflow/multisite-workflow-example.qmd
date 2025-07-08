@@ -45,15 +45,6 @@ library(PEcAn.settings)
 ```{r}
 settings <- list(
   outdir = "pecan_runs",
-  database = list(
-    bety = list(
-      user = "bety",
-      password = "bety",
-      host = "postgres",
-      dbname = "bety",
-      driver = "PostgreSQL"
-    )
-  ),
   run = list(
     start.date = "2002-01-01",
     end.date = "2002-12-31",

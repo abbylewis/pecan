@@ -56,7 +56,7 @@ library("here")
 
 This section handles the step of loading the PEcAn settings.
 
--   If you have a `pecan.xml` file precofigured, place it in your working directory and copy its file path. Assign this path to the **settings_path** variable.
+-   If you have a `pecan.xml` file preconfigured, place it in your working directory and copy its file path. Assign this path to the **settings_path** variable.
 -   Alternatively, for a sample or initial run, you can use the example `pecan.xml` file available at: `pecan/documentation/tutorials/Demo_1_Basic_Run/pecan.xml`.
  
 ```{r load-settings}

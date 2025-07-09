@@ -27,7 +27,7 @@ This notebook demonstrates how to:
 ## Prerequisites
 
 Before running this notebook, make sure you have:
-- A valid `pecan.xml` configuration file (or use the example provided: [pecan.xml](pecan/documentation/tutorials/01_Demo_Basic_Run_quarto/pecan.xml))
+- A valid `pecan.xml` configuration file (or use the example provided: [pecan.xml](pecan/documentation/tutorials/Demo_1_Basic_Run/pecan.xml))
 
 ## How to Use This Notebook
 
@@ -57,10 +57,10 @@ library("here")
 This section handles the step of loading the PEcAn settings.
 
 -   If you have a `pecan.xml` file precofigured, place it in your working directory and copy its file path. Assign this path to the **settings_path** variable.
--   Alternatively, for a sample or initial run, you can use the example `pecan.xml` file available at: `pecan/documentation/tutorials/01_Demo_Basic_Run_quarto/pecan.xml`.
+-   Alternatively, for a sample or initial run, you can use the example `pecan.xml` file available at: `pecan/documentation/tutorials/Demo_1_Basic_Run/pecan.xml`.
  
 ```{r load-settings}
-settings_path <- here::here("/pecan/documentation/tutorials/01_Demo_Basic_Run_quarto/pecan.xml")
+settings_path <- here::here("/pecan/documentation/tutorials/Demo_1_Basic_Run/pecan.xml")
 ```
 
 # Prepare and Validate Settings
@@ -106,7 +106,7 @@ The meteorological data contains essential climate variables like temperature, p
 ```{r prepare-met-directory}
 dir.create("/data/dbfiles", recursive = TRUE, showWarnings = FALSE)
 # Copy the meteorological data file to the dbfiles directory
-system("cp /pecan/documentation/tutorials/01_Demo_Basic_Run_quarto/dbfiles/AMF_US-NR1_BASE_HH_23-5.2004-01-01.2004-12-31.clim /data/dbfiles/")
+system("cp /pecan/documentation/tutorials/Demo_1_Basic_Run/dbfiles/AMF_US-NR1_BASE_HH_23-5.2004-01-01.2004-12-31.clim /data/dbfiles/")
 ```
 
 # Write Model Configuration Files
@@ -127,7 +127,7 @@ settings$write <- FALSE
 
 # Set the path to Plant Functional Type (PFT) parameter files
 # These files define model parameters for the temperate coniferous forest.
-settings$pfts[[1]]$posterior.files <- here::here("/pecan/documentation/tutorials/01_Demo_Basic_Run_quarto/pft/temperate.coniferous/prior.distns.Rdata")
+settings$pfts[[1]]$posterior.files <- here::here("/pecan/documentation/tutorials/Demo_1_Basic_Run/pft/temperate.coniferous/prior.distns.Rdata")
 
 # Generate model-specific configuration files
 # This creates the necessary input files for the SIPNET model
@@ -197,7 +197,7 @@ This section shows all the variables that are available in the model output. The
 
 ```{r show-variables, echo=FALSE}
 # Read variable descriptions from external CSV
-var_lookup <- read.csv("/pecan/documentation/tutorials/01_Demo_Basic_Run_quarto/extfiles/variable_lookup.csv", stringsAsFactors = FALSE)
+var_lookup <- read.csv("/pecan/documentation/tutorials/Demo_1_Basic_Run/extfiles/variable_lookup.csv", stringsAsFactors = FALSE)
 
 # Build table for all available_vars, using lookup where possible
 vars_df <- data.frame(Variable = available_vars, stringsAsFactors = FALSE)

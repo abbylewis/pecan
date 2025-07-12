@@ -5,6 +5,9 @@ format:
   pdf:
     toc: true
     number-sections: false
+    fig-width: 10
+    fig-height: 6
+    fig-dpi: 300
 ---
 
 # 1. Introduction {#introduction}
@@ -119,6 +122,7 @@ This step generates the model-specific configuration files that will be used to 
 4. Generating configs: Use `runModule.run.write.configs()`
 
 ```{r write-configs}
+# Disable database operations for this demo
 settings$database <- NULL
 settings$write <- FALSE
 settings$pfts[[1]]$posterior.files <- here::here("/pecan/documentation/tutorials/Demo_1_Basic_Run/pft/temperate.coniferous/prior.distns.Rdata")

@@ -11,6 +11,7 @@ For more information about this file see also [Keep a Changelog](http://keepacha
 
 - Documentation of `make` options including addition of `make help` 
 - Add make option to document a single package with `make documentation pathto/package` 
+- `extract_soil_gssurgo` now supports spatial sampling using a grid of user-defined size and spacing. And supports ensemble simulation of soil organic carbon (SOC) stocks, using area-weighted aggregation
 
 ### Fixed
 - updated github action to build docker images

@@ -9,7 +9,8 @@ extract_soil_gssurgo(
   lat,
   lon,
   size = 1,
-  radius = 500,
+  grid_size = 3,
+  grid_spacing = 10,
   depths = c(0.15, 0.3, 0.6)
 )
 }
@@ -22,7 +23,9 @@ extract_soil_gssurgo(
 
 \item{size}{Ensemble size}
 
-\item{radius}{radius in meters is used to take soil type samples around the site}
+\item{grid_size}{Size of the spatial sampling grid (default: 3)}
+
+\item{grid_spacing}{Spacing between grid cells in meters (default: 10)}
 
 \item{depths}{Standard set of soil depths in m to create the ensemble of soil profiles with.}
 }
@@ -41,5 +44,5 @@ Extract soil data from gssurgo
 }
 }
 \author{
-Hamze Dokoohaki
+Hamze Dokoohaki and Akash
 }

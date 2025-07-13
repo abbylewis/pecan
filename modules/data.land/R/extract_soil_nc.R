@@ -523,7 +523,6 @@ soil.units <- function(varname = NA){
                                       "soil_thermal_conductivity","W m-1 K-1", 
                                       "soil_thermal_conductivity_at_saturation","W m-1 K-1", 
                                       "soil_thermal_capacity","J kg-1 K-1",
-<<<<<<< HEAD
                                       "soil_albedo","1",
                                       "slpotwp","m",
                                       "slpotcp","m",
@@ -531,11 +530,6 @@ soil.units <- function(varname = NA){
                                       "slden","kg m-3",
                                       "soil_organic_carbon_stock","kg m-2"
     ),
-=======
-                                      "soil_albedo","1"
-                                      
-  ),
->>>>>>> origin/develop
   ncol=2,byrow = TRUE))
   colnames(variables) <- c('var','unit')
   

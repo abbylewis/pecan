@@ -17,6 +17,12 @@ For more information about this file see also [Keep a Changelog](http://keepacha
   - Compiled pages are live at https://pecanproject.github.io/package-documentation and inside Docker at `pecan.localhost/pkgdocs/`, and these are automatically updated each time a PR to the source packages is merged.
   - You can compile all pkgdown pages locally at any time with `make pkgdocs`.
 - The ERA5 NC extraction function can now handle multi-site instead of one.
+- New Quarto notebook tutorial for PEcAn uncertainty analysis (`documentation/tutorials/Demo_02_Uncertainty_Analysis/uncertainty.qmd`) (#3570)
+  - Complete workflow demonstration for ensemble and sensitivity analysis using PEcAn's programmatic interface
+  - Parameter customization sections for ensemble size, sampling methods, and sensitivity quantiles
+  - Comprehensive output interpretation guide explaining variance decomposition and parameter prioritization
+  - Model result visualization with run ID identification and ensemble analysis capabilities
+  - Session information for reproducibility and clear documentation of PEcAn's uncertainty analysis outputs
 
 ### Fixed
 - api to correctly use x_var from request in plotResults #3528

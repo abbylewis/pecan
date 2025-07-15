@@ -98,7 +98,7 @@ merge_image_tiles <- function(folder.path,
   out <- system(cmd, intern = TRUE)
   # remove files.
   if (!keep.files) {
-    unlink(list.files(folder.path, full.names = T)[which(!grepl(paste0(basename(folder.path), ".tif"), list.files(folder.path)))], recursive = T)
+    unlink(list.files(folder.path, full.names = T)[which(!grepl("merged_image.tif", list.files(folder.path)))], recursive = T)
   }
   return(file.path(folder.path, paste0("merged_image.tif")))
 }

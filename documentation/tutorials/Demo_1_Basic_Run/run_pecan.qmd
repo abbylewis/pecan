@@ -35,6 +35,12 @@ This notebook demonstrates how to:
 
 Before running this notebook, make sure you have:
 
+- All the PEcAn packages installed. You can install all PEcAn packages and their dependencies by running the following command in the root of your PEcAn repository:
+
+```
+make install
+```
+
 - A valid `pecan.xml` configuration file or use the example provided: `pecan/documentation/tutorials/Demo_1_Basic_Run/pecan.xml`
 
 ## 1.4 How to Use This Notebook

@@ -1,3 +1,8 @@
+# PEcAn.SIPNET 1.10.0.9000
+
+* Breaking: `met2model.SIPNET` now writes 12-column clim files (as expected by Sipnet >= v2.0) by default.
+	To get the previously standard 14-column output, set `use_v1_format = TRUE`.
+
 # PEcAn.SIPNET 1.10.0
 
 ## Added

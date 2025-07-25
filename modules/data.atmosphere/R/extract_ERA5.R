@@ -23,7 +23,19 @@
 #' @export
 #' @examples
 #' \dontrun{
-#' point.data <- ERA5_extract(sslat=40, slon=-120, years=c(1990:1995), vars=NULL)
+#' point.data <- extract.nc.ERA5(
+#'   slat = 43.25,
+#'   slon = -83.25,
+#'   in.path = "path/to/era5/files",
+#'   start_date = "1990-01-01",
+#'   end_date = "1995-12-31",
+#'   outfolder = "path/to/output",
+#'   in.prefix = "ERA5_",
+#'   newsite = "my_site",
+#'   vars = NULL,
+#'   overwrite = FALSE,
+#'   verbose = TRUE
+#' )
 #' 
 #  point.data %>% 
 #'  purrr::map(~xts::apply.daily(.x, mean))

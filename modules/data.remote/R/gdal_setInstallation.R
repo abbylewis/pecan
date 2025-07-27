@@ -48,7 +48,6 @@
 #' @importFrom R.utils listDirectory
 ## @import utils
 ## @importFrom utils shortPathName
-#' @export
 
 # TODO: interface with gdal_chooseInstallation to remove some installs.
 # TODO: set permanently in e.g. .Rprofile (Matteo)

@@ -453,6 +453,7 @@
 "purrr",">= 0.2.3","modules/data.atmosphere","Imports",FALSE
 "pwr","*","modules/rtm","Suggests",FALSE
 "R.utils","*","base/db","Imports",FALSE
+"R.utils","*","modules/data.remote","Imports",FALSE
 "randomForest","*","modules/assim.sequential","Suggests",FALSE
 "randtoolbox","*","base/utils","Suggests",FALSE
 "randtoolbox","*","modules/uncertainty","Imports",FALSE

@@ -233,7 +233,6 @@ gdal_translate <- function(src_dataset,dst_dataset,ot,strict,of="GTiff",
 #' getOption("gdalUtils_gdalPath")[[
 #' 	gdal_chooseInstallation(hasDrivers=c("HDF4","HDF5"))]]$version
 #' }
-#' @export
 
 # TODO: hasWriteDrivers
 # TODO: allow a user to force an ID

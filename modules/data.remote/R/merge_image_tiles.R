@@ -140,11 +140,6 @@ merge_image_tiles <- function(folder.path,
 #'     target_format = ".tif")
 #' }
 gdal_conversion <- function(in_path, outfolder = NULL, band_name = NULL, just_band_name = TRUE, target_format = ".tif") {
-  # check if package has been installed.
-  if ("try-error" %in% class(try(system("gdal_translate"), silent = T))) {
-    PEcAn.logger::logger.info("The gdalwarp function is not detected in shell command.")
-    return(NA)
-  }
   # grab subdataset paths.
   sds <- get_subdatasets(in_path)
   # grab band names.

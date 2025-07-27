@@ -86,7 +86,6 @@
 #' hdf4_dataset <- system.file("external/test_modis.hdf", package="gdalUtils")
 #' gdal_translate(hdf4_dataset,file.path(outdir,"test_modis_sd1.tif"),sd_index=1)
 #' }
-#' @export
 
 # TODO: return all subdatasets if sds=TRUE as a list of bricks
 # TODO: add in overwrite=TRUE/FALSE capabilties in this and other functions.

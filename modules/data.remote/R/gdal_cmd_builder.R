@@ -80,7 +80,6 @@
 #' cmd
 #' system(cmd,intern=TRUE) 
 #' }
-#' @export
 
 #TODO: additional commands
 #TODO: work without parameters (executable only)

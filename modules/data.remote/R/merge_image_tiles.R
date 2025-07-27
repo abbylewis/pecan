@@ -193,3 +193,21 @@ get_subdatasets <- function(in_path) {
                 })
   return(sds)
 }
+
+#' @description This function provides tool the gdal_translate execution.
+#' 
+#' @title gdal_translate
+#' @param from character: subdataset name. 
+#' Generated from the `get_subdatasets` function.
+#' @param to character: physical path to the output file.
+#' @author Dongchen Zhang
+gdal_translate <- function (from, to) {
+  # grab gdal installation path.
+  if ("try-error" %in% class(try(gdal_path <- system("which gdal_translate", intern = TRUE)))) {
+    PEcAn.logger::logger.info("Please make sure the gdal_translate module is installed correctly!")
+    return(0)
+  }
+  # create cmd.
+  cmd <- paste(paste('"',gdal_path,'"',sep=""), paste('"',from,'"',sep=""), paste('"',to,'"',sep=""))
+  out <- system(cmd, intern = T)
+}

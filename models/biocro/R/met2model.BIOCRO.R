@@ -30,8 +30,8 @@ met2model.BIOCRO <- function(in.path, in.prefix, outfolder, overwrite = FALSE,
 
   res <- list()
   for (year in years_wanted) {
-    yrstart = max(start_date, as.POSIXct(paste0(year, "-01-01 00:00:00"), tz = "UTC"))
-    yrend = min(end_date, as.POSIXct(paste0(year, "-12-31 23:59:59"), tz = "UTC"))
+    yrstart = max(lubridate::date(start_date), lubridate::ymd(paste0(year, "-01-01")))
+    yrend = min(lubridate::date(end_date), lubridate::ymd(paste0(year, "-12-31")))
 
     ncfile <- file.path(in.path, paste(in.prefix, year, "nc", sep = "."))
     csvfile <- file.path(outfolder, paste(in.prefix, year, "csv", sep = "."))

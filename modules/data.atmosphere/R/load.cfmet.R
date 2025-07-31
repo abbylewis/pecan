@@ -51,19 +51,16 @@ load.cfmet <- function(met.nc, lat, lon, start.date, end.date) {
 
   all.dates <- data.frame(index = seq_along(time.idx), date = date)
   
-  # Calculate the typical timestep of the met data using median for robustness
   if (nrow(all.dates) > 1) {
     delta <- stats::median(diff(all.dates$date), na.rm = TRUE)
   } else {
-    delta <- as.difftime(1, units = "hours")  # default to 1 hour if only one timestamp
+    delta <- as.difftime(1, units = "hours")  
   }
   
-  # Check if start date is more than one timestep before the first available data
   if (start.date < (min(all.dates$date) - delta)) {
     PEcAn.logger::logger.severe("run start date", start.date, "before met data starts", min(all.dates$date))
   }
   
-  # Check if end date is more than one timestep after the last available data
   if (end.date > (max(all.dates$date) + delta)) {
     PEcAn.logger::logger.severe("run end date", end.date, "after met data ends", max(all.dates$date))
   }

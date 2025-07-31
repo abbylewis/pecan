@@ -10,7 +10,7 @@ test_that("Met conversion runs without error", {
   in.path <- dirname(nc_path)
   in.prefix <- "CRUNCEP"
   start_date <- "2000-01-01"
-  end_date <- "2000-12-31 21:00:00"
+  end_date <- "2000-12-31"
   result <- met2model.BIOCRO(in.path, in.prefix, outfolder,
                              lat = 45.25,
                              lon = -84.75,

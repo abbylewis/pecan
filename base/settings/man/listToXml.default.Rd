@@ -12,11 +12,7 @@ Despite the function name, need not actually be a list}
 
 \item{tag}{name to use for the root tag of the resulting XML tree}
 
-\item{...}{further arguments, used to set the root element name
-of the created XML object.
-The name is taken from an argument named \code{tag} if present,
-or otherwise from the first unnamed element of \code{...},
-or otherwise defaults to "pecan'}
+\item{...}{further arguments, currently ignored}
 }
 \value{
 xmlNode

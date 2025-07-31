@@ -15,11 +15,7 @@ listToXml <- function(x, ...) {
 #' @param x object to be converted.
 #'   Despite the function name, need not actually be a list
 #' @param tag name to use for the root tag of the resulting XML tree
-#' @param ... further arguments, used to set the root element name
-#'   of the created XML object.
-#'   The name is taken from an argument named `tag` if present,
-#'   or otherwise from the first unnamed element of `...`,
-#'   or otherwise defaults to "pecan'
+#' @param ... further arguments, currently ignored
 #' @return xmlNode
 #' @export
 #' @author David LeBauer, Carl Davidson, Rob Kooper

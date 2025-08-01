@@ -11,35 +11,44 @@
 #' @return OK if everything was succesful.
 #' @export
 #' @author Chris Black
-met2model.RothC <- function(in.path, in.prefix, outfolder, start_date, end_date, overwrite = FALSE) {
+met2model.RothC <- function(in.path,
+                            in.prefix,
+                            outfolder,
+                            start_date,
+                            end_date,
+                            overwrite = FALSE) {
 
 
   PEcAn.logger::logger.info("START met2model.RothC")
   start_date <- as.POSIXlt(start_date, tz = "UTC")
   end_date <- as.POSIXlt(end_date, tz = "UTC")
-  
+
   # TODO pull file detection out to a helper, we are not a pasta factory
   if (grepl("\\.nc$", in.prefix)) {
     # assume it's the full filename rather than a prefix
-    name_pattern <- in.prefix 
+    name_pattern <- in.prefix
   } else {
     name_pattern <- paste0(in.prefix, ".*", "\\.nc$")
-  nc_files <- list.files(in.path, pattern = name_pattern)
-  
-  if (length(nc_files) == 0) {
-    PEcAn.logger::logger.severe(paste0("No files found matching ", in.prefix, "; cannot process data."))
   }
-  
+
+  nc_files <- list.files(in.path, pattern = name_pattern)
+
+  if (length(nc_files) == 0) {
+    PEcAn.logger::logger.severe(
+      paste0("No files found matching ", in.prefix, "; cannot process data.")
+    )
+  }
+
   out.file <- paste(
     in.prefix,
     strptime(start_date, "%Y-%m"),
     strptime(end_date, "%Y-%m"),
     "dat",
-                      sep = ".")
-  }
-  
+    sep = "."
+  )
+
   out.file.full <- file.path(outfolder, out.file)
-  
+
   results <- data.frame(file = out.file.full,
                         host = PEcAn.remote::fqdn(),
                         mimetype = "text/tab-separated-values",
@@ -52,33 +61,39 @@ met2model.RothC <- function(in.path, in.prefix, outfolder, start_date, end_date,
   PEcAn.logger::logger.info(results)
 
   if (file.exists(out.file.full) && !overwrite) {
-    PEcAn.logger::logger.debug("File '", out.file.full, "' already exists, skipping to next file.")
+    PEcAn.logger::logger.debug(
+      "File '", out.file.full, "' already exists, skipping to next file."
+    )
     return(invisible(results))
   }
-  
-  ## check to see if the outfolder is defined, if not create directory for output
+
   if (!file.exists(outfolder)) {
     dir.create(outfolder)
   }
-  
 
 
-  # construct vector of input filenames (specifically including multiple years if dates include that)
-  met <-  filenames |>
-    lapply(read_nc, varnames = c("air_temperature", "precipitation_flux", "specific_humidity")) |>
+
+  # construct vector of input filenames
+  # (specifically including multiple years if dates include that)
+  met <-  nc_files |>
+    lapply(
+      read_nc,
+      varnames = c("air_temperature", "precipitation_flux", "specific_humidity")
+    ) |>
     do.call(what = "rbind")
 
   met$year <- lubridate::year(met$timestamp)
   met$month <- lubridate::month(met$timestamp)
 
-  met$Tmp <- PEcAn.utils::ud_convert(this_years_vals$air_temperature, "K", "degC")
-  met$Rain <- # ... sum up to convert from flux to accumulation, right?
-  met$Evap <- # ... how to convert Qair to pan evaporation?
+  met$Tmp <- this_years_vals$air_temperature |>
+    PEcAn.utils::ud_convert("K", "degC")
+  met$Rain <- 0# TODO... sum up to convert from flux to accumulation, right?
+  met$Evap <- 0# TODO... how to convert Qair to pan evaporation?
 
 
-  met_monthly <- aggregate(met, Tmp~year+month, mean)
-  met_monthly$Rain <- tapply(met, Rain~year+month, sum) # careful, assumes it was converted from flux earlier
-  met_monthly$Evap <- tapply(met, Evap~year+month, sum)
+  met_monthly <- aggregate(met, Tmp ~ year + month, mean)
+  met_monthly$Rain <- tapply(met, Rain ~ year + month, sum) # careful, assumes it was converted from flux earlier
+  met_monthly$Evap <- tapply(met, Evap ~ year + month, sum)
 
 
 
@@ -96,19 +111,21 @@ read_nc <- function(ncfile, varnames = NULL) {
 
   nc <- ncdf4::nc_open(ncfile)
   on.exit(ncdf4::nc_close(nc), add = TRUE)
-  
+
   timestamps <- PEcAn.utils::cf2datetime(
     nc$dim$time$vals,
-    nc$dim$time$units)
+    nc$dim$time$units
+  )
 
   if (is.null(varnames)) {
     varnames <- names(nc$var)
   }
-  
+
   var_values <- lapply(
     varnames,
     ncdf4::ncvar_get,
-    nc = nc)
+    nc = nc
+  )
 
   # todo handle this case (multi-loc files?)
   stopifnot(all(sapply(var_values, length) == length(timestamps)))

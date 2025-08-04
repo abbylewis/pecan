@@ -1,3 +1,10 @@
+# PEcAn.settings 1.9.1
+
+## Fixed
+
+* listToXml.MultiSettings now produces valid XML from a MultiSettings with length 1.
+* setEnsemblePaths no longer wraps single paths in a list, giving `<path>/your/file.here</path>` instead of the previous `<path><path1>/your/file.here</path1></path>`.
+
 # PEcAn.settings 1.9.0
 
 ## Changed

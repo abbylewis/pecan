@@ -31,10 +31,10 @@ test_that("N fertilizer calculation from NN-PP-KK format works as expected", {
 
 test_that("Create fertilizer based on specified components", {
   result <- fertilizer_components(
-    fertilizer_type   = "compost", 
+    fertilizer_type = "compost", 
     fertilizer_amount = 1000, 
-    fraction_organic_n        = 0.02, 
-    fraction_organic_c        = 0.08)
+    fraction_organic_n = 0.02, 
+    fraction_organic_c = 0.08)
   expect_equal(result, 
                list(fertilizer_type = "compost", 
                     NO3_N = 0, 

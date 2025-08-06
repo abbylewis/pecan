@@ -18,7 +18,7 @@ if [ ! -e "@OUTDIR@/sipnet.out" ]; then
 
   "@BINARY@"
   STATUS=$?
-  
+
   # copy output
   mv "@RUNDIR@/sipnet.out" "@OUTDIR@"
 

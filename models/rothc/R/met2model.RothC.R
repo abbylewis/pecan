@@ -1,14 +1,22 @@
-#' Converts a met CF file to a RothC specific input file.
+#' Extract monthly weather from CF file for input to RothC
 #'
-#' The input files are called <in.path>/<in.prefix>.YYYY.cf
+#' Input files need to be named `<in.path>/<in.prefix>.YYYY.nc`
 #'
-#' @param in.path path on disk where CF file lives
+#' Output files are named `<outfolder>/<in.prefix>.YY-mm.YY-mm.dat`
+#' with one line per month and columns for temperature, rainfall,
+#' and evaporation.
+#'
+#' Note that the created file contains only weather data and not any of the
+#' soil or management data needed for RothC's single combined input file.
+#' See `write.config.RothC()` for assembly into a model-ready RothC_input.dat`.
+#'
+#' @param in.path path on disk where CF files live
 #' @param in.prefix prefix for each file
 #' @param outfolder location where model specific output is written.
 #' @param start_date,end_date When to start and end output.
 #'  Specify as exact dates, but output will be padded to whole months.
 #' @param overwrite logical: replace output files if they already exist?
-#' @return OK if everything was succesful.
+#' @return data frame summarizing file metadata
 #' @export
 #' @author Chris Black
 met2model.RothC <- function(in.path,
@@ -18,51 +26,59 @@ met2model.RothC <- function(in.path,
                             end_date,
                             overwrite = FALSE) {
 
-
   PEcAn.logger::logger.info("START met2model.RothC")
-  start_date <- as.POSIXlt(start_date, tz = "UTC")
-  end_date <- as.POSIXlt(end_date, tz = "UTC")
 
-  # TODO pull file detection out to a helper, we are not a pasta factory
+  start_date <- as.Date(start_date)
+  end_date <- as.Date(end_date)
+  start_year <- strftime(start_date, "%Y")
+  end_year <- strftime(end_date, "%Y")
+  year_regex <- paste(start_year:end_year, collapse = "|")
+
   if (grepl("\\.nc$", in.prefix)) {
-    # assume it's the full filename rather than a prefix
+    # Assume it's the full filename rather than a prefix
+    # NB also means we assume it contains the whole requested date range
     name_pattern <- in.prefix
   } else {
-    name_pattern <- paste0(in.prefix, ".*", "\\.nc$")
+    name_pattern <- paste0(in.prefix, "\\.(", year_regex, ")\\.nc$")
   }
 
-  nc_files <- list.files(in.path, pattern = name_pattern)
+  nc_files <- list.files(in.path, pattern = name_pattern, full.names = TRUE)
 
   if (length(nc_files) == 0) {
     PEcAn.logger::logger.severe(
-      paste0("No files found matching ", in.prefix, "; cannot process data.")
+      "No files found matching ", in.prefix,
+      "for years", start_year, ":", end_year,
+      "; cannot process data."
     )
   }
 
-  out.file <- paste(
+  # TODO complain (fail?) here if some but not all years found
+
+  out_filename <- paste(
     in.prefix,
-    strptime(start_date, "%Y-%m"),
-    strptime(end_date, "%Y-%m"),
+    strftime(start_date, "%Y-%m"),
+    strftime(end_date, "%Y-%m"),
     "dat",
     sep = "."
   )
-
-  out.file.full <- file.path(outfolder, out.file)
-
-  results <- data.frame(file = out.file.full,
-                        host = PEcAn.remote::fqdn(),
+  out_path <- file.path(outfolder, out_filename)
+  results <- data.frame(file = out_path,
+                        host = Sys.getenv(
+                          "FQDN",
+                          unset = Sys.info()[["nodename"]]
+                        ),
                         mimetype = "text/tab-separated-values",
                         formatname = "RothC.dat",
                         startdate = start_date,
                         enddate = end_date,
-                        dbfile.name = out.file,
+                        dbfile.name = out_filename,
                         stringsAsFactors = FALSE)
   PEcAn.logger::logger.info("internal results")
   PEcAn.logger::logger.info(results)
 
-  if (file.exists(out.file.full) && !overwrite) {
+  if (file.exists(out_path) && !overwrite) {
     PEcAn.logger::logger.debug(
-      "File '", out.file.full, "' already exists, skipping to next file."
+      "File '", out_path, "' already exists, skipping to next file."
     )
     return(invisible(results))
   }
@@ -71,10 +87,6 @@ met2model.RothC <- function(in.path,
     dir.create(outfolder)
   }
 
-
-
-  # construct vector of input filenames
-  # (specifically including multiple years if dates include that)
   met <-  nc_files |>
     lapply(
       read_nc,
@@ -82,23 +94,54 @@ met2model.RothC <- function(in.path,
     ) |>
     do.call(what = "rbind")
 
+  # TODO probably need more care with partial months here:
+  # we check if data extends to start/end, but not whether that includes enough
+  # days to treat as a whole month.
+  # e.g. if start_date = YYYY-01-31 and data starts YYYY-01-30 ->
+  # current code will aggregate those two days as if they were all of January.
+  # Consider failing if >n days missing in any output month?
+  first_month <- lubridate::floor_date(start_date, unit = "month")
+  last_month <- lubridate::ceiling_date(end_date, unit = "month")
+  met <- met[(met$timestamp >=  first_month) & (met$timestamp < last_month), ]
+  if (as.Date(min(met$timestamp)) > start_date
+      || as.Date(max(met$timestamp)) < end_date) {
+    PEcAn.logger::logger.severe(
+      "input (",
+      paste(range(met$timestamp), collapse = " to "),
+      ") does not cover requested time window (",
+      start_date, "to", end_date, ")"
+    )
+  }
+
   met$year <- lubridate::year(met$timestamp)
   met$month <- lubridate::month(met$timestamp)
-
-  met$Tmp <- this_years_vals$air_temperature |>
+  met$Tmp <- met$air_temperature |>
     PEcAn.utils::ud_convert("K", "degC")
   met$Rain <- 0# TODO... sum up to convert from flux to accumulation, right?
   met$Evap <- 0# TODO... how to convert Qair to pan evaporation?
 
+  met_monthly <- merge(
+    stats::aggregate(met, Tmp ~ year + month, mean),
+    stats::aggregate(met, cbind(Rain, Evap) ~ year + month, sum),
+    sort = FALSE # would treat months as strings; sort as numbers below instead
+  )
+  met_monthly <- met_monthly[order(met_monthly$year, met_monthly$month), ]
 
-  met_monthly <- aggregate(met, Tmp ~ year + month, mean)
-  met_monthly$Rain <- tapply(met, Rain ~ year + month, sum) # careful, assumes it was converted from flux earlier
-  met_monthly$Evap <- tapply(met, Evap ~ year + month, sum)
+  utils::write.table(
+    # as.data.frame to write integer columns as ints not floats
+    x = format(as.data.frame(met_monthly), digits = 4),
+    file = out_path,
+    quote = FALSE,
+    sep = "\t",
+    row.names = FALSE,
+    col.names = TRUE
+  )
 
-
-
-
+  results
 }
+
+
+
 
 
 # slurp named vars from one PEcAn nc into a dataframe with timestamp
@@ -131,7 +174,7 @@ read_nc <- function(ncfile, varnames = NULL) {
   stopifnot(all(sapply(var_values, length) == length(timestamps)))
 
   var_values |>
-    setNames(varnames) |>
+    stats::setNames(varnames) |>
     as.data.frame() |>
     transform(timestamp = timestamps)
 }

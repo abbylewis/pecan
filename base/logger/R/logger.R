@@ -82,8 +82,7 @@ logger.error <- function(msg, ...) {
 ##' should only be used if the application should terminate.
 ##'
 ##' Set \code{\link{logger.setQuitOnSevere}(FALSE)} to avoid terminating
-##' the session. This is set by default to TRUE if interactive or running
-##' inside Rstudio.
+##' the session. The default is to not quit if running interactively.
 ##'
 ##' @param msg the message that should be printed.
 ##' @param ... any additional text that should be printed.

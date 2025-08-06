@@ -75,8 +75,8 @@ look_up_fertilizer_components <- function(
     # Split NN-PP-KK format into components
     if (type %in% PEcAn.data.land::fertilizer_composition_data$name) {
       fraction_no3_n <- PEcAn.data.land::fertilizer_composition_data |>
-        dplyr::filter(name == type) |>
-        dplyr::pull(fraction_no3_n)
+        dplyr::filter(.data$name == type) |>
+        dplyr::pull(.data$fraction_no3_n)
     } else {
       fraction_no3_n <- stringr::str_split(type, "-", simplify = TRUE)[1] |>
         as.numeric() / 100 # convert % to fraction (0-1)
@@ -95,17 +95,17 @@ look_up_fertilizer_components <- function(
   if (type %in% PEcAn.data.land::fertilizer_composition_data$name) {    
     # Calculate the components directly in the data frame
     fertilizer_info <- PEcAn.data.land::fertilizer_composition_data |>
-      dplyr::filter(name == type) |>
+      dplyr::filter(.data$name == type) |>
       dplyr::mutate(
-        NO3_N = round(amount * fraction_no3_n),
-        NH4_N = round(amount * fraction_nh3_n),
-        N_org = round(amount * fraction_organic_n),
-        C_org = round(amount * fraction_c)
+        NO3_N = round(amount * .data$fraction_no3_n),
+        NH4_N = round(amount * .data$fraction_nh3_n),
+        N_org = round(amount * .data$fraction_organic_n),
+        C_org = round(amount * .data$fraction_c)
       )
       
       res <- fertilizer_info |>
-        dplyr::select(name, NO3_N, NH4_N, N_org, C_org) |>
-        dplyr::rename(type = name) |>
+        dplyr::select(.data$name, .data$NO3_N, .data$NH4_N, .data$N_org, .data$C_org) |>
+        dplyr::rename(type = .data$name) |>
         as.list()
     return(res)
   } else {

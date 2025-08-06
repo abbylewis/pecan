@@ -81,7 +81,7 @@ logger.error <- function(msg, ...) {
 ##' This function will print a message and stop execution of the code. This
 ##' should only be used if the application should terminate.
 ##'
-##' set \code{\link{logger.setQuitOnSevere}(FALSE)} to avoid terminating
+##' Set \code{\link{logger.setQuitOnSevere}(FALSE)} to avoid terminating
 ##' the session. This is set by default to TRUE if interactive or running
 ##' inside Rstudio.
 ##'
@@ -173,9 +173,13 @@ logger.message <- function(level, msg, ..., wrap = TRUE) {
 ##' Configure logging level.
 ##'
 ##' This will configure the logger level. This allows to turn DEBUG, INFO,
-##' WARN and ERROR messages on and off.
+##' WARN, ERROR, and SEVERE messages on and off.
 ##'
-##' @param level the level of the message (ALL, DEBUG, INFO, WARN, ERROR, OFF)
+##' @param level the level of the message. One of "ALL", "DEBUG", "INFO", "WARN",
+##' "ERROR", "SEVERE", or "OFF".
+##' Use "SEVERE" instead of "ERROR" for fatal errors. If `logger.setQuitOnSevere(TRUE)`,
+##' These will the program to stop (default is FALSE). 
+##'
 ##' @export
 ##' @return When logger level is set, the previous level is returned invisibly.
 ##'   This can be passed to `logger.setLevel()` to restore the previous level.
@@ -183,6 +187,11 @@ logger.message <- function(level, msg, ..., wrap = TRUE) {
 ##' @examples
 ##' \dontrun{
 ##' logger.setLevel('DEBUG')
+##' 
+##' # Temporarily turn logger off
+##' old_logger_level <- logger.setLevel("OFF")
+##'   # code here
+##' logger.setLevel(old_logger_level)
 ##' }
 logger.setLevel <- function(level) {
   original_level <- logger.getLevel()
@@ -193,14 +202,21 @@ logger.setLevel <- function(level) {
 
 
 ## Given the string representation this will return the numeric value
-## DEBUG = 10
-## INFO  = 20
-## WARN  = 30
-## ERROR = 40
-## ALL   = 99
 ##
-##@return level the level of the message
-##@author Rob Kooper
+## Supported levels
+##   ALL    = 0
+##   DEBUG  = 10
+##   INFO   = 20
+##   WARN   = 30
+##   ERROR  = 40
+##   SEVERE = 50
+##   OFF    = 60
+##
+## SEVERE is treated as more serious than ERROR,
+## and will terminate the session if `logger.setQuitOnSevere(TRUE)`
+##
+## @return level the level of the message
+## @author Rob Kooper
 logger.getLevelNumber <- function(level) {
   if (toupper(level) == "ALL") {
     return(0)
@@ -213,7 +229,7 @@ logger.getLevelNumber <- function(level) {
   } else if (toupper(level) == "ERROR") {
     return(40)
   } else if (toupper(level) == "SEVERE") {
-    return(40)
+    return(50)
   } else if (toupper(level) == "OFF") {
     return(60)
   } else {
@@ -225,9 +241,14 @@ logger.getLevelNumber <- function(level) {
 
 ##' Get configured logging level.
 ##'
-##' This will return the current level configured of the logging messages
+##' This will return the current level configured of the logging messages.
+##' 
+##' Note that `logger.setLevel()` invisibly returns current level, so 
+##' `logger.getLevel()` is not required to restore the level after a 
+##' temporary change.
 ##'
-##' @return level the level of the message (ALL, DEBUG, INFO, WARN, ERROR, OFF)
+##' @return level the level of the message, one of 
+##' "ALL", "DEBUG", "INFO", "WARN", "ERROR", "SEVERE", or "OFF".
 ##' @export
 ##' @author Rob Kooper
 ##' @examples

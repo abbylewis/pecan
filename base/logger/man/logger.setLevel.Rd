@@ -7,7 +7,10 @@
 logger.setLevel(level)
 }
 \arguments{
-\item{level}{the level of the message (ALL, DEBUG, INFO, WARN, ERROR, OFF)}
+\item{level}{the level of the message. One of "ALL", "DEBUG", "INFO", "WARN",
+"ERROR", "SEVERE", or "OFF".
+Use "SEVERE" instead of "ERROR" for fatal errors. If \code{logger.setQuitOnSevere(TRUE)},
+These will the program to stop (default is FALSE).}
 }
 \value{
 When logger level is set, the previous level is returned invisibly.
@@ -15,11 +18,16 @@ This can be passed to \code{logger.setLevel()} to restore the previous level.
 }
 \description{
 This will configure the logger level. This allows to turn DEBUG, INFO,
-WARN and ERROR messages on and off.
+WARN, ERROR, and SEVERE messages on and off.
 }
 \examples{
 \dontrun{
 logger.setLevel('DEBUG')
+
+# Temporarily turn logger off
+old_logger_level <- logger.setLevel("OFF")
+  # code here
+logger.setLevel(old_logger_level)
 }
 }
 \author{

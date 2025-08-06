@@ -57,7 +57,7 @@ layer_fr, sheep_fr, swine_fr, trkey_fr, veal_fr
 }
 \examples{
 # View all available fertilizer types
-unique(PEcAn.data.land::fertilizer_nutrient_data$name)
+unique(PEcAn.data.land::fertilizer_composition_data$name)
 
 # Calculate components for different fertilizer types
 look_up_fertilizer_components("urea", 200)

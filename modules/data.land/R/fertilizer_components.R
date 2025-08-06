@@ -34,7 +34,7 @@
 #'
 #' @examples
 #' # View all available fertilizer types
-#' unique(PEcAn.data.land::fertilizer_nutrient_data$name)
+#' unique(PEcAn.data.land::fertilizer_composition_data$name)
 #' 
 #' # Calculate components for different fertilizer types
 #' look_up_fertilizer_components("urea", 200)
@@ -74,8 +74,8 @@ look_up_fertilizer_components <- function(
   # If not in the database, check if the fertilizer type is in NN-PP-KK format (e.g., 45-5-10)
   if (stringr::str_detect(type, "^\\d{1,2}-\\d{1,2}-\\d{1,2}$")) {
     # Split NN-PP-KK format into components
-    if (type %in% PEcAn.data.land::fertilizer_nutrient_data$name) {
-      fraction_no3_n <- PEcAn.data.land::fertilizer_nutrient_data |>
+    if (type %in% PEcAn.data.land::fertilizer_composition_data$name) {
+      fraction_no3_n <- PEcAn.data.land::fertilizer_composition_data |>
         dplyr::filter(name == type) |>
         dplyr::pull(fraction_no3_n)
     } else {

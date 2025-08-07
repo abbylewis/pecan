@@ -2,6 +2,7 @@
 
 * `ERA5_met_process()` can now process ensemble data efficiently in parallel using new option `n_cores`
 * Dependency `ggplot2` is now suggested rather than required. It is used in two vignettes and for optional diagnostic plots from `debias_met_regression`.
+* added support for soil temperature, relative humidity, soil moisture, and PPFD downscaling to `met_temporal_downscale.Gaussian_ensemble`
 
 
 # PEcAn.data.atmosphere 1.9.0

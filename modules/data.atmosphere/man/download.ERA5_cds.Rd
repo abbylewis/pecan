@@ -48,7 +48,7 @@ A list where each element is a list containing:
   \item{startdate}{Start date and time of the data in the file.}
   \item{enddate}{End date and time of the data in the file.}
   \item{mimetype}{MIME type of the file ("application/x-netcdf").}
-  \item{formatname}{Format name ("ERA5_year.nc" or "ERA5.rea_year.nc").}
+  \item{formatname}{Format name ("ERA5_year.nc").}
 }
 \description{
 Download ERA5 climate data from the Copernicus Climate Data Store (CDS) API as NetCDF files, year by year, according to user-specified parameters.
@@ -58,14 +58,17 @@ The function saves one NetCDF file per year in the specified output directory.
 This function requires a valid CDS API key and the \code{ecmwfr} package for accessing the Copernicus Climate Data Store.
 To get a Copernicus CDS API key, register at \url{https://cds.climate.copernicus.eu/profile}.
 You must provide both \code{user} (UID) and \code{key} parameters from your CDS profile.
+
+You can check the "CC-BY" license under the \href{https://cds.climate.copernicus.eu/profile?tab=licences}{licenses tab of your profile page}.
 }
 \examples{
 \dontrun{
-# Download ERA5 reanalysis data for 2020-2021
+# Download ERA5 reanalysis data for 2020
+output_dir <- withr::local_tempdir()
 era5_files <- download.ERA5_cds(
-  outfolder = "~/output/era5_data",
+  outfolder = output_dir,
   start_date = "2020-01-01",
-  end_date = "2021-12-31",
+  end_date = "2020-06-30",
   extent = c(-72.2215, -72.1215, 42.4878, 42.5878),
   variables = c("2m_temperature", "surface_pressure"),
   product_type = "reanalysis",
@@ -75,10 +78,10 @@ era5_files <- download.ERA5_cds(
 
 # Download ensemble data for specificed hours only
 era5_files <- download.ERA5_cds(
-  outfolder = "~/output/era5_data",
+  outfolder = output_dir,
   start_date = "2020-01-01",
   end_date = "2020-12-31",
-  extent = c(-84.0, -82.0, 42.0, 44.0),
+  extent = c(-83.05, -82.95, 42.95, 43.05),
   variables = "surface_solar_radiation_downwards",
   time = c("00:00", "12:00"),
   user = "your_cds_user_id",
@@ -87,5 +90,5 @@ era5_files <- download.ERA5_cds(
 }
 }
 \author{
-Dongchen Zhang
+Dongchen Zhang, Akash
 }

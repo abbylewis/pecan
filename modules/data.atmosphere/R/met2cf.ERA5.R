@@ -159,18 +159,16 @@ met2CF.ERA5<- function(lat,
         enddate = paste0(format(
           end_date , "%Y-%m-%dT%H:%M:00 %z"
         )),
-        dbfile.name = if (is_ensemble) paste0("ERA5.", i) else "ERA5.reanalysis",
+        dbfile.name = paste0("ERA5.", i),
         stringsAsFactors = FALSE
       )
 
       if (is_ensemble) {
-        identifier <- paste("ERA5", sitename, i, sep = "_")
-        identifier.file <- paste("ERA5", i, lubridate::year(start_date), sep = ".")
+        identifier <- paste("ERA5", sitename, i, sep = "_") 
       } else {
-        identifier <- paste("ERA5", sitename, "reanalysis", sep = "_")
-        identifier.file <- paste("ERA5", "reanalysis", lubridate::year(start_date), sep = ".")
+        identifier <- paste("ERA5", sitename, "Mean", sep = "_")
       }
-
+      identifier.file <- paste("ERA5", i, lubridate::year(start_date), sep = ".")
       ensemble_folder <- file.path(outfolder, identifier)
       #Each file will go in its own folder.
       if (!dir.exists(ensemble_folder)) {
@@ -186,13 +184,8 @@ met2CF.ERA5<- function(lat,
       
       years %>%
         purrr::map(function(year) {
-          #
-          if (is_ensemble) {
-            identifier.file <- paste("ERA5", i, year, sep = ".")
-          } else {
-            identifier.file <- paste("ERA5", "reanalysis", year, sep = ".")
-          }
-          
+          identifier.file <- paste("ERA5", i, year, sep = ".")
+
           flname <-file.path(ensemble_folder, paste(identifier.file, "nc", sep = "."))
           # Spliting it for this year
           data.for.this.year.ens <- out.new[[i]]

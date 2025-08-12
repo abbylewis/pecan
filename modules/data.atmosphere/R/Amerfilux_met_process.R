@@ -143,7 +143,7 @@ AmeriFlux_met_process <- function(site_id,
     selected_cols <- unique(unlist(sapply(input_names, function(p) {
       unlist(sapply(p, function(x) grep(x, names(flux_data), value = TRUE)))
     })))
-    state_vars <- flux_data[, ..selected_cols, drop = FALSE]
+    state_vars <- flux_data[, selected_cols, with = FALSE]
     extracted_file <- file.path(dirs$extracted, paste0(site_id, "_state_vars.csv"))
     data.table::fwrite(state_vars, extracted_file)
     
@@ -332,7 +332,7 @@ AmeriFlux_met_process <- function(site_id,
               
               na_idx <- which(is.na(amf_data))
               if (length(na_idx) > 0) {
-                era5_interp <- approx(era5_time, era5_data, 
+                era5_interp <- stats::approx(era5_time, era5_data, 
                                       xout = amf_time_sec[na_idx], 
                                       rule = 2)$y
                 
@@ -357,7 +357,7 @@ AmeriFlux_met_process <- function(site_id,
                                           missval = -999)
               
               nc_amf <- ncdf4::ncvar_add(nc_amf, new_var)
-              era5_interp <- approx(era5_time, era5_data, 
+              era5_interp <- stats::approx(era5_time, era5_data, 
                                     xout = amf_time_sec, 
                                     rule = 2)$y
               ncdf4::ncvar_put(nc_amf, cf_var, era5_interp)

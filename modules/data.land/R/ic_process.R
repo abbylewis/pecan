@@ -87,7 +87,7 @@ ic_process <- function(settings, input, dir, overwrite = FALSE){
 
     start_date <- settings$run$start.date
     end_date   <- settings$run$end.date
-  }else if (input$source=="BADM"){
+  } else if (input$source=="BADM"){
 
     outfolder <- file.path(dir, paste0(input$source, "_site_", str_ns))
     if(!dir.exists(outfolder)) dir.create(outfolder)
@@ -104,7 +104,36 @@ ic_process <- function(settings, input, dir, overwrite = FALSE){
     settings$run$inputs[['poolinitcond']]$path <- newfile
 
     return(settings)
-  }else if (input$source == "NEON_veg"){
+  } else if (input$source == "SoilGrids"){
+  
+    outfolder <- file.path(dir, paste0(input$source, "_site_", str_ns))
+    if(!dir.exists(outfolder)) dir.create(outfolder)
+    
+    # Check if files already exist in the expected SoilGrids directory
+    newfile <- list.files(outfolder, "*.nc$", full.names = TRUE) %>%
+      as.list()
+    names(newfile) <- rep("path", length(newfile))
+    
+    if (length(newfile) == 0 || overwrite$getveg) {
+      soilgrids_result <- PEcAn.data.land::soilgrids_ic_process(
+        settings = settings,
+        dir = dir,
+        overwrite = overwrite$getveg,
+        verbose = TRUE
+      )
+      
+      site_files <- soilgrids_result[[str_ns]]
+      if (!is.null(site_files) && length(site_files) > 0) {
+        newfile <- as.list(unlist(site_files, use.names = FALSE))
+        names(newfile) <- rep("path", length(newfile))
+      } else {
+        PEcAn.logger::logger.severe(sprintf("No SoilGrids files generated for site %s", str_ns))
+      }
+    }
+    
+    settings$run$inputs[['poolinitcond']]$path <- newfile
+    return(settings)
+  } else if (input$source == "NEON_veg"){
     #For debugging purposes I am hard coding in the start and end dates, will revisit and adjust once extract_NEON_veg is working within ic_process
     start_date = as.Date(input$startdate)
     end_date = as.Date(input$enddate)
@@ -112,10 +141,10 @@ ic_process <- function(settings, input, dir, overwrite = FALSE){
     # end_date = as.Date("2021-09-01")
     #Note the start and end dates for ICs are not the same as those for the forecast runs
     #please check out NEON products DP1.10098.001 for your desired site to check data availability before setting start and end dates
-  }else if(!is.null(input$startdate) && !is.null(input$enddate)){
+  } else if (!is.null(input$startdate) && !is.null(input$enddate)){
     start_date <- as.Date(input$startdate)
     end_date <- as.Date(input$enddate)
-  } else{
+  } else {
    
    query      <- paste0("SELECT * FROM inputs where id = ", input$id)
    input_file <- PEcAn.DB::db.query(query, con = con) 

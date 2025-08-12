@@ -4,18 +4,10 @@
 \alias{soilgrids_ic_process}
 \title{SoilGrids Initial Conditions (IC) Utilities}
 \usage{
-soilgrids_ic_process(
-  settings,
-  csv_path = NULL,
-  dir,
-  overwrite = FALSE,
-  verbose = FALSE
-)
+soilgrids_ic_process(settings, dir, overwrite = FALSE, verbose = FALSE)
 }
 \arguments{
 \item{settings}{PEcAn settings list containing site information}
-
-\item{csv_path}{Path to a CSV file containing site information (optional)}
 
 \item{dir}{Output directory for IC files}
 
@@ -33,6 +25,7 @@ Functions for generating soil carbon IC files from SoilGrids250m data
 This module provides functions for extracting, processing, and generating
          ensemble members for soil carbon initial conditions using SoilGrids data.
          All soil carbon values are in kg/m2.
+
 Process SoilGrids data for initial conditions
 }
 \examples{
@@ -40,9 +33,6 @@ Process SoilGrids data for initial conditions
 # From settings object
 settings <- PEcAn.settings::read.settings("pecan.xml")
 ic_files <- soilgrids_ic_process(settings, dir = "~/output/IC")  
-
-# From CSV file
-ic_files <- soilgrids_ic_process(csv_path = "sites.csv", dir = "~/output/IC")
 }
 }
 \author{

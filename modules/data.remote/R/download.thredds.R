@@ -1,28 +1,30 @@
-##' @title get_site_info
-##' @name  get_site_info
-##' 
-##' 
-##' @param xmlfile full path to pecan xml settings file
-##' 
-##' 
-##' @return a list of site information derived from BETY using a pecan .xml settings file with site_id, site_name, lat, lon, and time_zone.
-##' 
+##' get_site_info
+##'
+##' @param settings a PEcAn settings object
+##'
+##'
+##' @return a list of site information derived from BETY using a pecan .xml
+##'  settings file with site_id, site_name, lat, lon, and time_zone.
+##'
 ##' @examples
 ##' \dontrun{
-##' xmlfile <- the full path to a pecan .xml settings file.
-##' 
-##' results <- PEcAn.data.remote::download.thredds.AGB(outdir=outdir, 
-##'            site_ids = c(676, 678, 679, 755, 767, 1000000030, 1000000145, 1000025731), 
+##' settings <- PEcAn.settings::read.settings("/path/to/pecan.xml")
+##' site_info <- get_site_info(settings)
+##' results <- download_thredds(
+##'   site_info = site_info,
+##'   dates = c("19950201", "19961215"),
+##'   varid = "LAI",
+##'   dir_url = "https://www.ncei.noaa.gov/thredds/catalog/cdr/lai/files",
+##'   data_url = "https://www.ncei.noaa.gov/thredds/dodsC/cdr/lai/files",
+##'   run_parallel = TRUE,
+##'   outdir = NULL)
 ##'            run_parallel = TRUE, ncores = 8)
 ##' }
 ##' @export
 ##' @author Bailey Morrison
 ##'
-get_site_info <- function(xmlfile) {
-  require(PEcAn.all)
-  
-  settings <- read.settings(xmlfile)
-  
+get_site_info <- function(settings) {
+
   observation <- c()
   for (i in seq_along(1:length(settings$run))) {
     command <- paste0("settings$run$settings.", i, "$site$id")
@@ -47,34 +49,33 @@ get_site_info <- function(xmlfile) {
 }
 
 
-##' @title download.thredds
-##' @name  download.thredds
-##' 
-##' 
+##' download.thredds
+##'
+##'
 ##' @param outdir file location to place output
-##' @param site_info list of information with the site_id, site_info, lat, lon, and time_zone. Derived from BETY using a PEcAn .xml settings file with site information. Can use the get_site_info function to generate this list. 
+##' @param site_info list of information with the site_id, site_name, lat, lon, and time_zone.
+##'  Derived from BETY using a PEcAn .xml settings file with site information.
+##'  Can use the get_site_info function to generate this list.
 ##' @param dates vector of start and end date for dataset as YYYYmmdd, YYYY-mm-dd, YYYYjjj, or date object.
 ##' @param varid character vector of shorthand variable name. i.e. LAI
 ##' @param dir_url catalog url of data from ncei.noaa.gov/thredds website
 ##' @param data_url opendap url of data from ncei.noaa.gov/thredds website
 ##' @param run_parallel Logical. Download and extract files in parallel?
-##' 
+##'
 ##' @return data.frame summarize the results of the function call
-##' 
+##'
 ##' @examples
 ##' \dontrun{
-##' outdir <- directory to store downloaded data
-##' site_info <- list that contains information about site_id, site_name, latitude, longitude, and time_zone
-##' dates <- date range to download data. Should be a vector of start and end date for dataset as YYYYmmdd, YYYY-mm-dd, YYYYjjj, or date object.
-##' varod <- character shorthand name of variable to download. Example: LAI for leaf area index.
-##' dir_url <- catalog url from THREDDS that is used to determine which files are available for download using OPENDAP
-##' data_url <- OpenDAP URL that actually downloads the netcdf file.
-##' run_parallel <- optional. Can be used to speed up download process if there are more than 2 cores available on computer
-##' 
-
-##' results <- download_thredds(site_info = site_info, dates = c("19950201", "19961215"), varid = "LAI", dir_url = "https://www.ncei.noaa.gov/thredds/catalog/cdr/lai/files", data_url = "https://www.ncei.noaa.gov/thredds/dodsC/cdr/lai/files", run_parallel = TRUE, outdir = NULL)
-##' }        
-##'            
+##' results <- download_thredds(
+##'   site_info = site_info,
+##'   dates = c("19950201", "19961215"),
+##'   varid = "LAI",
+##'   dir_url = "https://www.ncei.noaa.gov/thredds/catalog/cdr/lai/files",
+##'   data_url = "https://www.ncei.noaa.gov/thredds/dodsC/cdr/lai/files",
+##'   run_parallel = TRUE,
+##'   outdir = NULL)
+##' }
+##'
 ##' @export
 ##' @author Bailey Morrison
 ##'
@@ -82,7 +83,6 @@ download_thredds <- function(site_info, dates, varid, dir_url, data_url,run_para
   
   #until the issues with parallel runs are fixed.
   run_parallel = FALSE
-  require("foreach")
   
   #### check that dates are within the date range of the dataset
   
@@ -138,7 +138,7 @@ download_thredds <- function(site_info, dates, varid, dir_url, data_url,run_para
   get_dates <-  date_range[which(date_range %in% dates_avail)]
   
   # only keep files that are within the true yyyymmdd date range user requested
-  files <- files[foreach(i = seq_along(get_dates), .combine = c) %do% grep(files, pattern = format(get_dates[i], '%Y%m%d'))]
+  files <- files[foreach::foreach(i = seq_along(get_dates), .combine = c) %do% grep(files, pattern = format(get_dates[i], '%Y%m%d'))]
   filenames <- basename(files)
   
   # user must supply data_URL or the netcdf files cannot be downloaded through thredds. if user has supplied no data_url, the job will fail
@@ -152,8 +152,6 @@ download_thredds <- function(site_info, dates, varid, dir_url, data_url,run_para
     # parallel seems to have a problem right now with > 500 urls.
     if (run_parallel)
     {
-      #require("parallel")
-      require("doParallel")
       ncores <- parallel::detectCores(all.tests = FALSE, logical = TRUE)
       # This is a failsafe for computers with low numbers of CPUS to reduce risk of blowing RAM.
       if (ncores >= 3)
@@ -168,10 +166,10 @@ download_thredds <- function(site_info, dates, varid, dir_url, data_url,run_para
       }
       cl <- parallel::makeCluster(ncores, outfile="")
       doParallel::registerDoParallel(cl)
-      output <- foreach(i = urls, .combine = rbind) %dopar% extract_thredds_nc(site_info = site_info, url = i)
+      output <- foreach::foreach(i = urls, .combine = rbind) %dopar% extract_thredds_nc(site_info = site_info, url = i)
       parallel::stopCluster(cl)
     } else {
-      output <- foreach(i = urls, .combine = rbind) %do% extract_thredds_nc(site_info, url = i)
+      output <- foreach::foreach(i = urls, .combine = rbind) %do% extract_thredds_nc(site_info, url = i)
     }
     
     if (!(is.null(outdir)))
@@ -185,31 +183,30 @@ download_thredds <- function(site_info, dates, varid, dir_url, data_url,run_para
   }
 }
 
-##' @title extract_thredds_nc
-##' @name  extract_thredds_nc
-##' 
-##' 
-##' @param site_info list of information with the site_id, site_info, lat, lon, and time_zone. Derived from BETY using a PEcAn .xml settings file with site information. Can use the get_site_info function to generate this list. 
+##' extract_thredds_nc
+##'
+##' @param site_info list of information with the site_id, site_name, lat, lon, and time_zone.
+##'  Derived from BETY using a PEcAn .xml settings file with site information.
+##'  Can use the get_site_info function to generate this list.
 ##' @param url a THREDDS url of a .nc file to extract data from.
-##' 
-##' 
-##' @return a dataframe with the values for each date/site combination from a THREDDS file 
-##' 
+##'
+##'
+##' @return a dataframe with the values for each date/site combination from a THREDDS file
+##'
 ##' @examples
 ##' \dontrun{
-##' site_info <- list of information with the site_id, site_info, lat, lon, and time_zone. Derived from BETY using a PEcAn .xml settings file with site information. Can use the get_site_info function to generate this list. 
-##' url <- url a THREDDS url of a .nc file to extract data from.
-##' 
-##' output <- extract_thredds_nc(site_info = site_info, url_info = "https://www.ncei.noaa.gov/thredds/dodsC/cdr/lai/files/1995/AVHRR-Land_v005_AVH15C1_NOAA-14_19950201_c20180831220722.nc")
-##'}            
+##' thredds_url = paste0( # breaking up long URL for readability
+##'   "https://www.ncei.noaa.gov/thredds/dodsC/cdr/lai/files/1995/",
+##'   "AVHRR-Land_v005_AVH15C1_NOAA-14_19950201_c20180831220722.nc")
+##' output <- extract_thredds_nc(
+##'   site_info = site_info,
+##'   url_info = thredds_url)
+##'}
 ##' @export
 ##' @author Bailey Morrison
 ##'
 extract_thredds_nc <- function(site_info, url_info)
 {
-  #print(url)
-  require("foreach")
-  require("ncdf4")
   
   mylats <- site_info$lat
   mylons <- site_info$lon
@@ -225,15 +222,15 @@ extract_thredds_nc <- function(site_info, url_info)
   lons <- ncdf4::ncvar_get(data, "longitude")
   
   # find the cell that site coordinates are located in
-  dist_y <- foreach(i = mylats, .combine = cbind) %do% sqrt((lats - i)^2)
-  dist_x <- foreach(i = mylons, .combine = cbind) %do% sqrt((lons - i)^2)
-  y <- foreach(i = 1:ncol(dist_y), .combine = c) %do% which(dist_y[,i] == min(dist_y[,i]), arr.ind = TRUE)
-  x <- foreach(i = 1:ncol(dist_x), .combine = c) %do% which(dist_x[,i] == min(dist_x[,i]), arr.ind = TRUE)
-  
+  dist_y <- foreach::foreach(i = mylats, .combine = cbind) %do% sqrt((lats - i)^2)
+  dist_x <- foreach::foreach(i = mylons, .combine = cbind) %do% sqrt((lons - i)^2)
+  y <- foreach::foreach(i = 1:ncol(dist_y), .combine = c) %do% which(dist_y[,i] == min(dist_y[,i]), arr.ind = TRUE)
+  x <- foreach::foreach(i = 1:ncol(dist_x), .combine = c) %do% which(dist_x[,i] == min(dist_x[,i]), arr.ind = TRUE)
+
   scale <- data$var[[var]]$scaleFact
-  
-  d <- as.vector(foreach(i = seq_along(x), .combine = rbind) %do% ncdf4::ncvar_get(data, var, start = c(x[i], y[i], 1), count = c(1,1,1)))
-  
+
+  d <- as.vector(foreach::foreach(i = seq_along(x), .combine = rbind) %do% ncdf4::ncvar_get(data, var, start = c(x[i], y[i], 1), count = c(1,1,1)))
+
   info <- as.data.frame(cbind(sites, mylons, mylats, d), stringsAsFactors = FALSE)
   names(info) <- c("site_id", "lon", "lat", "value")
   

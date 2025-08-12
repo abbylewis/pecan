@@ -17,8 +17,8 @@
 * Included all relevant carbon pools (`ROOT_BIOMASS`, `AG_BIOMASS`, `SOIL_STOCK`, `LIT_BIOMASS`) in BADM-based IC extraction; excluded non-pool variables like `SOIL_CHEM`.
 * Added explicit support for `LIT_BIOMASS` to fully utilize **BADM** biomass capabilities.
 * Added `test-IC_BADM_Utilities.R` to validate BADM initial condition extraction and processing
-* New utility script `IC_SOILGRID_Utilities.R` for processing SoilGrids data to generate soil carbon initial condition (IC) files. This includes:
-  - **`soilgrids_ic_process`**: A function to extract, process, and generate ensemble members from SoilGrids250m data, supporting input from PEcAn settings and optional CSV files. 
+* New utility script `IC_SOILGRID_Utilities.R` for processing SoilGrids data to generate soil carbon initial condition (IC) files. This includes (#3508):
+  - **`soilgrids_ic_process`**: A function to extract, process, and generate ensemble members from SoilGrids250m data.
   - **`preprocess_soilgrids_data`**: A helper function to handle missing values and ensure data integrity during preprocessing. 
   - **`generate_soilgrids_ensemble`**: A function to create ensemble members for a site based on processed soil carbon data. 
   

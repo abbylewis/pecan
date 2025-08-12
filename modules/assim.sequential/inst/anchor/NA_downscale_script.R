@@ -224,7 +224,7 @@ for (y in 2012:2024) {
 }
 
 # setup parallel downscaling.
-method <- "xgboost" #xgboost; randomForest.
+method <- "xgboost" #xgboost; randomForest;
 base.map.dir <- "/projectnb/dietzelab/dongchen/anchorSites/downscale/MODIS_NLCD_LC.tif"
 load("/projectnb/dietzelab/dongchen/anchorSites/NA_runs/SDA_8k_site/sda.all.forecast.analysis_noGEDI.Rdata")
 variables <- c("AbvGrndWood", "LAI", "SoilMoistFrac", "TotSoilCarb")
@@ -236,7 +236,7 @@ date <- seq(as.Date("2012-07-15"), as.Date("2024-07-15"), "1 year")
 for (i in seq_along(date)) {
   print(i)
   # Assemble covariates.
-  covariates.dir <- file.path("/projectnb/dietzelab/dongchen/anchorSites/NA_runs/covariates_lc_ts/covariates/", paste0("covariates_", lubridate::year(date[i]), ".tiff"))
+  covariates.dir <- file.path("/projectnb/dietzelab/dongchen/anchorSites/NA_runs/covariates_lc_ts/covariates_nolatlon/", paste0("covariates_", lubridate::year(date[i]), ".tiff"))
   # grab analysis.
   analysis.yr <- analysis.all[[i]]
   time <- date[i]

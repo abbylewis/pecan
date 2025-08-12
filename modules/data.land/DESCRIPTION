@@ -57,8 +57,7 @@ Imports:
     tidyr,
     tidyselect,
     traits,
-    XML (>= 3.98-1.4),
-    MASS
+    XML (>= 3.98-1.4)
 Suggests:
     dataone,
     datapack,
@@ -68,7 +67,8 @@ Suggests:
     redland,
     raster,
     reticulate,
-    testthat (>= 1.0.2)
+    testthat (>= 1.0.2),
+    MASS
 Remotes:
     github::ropensci/traits
 License: BSD_3_clause + file LICENSE

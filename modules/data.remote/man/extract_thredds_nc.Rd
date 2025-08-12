@@ -15,14 +15,6 @@ extract_thredds_nc(site_info, url_info)
 \item{site_info}{list of information with the site_id, site_info, lat, lon, and time_zone. Derived from BETY using a PEcAn .xml settings file with site information. Can use the get_site_info function to generate this list.}
 
 \item{url}{a THREDDS url of a .nc file to extract data from.}
-
-\item{site_info}{list of information with the site_id, site_info, lat, lon, and time_zone. Derived from BETY using a PEcAn .xml settings file with site information. Can use the get_site_info function to generate this list.}
-
-\item{url}{a THREDDS url of a .nc file to extract data from.}
-
-\item{site_info}{list of information with the site_id, site_info, lat, lon, and time_zone. Derived from BETY using a PEcAn .xml settings file with site information. Can use the get_site_info function to generate this list.}
-
-\item{url}{a THREDDS url of a .nc file to extract data from.}
 }
 \value{
 a dataframe with the values for each date/site combination from a THREDDS file
@@ -59,9 +51,5 @@ output <- extract_thredds_nc(site_info = site_info, url_info = "https://www.ncei
 }            
 }
 \author{
-Bailey Morrison
-
-Bailey Morrison
-
 Bailey Morrison
 }

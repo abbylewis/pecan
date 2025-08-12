@@ -13,10 +13,6 @@ get_site_info(xmlfile)
 }
 \arguments{
 \item{xmlfile}{full path to pecan xml settings file}
-
-\item{xmlfile}{full path to pecan xml settings file}
-
-\item{xmlfile}{full path to pecan xml settings file}
 }
 \value{
 a list of site information derived from BETY using a pecan .xml settings file with site_id, site_name, lat, lon, and time_zone.
@@ -52,9 +48,5 @@ results <- PEcAn.data.remote::download.thredds.AGB(outdir=outdir,
 }
 }
 \author{
-Bailey Morrison
-
-Bailey Morrison
-
 Bailey Morrison
 }

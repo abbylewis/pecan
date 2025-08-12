@@ -6,14 +6,35 @@
 \alias{download_thredds}
 \title{download.thredds}
 \usage{
-download_thredds(site_info, dates, varid, dir_url, data_url,
-  run_parallel = FALSE, outdir = NULL)
+download_thredds(
+  site_info,
+  dates,
+  varid,
+  dir_url,
+  data_url,
+  run_parallel = FALSE,
+  outdir = NULL
+)
 
-download_thredds(site_info, dates, varid, dir_url, data_url,
-  run_parallel = FALSE, outdir = NULL)
+download_thredds(
+  site_info,
+  dates,
+  varid,
+  dir_url,
+  data_url,
+  run_parallel = FALSE,
+  outdir = NULL
+)
 
-download_thredds(site_info, dates, varid, dir_url, data_url,
-  run_parallel = FALSE, outdir = NULL)
+download_thredds(
+  site_info,
+  dates,
+  varid,
+  dir_url,
+  data_url,
+  run_parallel = FALSE,
+  outdir = NULL
+)
 }
 \arguments{
 \item{site_info}{list of information with the site_id, site_info, lat, lon, and time_zone. Derived from BETY using a PEcAn .xml settings file with site information. Can use the get_site_info function to generate this list.}
@@ -29,34 +50,6 @@ download_thredds(site_info, dates, varid, dir_url, data_url,
 \item{run_parallel}{Logical. Download and extract files in parallel?}
 
 \item{outdir}{file location to place output}
-
-\item{outdir}{file location to place output}
-
-\item{site_info}{list of information with the site_id, site_info, lat, lon, and time_zone. Derived from BETY using a PEcAn .xml settings file with site information. Can use the get_site_info function to generate this list.}
-
-\item{dates}{vector of start and end date for dataset as YYYYmmdd, YYYY-mm-dd, YYYYjjj, or date object.}
-
-\item{varid}{character vector of shorthand variable name. i.e. LAI}
-
-\item{dir_url}{catalog url of data from ncei.noaa.gov/thredds website}
-
-\item{data_url}{opendap url of data from ncei.noaa.gov/thredds website}
-
-\item{run_parallel}{Logical. Download and extract files in parallel?}
-
-\item{outdir}{file location to place output}
-
-\item{site_info}{list of information with the site_id, site_info, lat, lon, and time_zone. Derived from BETY using a PEcAn .xml settings file with site information. Can use the get_site_info function to generate this list.}
-
-\item{dates}{vector of start and end date for dataset as YYYYmmdd, YYYY-mm-dd, YYYYjjj, or date object.}
-
-\item{varid}{character vector of shorthand variable name. i.e. LAI}
-
-\item{dir_url}{catalog url of data from ncei.noaa.gov/thredds website}
-
-\item{data_url}{opendap url of data from ncei.noaa.gov/thredds website}
-
-\item{run_parallel}{Logical. Download and extract files in parallel?}
 }
 \value{
 data.frame summarize the results of the function call
@@ -93,7 +86,7 @@ dir_url <- catalog url from THREDDS that is used to determine which files are av
 data_url <- OpenDAP URL that actually downloads the netcdf file.
 run_parallel <- optional. Can be used to speed up download process if there are more than 2 cores available on computer
 
-results <- download_thredds(site_info = site_info, dates = c("19950201", "19961215"), varid = "LAI", dir_url = "https://www.ncei.noaa.gov/thredds/catalog/cdr/lai/files", data_url = "https://www.ncei.noaa.gov/thredds/dodsC/cdr/lai/files", run_parallel = FALSE, outdir = NULL)
+results <- download_thredds(site_info = site_info, years = c("2000", "2003"), months = c(6,7,8), varid = "LAI", dir_url = "https://www.ncei.noaa.gov/thredds/catalog/cdr/lai/files", data_url = "https://www.ncei.noaa.gov/thredds/dodsC/cdr/lai/files", run_parallel = FALSE, outdir = NULL)
 }        
 \dontrun{
 outdir <- directory to store downloaded data
@@ -109,9 +102,5 @@ results <- download_thredds(site_info = site_info, dates = c("19950201", "199612
            
 }
 \author{
-Bailey Morrison
-
-Bailey Morrison
-
 Bailey Morrison
 }

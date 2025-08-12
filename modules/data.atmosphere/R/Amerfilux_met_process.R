@@ -298,7 +298,7 @@ AmeriFlux_met_process <- function(site_id,
             end_date = end_date,    
             outfolder = dirs$era5_processed,
             in.prefix = "ERA5_",
-            newsite = paste0(site_id, "_ERA5"),
+            newsite = site_id,
             overwrite = TRUE,
             verbose = verbose
           )  

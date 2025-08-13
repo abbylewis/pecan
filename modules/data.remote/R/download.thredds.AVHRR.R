@@ -93,6 +93,7 @@ download_thredds_AVHRR <- function(site_info, dates, varid, dir_url, data_url,ru
           # parallel::stopCluster(cl)
         } else {
           #start_time <- Sys.time()
+          j <- NULL # avoids R pkg checks "no visible binding" complaint below
           out <- foreach::foreach(j = urls, .combine = rbind) %do% 
             extract_thredds_nc_AVHRR(site_info, url = j)
           # end_time <- Sys.time()
@@ -103,7 +104,7 @@ download_thredds_AVHRR <- function(site_info, dates, varid, dir_url, data_url,ru
         if (!(is.null(outdir)))
         {
           # this will need to be changed in the future if users want to be able to save data they haven't already extracted at different sites/dates.
-          write.csv(out, file = paste(outdir, "/THREDDS_", varid, "_", dates[1], "-", dates[2], ".csv", sep = ""))
+          utils::write.csv(out, file = paste(outdir, "/THREDDS_", varid, "_", dates[1], "-", dates[2], ".csv", sep = ""))
         } 
       }
 
@@ -119,6 +120,7 @@ download_thredds_AVHRR <- function(site_info, dates, varid, dir_url, data_url,ru
 ##'  Derived from BETY using a PEcAn .xml settings file with site information.
 ##'  Can use the get_site_info function to generate this list.
 ##' @param url a THREDDS url of a .nc file to extract data from.
+##' @param varid character vector of shorthand variable name. i.e. LAI
 ##'
 ##'
 ##' @return a dataframe with the values for each date/site combination from a THREDDS file
@@ -135,17 +137,17 @@ download_thredds_AVHRR <- function(site_info, dates, varid, dir_url, data_url,ru
 ##' @noRd
 ##' @author Bailey Morrison
 ##'
-extract_thredds_nc_AVHRR <- function(site_info, url)
+extract_thredds_nc_AVHRR <- function(site_info, url, varid)
 {
-  index = regexpr(pattern = "_[0-9]{8}_", url_info)
-  date<- as.Date(substr(url_info, index+1, index+8), "%Y%m%d")
+  index = regexpr(pattern = "_[0-9]{8}_", url)
+  date<- as.Date(substr(url, index+1, index+8), "%Y%m%d")
   
   mylats <- site_info$lat
   mylons <- site_info$lon
   sites <- site_info$site_id
   
   # open netcdf file and get the correct variable name based on varid parameter + var names of netcdf
-  data <- ncdf4::nc_open(url_info)
+  data <- ncdf4::nc_open(url)
   vars <- names(data$var)
   var <- vars[grep(vars, pattern = varid, ignore.case = TRUE)]
   
@@ -154,6 +156,7 @@ extract_thredds_nc_AVHRR <- function(site_info, url)
   lons <- ncdf4::ncvar_get(data, "longitude")
   
   # find the cell that site coordinates are located in
+  i <- NULL # avoids R pkg checks "no visible binding" complaint below
   dist_y <- foreach::foreach(i = mylats, .combine = cbind) %do% sqrt((lats - i)^2)
   dist_x <- foreach::foreach(i = mylons, .combine = cbind) %do% sqrt((lons - i)^2)
   y <- foreach::foreach(i = 1:ncol(dist_y), .combine = cbind) %do% which(dist_y[,i] == min(dist_y[,i]), arr.ind = TRUE)

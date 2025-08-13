@@ -166,16 +166,16 @@ download_thredds <- function(site_info, dates, varid, dir_url, data_url,run_para
       }
       cl <- parallel::makeCluster(ncores, outfile="")
       doParallel::registerDoParallel(cl)
-      output <- foreach::foreach(i = urls, .combine = rbind) %dopar% extract_thredds_nc(site_info = site_info, url = i)
+      output <- foreach::foreach(i = urls, .combine = rbind) %dopar% extract_thredds_nc(site_info = site_info, url = i, varid = varid)
       parallel::stopCluster(cl)
     } else {
-      output <- foreach::foreach(i = urls, .combine = rbind) %do% extract_thredds_nc(site_info, url = i)
+      output <- foreach::foreach(i = urls, .combine = rbind) %do% extract_thredds_nc(site_info, url = i, varid = varid)
     }
     
     if (!(is.null(outdir)))
     {
       # this will need to be changed in the future if users want to be able to save data they haven't already extracted at different sites/dates.
-      write.csv(output, file = paste(outdir, "/THREDDS_", varid, "_", dates[1], "-", dates[2], ".csv", sep = ""))
+      utils::write.csv(output, file = paste(outdir, "/THREDDS_", varid, "_", dates[1], "-", dates[2], ".csv", sep = ""))
     } 
     
     return(output)
@@ -189,7 +189,7 @@ download_thredds <- function(site_info, dates, varid, dir_url, data_url,run_para
 ##'  Derived from BETY using a PEcAn .xml settings file with site information.
 ##'  Can use the get_site_info function to generate this list.
 ##' @param url a THREDDS url of a .nc file to extract data from.
-##'
+##' @param varid character vector of shorthand variable name. i.e. LAI
 ##'
 ##' @return a dataframe with the values for each date/site combination from a THREDDS file
 ##'
@@ -200,12 +200,13 @@ download_thredds <- function(site_info, dates, varid, dir_url, data_url,run_para
 ##'   "AVHRR-Land_v005_AVH15C1_NOAA-14_19950201_c20180831220722.nc")
 ##' output <- extract_thredds_nc(
 ##'   site_info = site_info,
-##'   url = thredds_url)
+##'   url = thredds_url,
+##'   varid = "LAI")
 ##'}
 ##' @export
 ##' @author Bailey Morrison
 ##'
-extract_thredds_nc <- function(site_info, url)
+extract_thredds_nc <- function(site_info, url, varid)
 {
   
   mylats <- site_info$lat
@@ -222,6 +223,7 @@ extract_thredds_nc <- function(site_info, url)
   lons <- ncdf4::ncvar_get(data, "longitude")
   
   # find the cell that site coordinates are located in
+  i <- NULL # avoids R pkg checks "no visible binding" complaint below
   dist_y <- foreach::foreach(i = mylats, .combine = cbind) %do% sqrt((lats - i)^2)
   dist_x <- foreach::foreach(i = mylons, .combine = cbind) %do% sqrt((lons - i)^2)
   y <- foreach::foreach(i = 1:ncol(dist_y), .combine = c) %do% which(dist_y[,i] == min(dist_y[,i]), arr.ind = TRUE)

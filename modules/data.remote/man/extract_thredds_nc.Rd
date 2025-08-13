@@ -4,7 +4,7 @@
 \alias{extract_thredds_nc}
 \title{extract_thredds_nc}
 \usage{
-extract_thredds_nc(site_info, url)
+extract_thredds_nc(site_info, url, varid)
 }
 \arguments{
 \item{site_info}{list of information with the site_id, site_name, lat, lon, and time_zone.
@@ -12,6 +12,8 @@ Derived from BETY using a PEcAn .xml settings file with site information.
 Can use the get_site_info function to generate this list.}
 
 \item{url}{a THREDDS url of a .nc file to extract data from.}
+
+\item{varid}{character vector of shorthand variable name. i.e. LAI}
 }
 \value{
 a dataframe with the values for each date/site combination from a THREDDS file
@@ -26,7 +28,8 @@ thredds_url = paste0( # breaking up long URL for readability
   "AVHRR-Land_v005_AVH15C1_NOAA-14_19950201_c20180831220722.nc")
 output <- extract_thredds_nc(
   site_info = site_info,
-  url = thredds_url)
+  url = thredds_url,
+  varid = "LAI")
 }
 }
 \author{

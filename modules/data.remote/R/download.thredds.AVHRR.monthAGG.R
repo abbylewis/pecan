@@ -75,11 +75,12 @@ download_thredds_AVHRR_monthly <- function(site_info, years, months, varid, dir_
           # cl <- parallel::makeCluster(ncores, outfile="")
           # doParallel::registerDoParallel(cl)
           # out <- foreach(i = urls, .combine = rbind) %dopar% 
-          #   extract_thredds_nc_AVHRR(site_info = site_info, url = i)
+          #   extract_thredds_nc_AVHRR(site_info = site_info, url = i, varid = varid)
           # parallel::stopCluster(cl)
         } else {
+          i <- NULL # avoids R pkg checks "no visible binding" complaint below
           out <- foreach::foreach(i = urls, .combine = rbind) %do% 
-            extract_thredds_nc_AVHRR(site_info, url = i)
+            extract_thredds_nc_AVHRR(site_info, url = i, varid = varid)
           
           # get max LAI for each site instead of all days with missing NA fillers
           test = foreach::foreach(i = unique(out$site_id), .combine = rbind) %do%
@@ -95,7 +96,7 @@ download_thredds_AVHRR_monthly <- function(site_info, years, months, varid, dir_
     # if (!(is.null(outdir)))
     #           {
     #             # this will need to be changed in the future if users want to be able to save data they haven't already extracted at different sites/dates.
-    #             write.csv(output, file = paste(outdir, "/THREDDS_", varid, "_", years[1], "-", years[2], "_",months[1], "-", months[length(months)], ".csv", sep = ""))
+    #             utils::write.csv(output, file = paste(outdir, "/THREDDS_", varid, "_", years[1], "-", years[2], "_",months[1], "-", months[length(months)], ".csv", sep = ""))
     #           }
     return(output)
   }

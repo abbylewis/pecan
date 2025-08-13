@@ -15,11 +15,12 @@ download_thredds(
 )
 }
 \arguments{
-\item{site_info}{list of information with the site_id, site_name, lat, lon, and time_zone.
+\item{site_info}{list containing site_id, site_name, lat, lon, time_zone.
 Derived from BETY using a PEcAn .xml settings file with site information.
 Can use the get_site_info function to generate this list.}
 
-\item{dates}{vector of start and end date for dataset as YYYYmmdd, YYYY-mm-dd, YYYYjjj, or date object.}
+\item{dates}{vector of start and end date for dataset as YYYYmmdd,
+YYYY-mm-dd, YYYYjjj, or date object.}
 
 \item{varid}{character vector of shorthand variable name. i.e. LAI}
 

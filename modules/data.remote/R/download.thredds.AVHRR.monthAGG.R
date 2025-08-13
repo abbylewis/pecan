@@ -43,8 +43,7 @@ download_thredds_AVHRR_monthly <- function(site_info, years, months, varid, dir_
     
     for (i in seq_along(unique(years_range)))
     {
-      result <- RCurl::getURL(paste(dir_url, unique(years_range)[i], "/catalog.html", sep = "/"), 
-                              verbose=FALSE ,ftp.use.epsv = TRUE, dirlistonly = TRUE)
+      result <- readLines(paste(dir_url, unique(years_range)[i], "/catalog.html", sep = "/"))
       files <- XML::getHTMLLinks(result)
       
       index_dates <- regexpr(pattern = paste0("_[0-9]{4}0[", months[1], "-", months[length(months)], "]{1}[0-9]{2}_"), files)

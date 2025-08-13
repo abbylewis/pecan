@@ -105,7 +105,7 @@ download_thredds <- function(site_info, dates, varid, dir_url, data_url,run_para
   if (!(is.null(dir_url)))
   {
     #https://www.ncei.noaa.gov/thredds/catalog/cdr/lai/files/1981/catalog.html -> link for directory files, not downloads
-    result <- RCurl::getURL(paste(dir_url, "catalog.html", sep = "/"), verbose=FALSE ,ftp.use.epsv = TRUE, dirlistonly = TRUE)
+    result <- readLines(paste(dir_url, "catalog.html", sep = "/"))
     files <- XML::getHTMLLinks(result)
     
     date_year_range = unique(lubridate::year(dates))
@@ -121,7 +121,7 @@ download_thredds <- function(site_info, dates, varid, dir_url, data_url,run_para
   links <- vector()
   for (i in 1:length(date_year_range))
   {
-    links[i] <- RCurl::getURL(paste(dir_url, date_year_range[i], "catalog.html", sep = "/"), verbose= FALSE, ftp.use.epsv = TRUE, dirlistonly = TRUE)
+    links[i] <- readLines(paste(dir_url, date_year_range[i], "catalog.html", sep = "/"))
   }
   
   # get list of all dates available from year range provided

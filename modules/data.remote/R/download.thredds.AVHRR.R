@@ -89,12 +89,12 @@ download_thredds_AVHRR <- function(site_info, dates, varid, dir_url, data_url,ru
           # cl <- parallel::makeCluster(ncores, outfile="")
           # doParallel::registerDoParallel(cl)
           # out <- foreach(i = urls, .combine = rbind) %dopar% 
-          #   extract_thredds_nc_AVHRR(site_info = site_info, url_info = i)
+          #   extract_thredds_nc_AVHRR(site_info = site_info, url = i)
           # parallel::stopCluster(cl)
         } else {
           #start_time <- Sys.time()
           out <- foreach::foreach(j = urls, .combine = rbind) %do% 
-            extract_thredds_nc_AVHRR(site_info, url_info = j)
+            extract_thredds_nc_AVHRR(site_info, url = j)
           # end_time <- Sys.time()
           # end_time - start_time
         }

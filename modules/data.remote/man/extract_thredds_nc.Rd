@@ -4,7 +4,7 @@
 \alias{extract_thredds_nc}
 \title{extract_thredds_nc}
 \usage{
-extract_thredds_nc(site_info, url_info)
+extract_thredds_nc(site_info, url)
 }
 \arguments{
 \item{site_info}{list of information with the site_id, site_name, lat, lon, and time_zone.
@@ -26,7 +26,7 @@ thredds_url = paste0( # breaking up long URL for readability
   "AVHRR-Land_v005_AVH15C1_NOAA-14_19950201_c20180831220722.nc")
 output <- extract_thredds_nc(
   site_info = site_info,
-  url_info = thredds_url)
+  url = thredds_url)
 }
 }
 \author{

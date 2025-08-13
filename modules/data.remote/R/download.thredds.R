@@ -200,12 +200,12 @@ download_thredds <- function(site_info, dates, varid, dir_url, data_url,run_para
 ##'   "AVHRR-Land_v005_AVH15C1_NOAA-14_19950201_c20180831220722.nc")
 ##' output <- extract_thredds_nc(
 ##'   site_info = site_info,
-##'   url_info = thredds_url)
+##'   url = thredds_url)
 ##'}
 ##' @export
 ##' @author Bailey Morrison
 ##'
-extract_thredds_nc <- function(site_info, url_info)
+extract_thredds_nc <- function(site_info, url)
 {
   
   mylats <- site_info$lat
@@ -213,7 +213,7 @@ extract_thredds_nc <- function(site_info, url_info)
   sites <- site_info$site_id
   
   # open netcdf file and get the correct variable name based on varid parameter + var names of netcdf
-  data <- ncdf4::nc_open(url_info)
+  data <- ncdf4::nc_open(url)
   vars <- names(data$var)
   var <- vars[grep(vars, pattern = varid, ignore.case = TRUE)]
   

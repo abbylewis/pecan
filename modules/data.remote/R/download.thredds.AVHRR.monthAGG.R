@@ -75,11 +75,11 @@ download_thredds_AVHRR_monthly <- function(site_info, years, months, varid, dir_
           # cl <- parallel::makeCluster(ncores, outfile="")
           # doParallel::registerDoParallel(cl)
           # out <- foreach(i = urls, .combine = rbind) %dopar% 
-          #   extract_thredds_nc_AVHRR(site_info = site_info, url_info = i)
+          #   extract_thredds_nc_AVHRR(site_info = site_info, url = i)
           # parallel::stopCluster(cl)
         } else {
           out <- foreach::foreach(i = urls, .combine = rbind) %do% 
-            extract_thredds_nc_AVHRR(site_info, url_info = i)
+            extract_thredds_nc_AVHRR(site_info, url = i)
           
           # get max LAI for each site instead of all days with missing NA fillers
           test = foreach::foreach(i = unique(out$site_id), .combine = rbind) %do%

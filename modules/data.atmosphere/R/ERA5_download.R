@@ -62,9 +62,11 @@
 #' 
 #' @author Dongchen Zhang, Akash
 
-download.ERA5_cds <- function(outfolder, start_date, end_date, 
-                              extent, variables, time = NULL, dataset = "reanalysis-era5-single-levels",
-                              product_type = "ensemble_members", user, key, timeout = 36000) {
+download.ERA5_cds <- function(outfolder, start_date, end_date,
+                              extent, variables, user, key, time = NULL,
+                              dataset = "reanalysis-era5-single-levels",
+                              product_type = "ensemble_members",
+                              timeout = 36000) {
   
   # check for required package
   if (!requireNamespace("ecmwfr", quietly = TRUE)) {

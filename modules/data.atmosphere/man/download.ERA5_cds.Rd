@@ -10,11 +10,11 @@ download.ERA5_cds(
   end_date,
   extent,
   variables,
+  user,
+  key,
   time = NULL,
   dataset = "reanalysis-era5-single-levels",
   product_type = "ensemble_members",
-  user = NULL,
-  key = NULL,
   timeout = 36000
 )
 }
@@ -29,15 +29,15 @@ download.ERA5_cds(
 
 \item{variables}{character: a vector contains variables to be downloaded (e.g., c("2m_temperature","surface_pressure")).}
 
+\item{user}{Character. CDS user ID (UID) from your CDS profile. Required for authentication.}
+
+\item{key}{Character. CDS API key from your CDS profile. Required for authentication.}
+
 \item{time}{Character vector or NULL. Hours of the day to download (e.g., c("00:00", "12:00")). Default to NULL to download all hours.}
 
 \item{dataset}{Character. Name of the CDS dataset to use (default: "reanalysis-era5-single-levels").}
 
 \item{product_type}{Character. Product type to request from CDS (default: "ensemble_members").}
-
-\item{user}{Character. CDS user ID (UID) from your CDS profile. Required for authentication.}
-
-\item{key}{Character. CDS API key from your CDS profile. Required for authentication.}
 
 \item{timeout}{numeric: the maximum time (in seconds) allowed to download the data. The default is 36000 seconds.}
 }
@@ -71,9 +71,9 @@ era5_files <- download.ERA5_cds(
   end_date = "2020-06-30",
   extent = c(-72.2215, -72.1215, 42.4878, 42.5878),
   variables = c("2m_temperature", "surface_pressure"),
-  product_type = "reanalysis",
   user = "your_cds_user_id",
-  key = "your_cds_api_key"
+  key = "your_cds_api_key",
+  product_type = "reanalysis"
 )
 
 # Download ensemble data for specificed hours only
@@ -83,9 +83,9 @@ era5_files <- download.ERA5_cds(
   end_date = "2020-12-31",
   extent = c(-83.05, -82.95, 42.95, 43.05),
   variables = "surface_solar_radiation_downwards",
-  time = c("00:00", "12:00"),
   user = "your_cds_user_id",
-  key = "your_cds_api_key"
+  key = "your_cds_api_key",
+  time = c("00:00", "12:00")
 )
 }
 }

@@ -21,6 +21,8 @@ TotalResp,NA,kg C m-2 s-1,Total Respiration,Carbon Fluxes,real,lon,lat,time,NA,"
 AutoResp,plant_respiration_carbon_flux,kg C m-2 s-1,Autotrophic Respiration,Carbon Fluxes,real,lon,lat,time,NA,Autotrophic respiration rate (always positive),
 HeteroResp,heterotrophic_respiration_carbon_flux,kg C m-2 s-1,Heterotrophic Respiration,Carbon Fluxes,real,lon,lat,time,NA,Heterotrophic respiration rate (always positive),
 SoilResp,soil_respiration_carbon_flux,kg C m-2 s-1,Soil Respiration,Carbon Fluxes,real,lon,lat,time,NA,Sum of respiration in the soil by heterotrophs and by the roots of plants (autotrophs),
+CH4_flux,surface_upward_mass_flux_of_methane_expressed_as_carbon,kg C m-2 s-1,Methane Flux,Carbon Fluxes,real,lon,lat,time,NA,Net methane flux between ecosystem and atmosphere (positive into atmosphere),
+N2O_flux,surface_upward_mass_flux_of_nitrous_oxide_expressed_as_nitrogen,kg N m-2 s-1,Nitrous Oxide Flux,Nitrogen Fluxes,real,lon,lat,time,NA,Net nitrous oxide flux between ecosystem and atmosphere (positive into atmosphere),
 DOC_flux,NA,kg C m-2 s-1,Dissolved Organic Carbon flux,Carbon Fluxes,real,lon,lat,time,NA,Loss of organic carbon dissolved in ground water or rivers (positive out of grid cell),
 Fire_flux,NA,kg C m-2 s-1,Fire emissions,Carbon Fluxes,real,lon,lat,time,NA,Flux of carbon due to fires (always positive),
 litter_carbon_flux,litter_carbon_flux,kg C m-2 s-1,Litter Carbon Flux,Carbon Fluxes,real,lon,lat,time,NA,"Total carbon flux of litter, excluding coarse woody debris",

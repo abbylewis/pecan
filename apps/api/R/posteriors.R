@@ -128,34 +128,35 @@ downloadPosterior <- function(posterior_id, filename = "", req, res) {
     filter(container_type == "Posterior") %>%
     filter(container_id == !!posterior_id) %>%
     collect()
-  
+
+  if (filename != "") {
+    posterior <- posterior %>%
+      filter(file_name == !!filename)
+  }
+
   if (nrow(posterior) == 0) {
     res$status <- 404
     return("Posterior not found")
-  } else {
-    # Generate the full file path using the file_path & file_name
-    filepath <- paste0(posterior$file_path, "/", posterior$file_name)
-    
-    # If the id points to a directory, check if 'filename' within this directory has been specified
-    if (dir.exists(filepath)) {
-      # If no filename is provided, return 400 Bad Request error
-      if (filename == "") {
-        res$status <- 400
-        return("Multiple matches. Please specify filename")
-      }
-      
-      # Append the filename to the filepath
-      filepath <- paste0(filepath, filename)
-    }
-    
-    # If the file doesn't exist, return 404 error
-    if (!file.exists(filepath)) {
-      res$status <- 404
-      return("Posterior file not found")
-    }
-    
-    # Read the data in binary form & return it
-    bin <- readBin(filepath, "raw", n = file.info(filepath)$size)
-    return(bin)
   }
+
+  # Generate the full file path using the file_path & file_name
+  filepath <- file.path(posterior$file_path, posterior$file_name)
+
+  if (length(filepath) > 1 || dir.exists(filepath)) {
+    # Don't know which file to send. Return 400 Bad Request error
+    # TODO provide an endpoint to list the available files from one posterior
+    # (maybe `/posteriors/{posterior_id}/files`?)
+    res$status <- 400
+    return("Multiple matches. Please specify filename")
+  }
+
+  # If the file doesn't exist, return 404 error
+  if (!file.exists(filepath)) {
+    res$status <- 404
+    return("Posterior file not found")
+  }
+
+  # Read the data in binary form & return it
+  bin <- readBin(filepath, "raw", n = file.info(filepath)$size)
+  return(bin)
 }

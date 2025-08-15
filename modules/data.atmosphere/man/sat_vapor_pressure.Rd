@@ -14,6 +14,13 @@ sat_vapor_pressure(
 )
 
 get.es(temp)
+
+t2es(
+  temp,
+  temp_units = "degC",
+  out_units = "kPa",
+  method = "ClausiusClapeyron"
+)
 }
 \arguments{
 \item{temp}{numeric vector of temperatures}

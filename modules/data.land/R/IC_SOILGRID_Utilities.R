@@ -240,25 +240,22 @@ preprocess_soilgrids_data <- function(soil_data, depth_layers, verbose = FALSE) 
       cv_distributions[[depth_layers[i]]] <- list(type = "none")
     } else {
       cv_values <- processed[[std_col]][valid_cv] / processed[[mean_col]][valid_cv]
-      cv_bounds <- stats::quantile(cv_values, probs = c(0.05, 0.95), na.rm = TRUE)
-      cv_filtered <- cv_values[cv_values >= cv_bounds[1] & cv_values <= cv_bounds[2]]
+      cv_valid <- cv_values[cv_values > 0 & is.finite(cv_values)]    
       
-      if (length(cv_filtered) < 5) {
+      if (length(cv_valid) < 5) {
         cv_distributions[[depth_layers[i]]] <- list(type = "none")
       } else {
-        gamma_fit <- try(MASS::fitdistr(cv_filtered, "gamma"), silent = TRUE)
+        gamma_fit <- try(MASS::fitdistr(cv_valid, "gamma"), silent = TRUE)
         if (!inherits(gamma_fit, "try-error")) {
           cv_distributions[[depth_layers[i]]] <- list(
             type = "gamma",
             shape = gamma_fit$estimate["shape"],
-            rate = gamma_fit$estimate["rate"],
-            bounds = as.vector(cv_bounds)
+            rate = gamma_fit$estimate["rate"]
           )
         } else {
           cv_distributions[[depth_layers[i]]] <- list(
             type = "empirical",
-            values = cv_filtered,
-            bounds = as.vector(cv_bounds)
+            values = cv_valid
           )
         }
       }
@@ -307,9 +304,7 @@ generate_soilgrids_ensemble <- function(processed_data, site_id, size, depth_lay
     PEcAn.logger::logger.severe(sprintf("Invalid mean soil carbon value for site %s (%s)", 
                                         site_id, depth_layer))
   }
-  
-  soil_c_values <- numeric(size)
-  
+
   # Use site-specific uncertainty
   if (!is.na(original_sd) && original_sd > 0) {
     shape <- (mean_c^2) / (original_sd^2)
@@ -323,9 +318,6 @@ generate_soilgrids_ensemble <- function(processed_data, site_id, size, depth_lay
     # Integrate over uncertainty using CV distribution
     if (cv_dist$type == "gamma") {
       cv_samples <- stats::rgamma(size, cv_dist$shape, cv_dist$rate)
-      if (all(is.finite(cv_dist$bounds))) {
-        cv_samples <- pmax(pmin(cv_samples, cv_dist$bounds[2]), cv_dist$bounds[1])
-      }
     } else {
       cv_samples <- sample(cv_dist$values, size, replace = TRUE)
     }
@@ -334,6 +326,7 @@ generate_soilgrids_ensemble <- function(processed_data, site_id, size, depth_lay
     valid <- !is.na(sd_values) & sd_values > 0
     
     if (any(valid)) {
+      soil_c_values <- numeric(size) # pre-allocate since we're doing partial assignment
       shape_vec <- (mean_c^2) / (sd_values[valid]^2)
       rate_vec <- mean_c / (sd_values[valid]^2)
       

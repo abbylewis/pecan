@@ -180,8 +180,8 @@ run.write.configs <- function(settings, input_design, write = TRUE,
                                                           ensemble.samples = ensemble.samples, 
                                                           settings = settings,
                                                           model = model, 
-                                                          write.to.db = write,
-                                                          input_design= input_design)
+                                                          input_design = input_design,
+                                                          write.to.db = write)
     
     # Store output in settings and output variables
     runs.samples$ensemble <- ens.run.ids <- ens.runs$runs

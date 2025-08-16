@@ -5,7 +5,7 @@
 #' @return A modified settings object, invisibly
 #' @importFrom dplyr %>%
 #' @export
-runModule.run.write.configs <- function(settings, overwrite = TRUE,input_design=NULL) {
+runModule.run.write.configs <- function(settings, overwrite = TRUE, input_design = NULL) {
 
 
   if (PEcAn.settings::is.MultiSettings(settings)) {

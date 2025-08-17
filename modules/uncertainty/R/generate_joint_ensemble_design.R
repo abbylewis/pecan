@@ -1,7 +1,14 @@
-# This function generates a single joint ensemble design matrix (input indices)
-# which is reused across all sites. This ensures consistent sampling of inputs
-# (e.g., meteorology, parameters) to preserve spatial correlation and enable 
-# meaningful multi-site Sobol sensitivity analysis.
+##' Generate joint ensemble design for parameter sampling
+##' Creates a joint ensemble design that maintains parameter correlations across
+##' all sites in a multi-site run. This function generates sample indices that are shared across sites to ensure consistent parameter sampling.
+##'
+##' @param settings A PEcAn settings object containing ensemble configuration
+##' @param ensemble_size Integer specifying the number of ensemble members
+##' @return  A list containing ensemble samples and indices
+##' 
+##' @export
+##' @author Blesson Thomas,
+
 
 generate_joint_ensemble_design <- function(settings, ensemble_size ) {
   ens.sample.method <- settings$ensemble$samplingspace$parameters$method

@@ -189,6 +189,7 @@ get.ensemble.samples <- function(ensemble.size, pft.samples, env.samples,
   }  #end pft
    names(ensemble.samples) <- names(pft.samples)
    ans <- ensemble.samples
+  }
     return(list(ans,sampled.indices))
 } # get.ensemble.samples
 
@@ -337,7 +338,7 @@ for (input_tag in names(settings$run$inputs)) {
     }
 
      }
-    
+    }
     # if there is a tag required by the model but it is not specified in the xml then I replicate n times the first element 
     required_tags%>%
       purrr::walk(function(r_tag){

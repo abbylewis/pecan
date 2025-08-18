@@ -11,7 +11,8 @@ section for the next release.
 
 * Add function `clip_and_save_raster_file()` for subsetting rasters to match a polygon of interest (#3537).
 * Add CH4 and N2O to standard_vars in PEcAn.utils
-
+* New function `sat_vapor_pressure()` added for computing saturation vapor pressure from temperature using various methods.
+* 
 ## [1.9.0] - 2025-05-25
 
 ### Added

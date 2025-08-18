@@ -81,10 +81,11 @@ read.ensemble.output <- function(ensemble.size, pecandir, outdir, start.year, en
 ##' @author David LeBauer, Istem Fer
 get.ensemble.samples <- function(ensemble.size, pft.samples, env.samples, 
                                  method = "random", param.names = NULL, ...) {
-  
-  if (is.null(method)) {
-    PEcAn.logger::logger.info("No sampling method supplied, defaulting to random sampling")
-    method <- "random"
+
+  # Define supported methods
+  supported_methods <- c("random", "uniform", "halton", "sobol", "lhc")
+  if (!method %in% supported_methods) {
+    stop("Invalid sampling method")
   }
   
   ## force as numeric for compatibility with Fortran code in halton()

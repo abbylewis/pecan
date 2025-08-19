@@ -41,6 +41,7 @@
 #'  purrr::map(~xts::apply.daily(.x, mean))
 #'
 #' }
+#' @author Dongchen Zhang, Akash
 #' @importFrom dplyr %>%
 #' @importFrom foreach %dopar%
 extract.nc.ERA5 <-

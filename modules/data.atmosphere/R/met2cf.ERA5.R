@@ -16,6 +16,7 @@
 
 #'
 #' @return list of dataframes
+#' @importFrom rlang .data
 #' @export
 #' @author Hamze Dokohaki, Akash
 met2CF.ERA5<- function(lat,
@@ -44,11 +45,11 @@ met2CF.ERA5<- function(lat,
   cf_units_map <- NULL
   if (exists("pecan_standard_met_table", inherits = TRUE)) {
     era5_tbl <- pecan_standard_met_table %>%
-      dplyr::filter(!is.na(era5) & nzchar(era5))
+      dplyr::filter(!is.na(.data$era5) & nzchar(.data$era5))
     
     if (nrow(era5_tbl) > 0) {
-      era5_to_cf <- setNames(era5_tbl$cf_standard_name, era5_tbl$era5)
-      cf_units_map <- setNames(era5_tbl$units, era5_tbl$cf_standard_name)
+      era5_to_cf <- base::setNames(era5_tbl$cf_standard_name, era5_tbl$era5)
+      cf_units_map <- base::setNames(era5_tbl$units, era5_tbl$cf_standard_name)
     }
   }
   

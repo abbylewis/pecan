@@ -174,13 +174,14 @@ extract_soil_gssurgo <- function(outdir, lat, lon, size=1, grid_size=3, grid_spa
     dplyr::mutate(
       dplyr::across(c(dplyr::starts_with("fraction_of"), "soil_depth", "soil_depth_bottom"), 
                     ~ . / 100),
-      horizon_thickness_m = soil_depth_bottom - soil_depth,
+      horizon_thickness_cm = soil_depth_bottom - soil_depth,
       # Van Bemmelen factor conversion: OM to SOC
-      # Using factor of 2.0 based on recent literature (Pribyl, 2010)
-      soc_percent = organic_matter_pct / 1.724,  
-      soc_kg_m2 = horizon_thickness_m * (soc_percent / 100) * bulk_density,
-      soil_organic_carbon_stock = units::set_units(soc_kg_m2, "kg/m^2") %>% 
-                                  units::set_units("Mg/ha")
+      soc_percent = organic_matter_pct / 1.724,
+      # SOC(kg/m2) =  SOC(frac) × bulk density(kg/m3) × depth(m)
+      soil_organic_carbon_stock =
+        PEcAn.utils::ud_convert(horizon_thickness_cm, "cm", "m") *
+        (soc_percent / 100) *
+        PEcAn.utils::ud_convert(bulk_density, "g cm-3", "kg m-3")
     ) %>%
     dplyr::filter(stats::complete.cases(.))
   if(nrow(soilprop.new) == 0) {

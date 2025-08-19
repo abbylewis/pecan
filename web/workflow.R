@@ -17,11 +17,9 @@ library("PEcAn.all")
 # --------------------------------------------------
 # get command-line arguments
 args <- get_args()
-args <- list(continue = FALSE)
 
 # make sure always to call status.end
 options(warn = 1)
-
 options(error = quote({
   try(PEcAn.utils::status.end("ERROR"))
   try(PEcAn.remote::kill.tunnel(settings))
@@ -38,8 +36,7 @@ options(error = quote({
 PEcAn.all::pecan_version()
 
 # Open and read in settings file for PEcAn run.
-settings <- PEcAn.settings::read.settings("/projectnb/dietzelab/bthomas/pecan_runs/sipnet_test/outdir/pecan_updated.xml")
-settings<-settings[1]
+settings <- PEcAn.settings::read.settings(args$settings)
 
 # Check for additional modules that will require adding settings
 if ("benchmarking" %in% names(settings)) {
@@ -50,7 +47,7 @@ if ("benchmarking" %in% names(settings)) {
 if ("sitegroup" %in% names(settings)) {
   if (is.null(settings$sitegroup$nSite)) {
     settings <- PEcAn.settings::createSitegroupMultiSettings(settings,
-                                                             sitegroupId = settings$sitegroup$id
+      sitegroupId = settings$sitegroup$id
     )
   } else {
     settings <- PEcAn.settings::createSitegroupMultiSettings(
@@ -63,7 +60,6 @@ if ("sitegroup" %in% names(settings)) {
   settings$sitegroup <- NULL
 }
 
-
 # Update/fix/check settings.
 # Will only run the first time it's called, unless force=TRUE
 settings <-
@@ -71,6 +67,7 @@ settings <-
 
 # Write pecan.CHECKED.xml
 PEcAn.settings::write.settings(settings, outputfile = "pecan.CHECKED.xml")
+
 # start from scratch if no continue is passed in
 status_file <- file.path(settings$outdir, "STATUS")
 if (args$continue && file.exists(status_file)) {
@@ -78,31 +75,31 @@ if (args$continue && file.exists(status_file)) {
 }
 
 # Do conversions
-#settings <- PEcAn.workflow::do_conversions(settings)
+settings <- PEcAn.workflow::do_conversions(settings)
 
 # Query the trait database for data and priors
-#if (PEcAn.utils::status.check("TRAIT") == 0) {
-# PEcAn.utils::status.start("TRAIT")
-# settings <- PEcAn.workflow::runModule.get.trait.data(settings)
-# PEcAn.settings::write.settings(settings,
-#                                outputfile = "pecan.TRAIT.xml"
-# )
-# PEcAn.utils::status.end()
-#} else if (file.exists(file.path(settings$outdir, "pecan.TRAIT.xml"))) {
-#  settings <- PEcAn.settings::read.settings(file.path(settings$outdir, "pecan.TRAIT.xml"))
-#}
+if (PEcAn.utils::status.check("TRAIT") == 0) {
+  PEcAn.utils::status.start("TRAIT")
+  settings <- PEcAn.workflow::runModule.get.trait.data(settings)
+  PEcAn.settings::write.settings(settings,
+    outputfile = "pecan.TRAIT.xml"
+  )
+  PEcAn.utils::status.end()
+} else if (file.exists(file.path(settings$outdir, "pecan.TRAIT.xml"))) {
+  settings <- PEcAn.settings::read.settings(file.path(settings$outdir, "pecan.TRAIT.xml"))
+}
 
 
 # Run the PEcAn meta.analysis
-#if (!is.null(settings$meta.analysis)) {
-#  if (PEcAn.utils::status.check("META") == 0) {
-#    PEcAn.utils::status.start("META")
-#    PEcAn.MA::runModule.run.meta.analysis(settings)
-#    PEcAn.utils::status.end()
-#  }
-#}
+if (!is.null(settings$meta.analysis)) {
+  if (PEcAn.utils::status.check("META") == 0) {
+    PEcAn.utils::status.start("META")
+    PEcAn.MA::runModule.run.meta.analysis(settings)
+    PEcAn.utils::status.end()
+  }
+}
 
-#Write model specific configs
+# Write model specific configs
 if (PEcAn.utils::status.check("CONFIG") == 0) {
   PEcAn.utils::status.start("CONFIG")
   settings <-
@@ -114,7 +111,7 @@ if (PEcAn.utils::status.check("CONFIG") == 0) {
 }
 
 if ((length(which(commandArgs() == "--advanced")) != 0)
-    && (PEcAn.utils::status.check("ADVANCED") == 0)) {
+&& (PEcAn.utils::status.check("ADVANCED") == 0)) {
   PEcAn.utils::status.start("ADVANCED")
   q()
 }
@@ -127,7 +124,7 @@ if (PEcAn.utils::status.check("MODEL") == 0) {
     # If we're doing an ensemble run, don't stop. If only a single run, we
     # should be stopping.
     if (is.null(settings[["ensemble"]]) ||
-        as.numeric(settings[[c("ensemble", "size")]]) == 1) {
+          as.numeric(settings[[c("ensemble", "size")]]) == 1) {
       stop_on_error <- TRUE
     } else {
       stop_on_error <- FALSE
@@ -146,7 +143,7 @@ if (PEcAn.utils::status.check("OUTPUT") == 0) {
 
 # Run ensemble analysis on model output.
 if ("ensemble" %in% names(settings)
-    && PEcAn.utils::status.check("ENSEMBLE") == 0) {
+&& PEcAn.utils::status.check("ENSEMBLE") == 0) {
   PEcAn.utils::status.start("ENSEMBLE")
   runModule.run.ensemble.analysis(settings, TRUE)
   PEcAn.utils::status.end()
@@ -154,7 +151,7 @@ if ("ensemble" %in% names(settings)
 
 # Run sensitivity analysis and variance decomposition on model output
 if ("sensitivity.analysis" %in% names(settings)
-    && PEcAn.utils::status.check("SENSITIVITY") == 0) {
+&& PEcAn.utils::status.check("SENSITIVITY") == 0) {
   PEcAn.utils::status.start("SENSITIVITY")
   runModule.run.sensitivity.analysis(settings)
   PEcAn.utils::status.end()
@@ -181,7 +178,7 @@ if ("state.data.assimilation" %in% names(settings)) {
 
 # Run benchmarking
 if ("benchmarking" %in% names(settings)
-    && "benchmark" %in% names(settings$benchmarking)) {
+&& "benchmark" %in% names(settings$benchmarking)) {
   PEcAn.utils::status.start("BENCHMARKING")
   results <-
     papply(settings, function(x) {
@@ -189,7 +186,6 @@ if ("benchmarking" %in% names(settings)
     })
   PEcAn.utils::status.end()
 }
-
 
 # Pecan workflow complete
 if (PEcAn.utils::status.check("FINISHED") == 0) {
@@ -203,11 +199,11 @@ if (PEcAn.utils::status.check("FINISHED") == 0) {
     ),
     params = settings$database$bety
   )
-  
+
   # Send email if configured
   if (!is.null(settings$email)
-      && !is.null(settings$email$to)
-      && (settings$email$to != "")) {
+  && !is.null(settings$email$to)
+  && (settings$email$to != "")) {
     sendmail(
       settings$email$from,
       settings$email$to,

@@ -48,8 +48,8 @@ met2CF.ERA5<- function(lat,
       dplyr::filter(!is.na(.data$era5) & nzchar(.data$era5))
     
     if (nrow(era5_tbl) > 0) {
-      era5_to_cf <- base::setNames(era5_tbl$cf_standard_name, era5_tbl$era5)
-      cf_units_map <- base::setNames(era5_tbl$units, era5_tbl$cf_standard_name)
+      era5_to_cf <- stats::setNames(era5_tbl$cf_standard_name, era5_tbl$era5)
+      cf_units_map <- stats::setNames(era5_tbl$units, era5_tbl$cf_standard_name)
     }
   }
   

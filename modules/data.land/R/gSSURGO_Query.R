@@ -48,6 +48,7 @@ gSSURGO.Query <- function(mukeys,
                join muaggatt on mapunit.mukey=muaggatt.mukey
                join component on mapunit.mukey=component.mukey
                join chorizon on component.cokey=chorizon.cokey
+               left join chfrags on chorizon.chkey=chfrags.chkey
                where mapunit.mukey in (', paste(mukeys,collapse = ", "),');
                </Query>
                </RunQuery>

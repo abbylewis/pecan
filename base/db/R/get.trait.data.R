@@ -42,6 +42,41 @@ get.trait.data <-
     PEcAn.logger::logger.severe('At least one pft in settings is missing its "outdir"')
   }
   
+  #check for flatfile path if present use it 
+  use_flatfile <- !is.null(pfts$file_path) && file.exists(pfts$file_path)
+
+  if (use_flatfile) {
+    PEcAn.logger::logger.info("Using flat file for trait data instead of database")
+
+    # Load flat file as data.frame
+    trait_data_flat <- read.csv(pfts$file_path, stringsAsFactors = FALSE)
+
+    # Build trait.names from flat file if not already provided
+    if (is.null(trait.names)) {
+      pft_names <- vapply(pfts, "[[", character(1), "name")
+      pft_ids <- unique(trait_data_flat$pft_id[
+        trait_data_flat$pft_name %in% pft_names &
+          trait_data_flat$pft_type == modeltype
+      ])
+      trait.names <- unique(trait_data_flat$trait_name[
+        trait_data_flat$pft_id %in% pft_ids
+      ])
+    }
+
+    # Call get.trait.data.pft with trait_data instead of dbcon
+    result <- lapply(pfts, get.trait.data.pft,
+                     modeltype   = modeltype,
+                     dbfiles     = dbfiles,
+                     dbcon       = NULL,             
+                     trait_data  = trait_data_flat,  
+                     write       = write,
+                     forceupdate = forceupdate,
+                     trait.names = trait.names)
+
+    return(invisible(result))  
+  }
+
+
   dbcon <- db.open(database)
   on.exit(db.close(dbcon), add = TRUE)
   

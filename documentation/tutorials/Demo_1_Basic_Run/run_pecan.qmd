@@ -107,12 +107,16 @@ First, we need to load the PEcAn R packages. These packages provide all the func
 library("PEcAn.all")
 ```
 
-# 5. Load PEcAn Settings Files
+# 5. Load PEcAn Settings File
 
-This section handles the step of loading the PEcAn settings.
+PEcAn uses an XML-based settings file (pecan.xml) to configure model runs. This file defines key information about the run including: PFT(s), site location, time period of the run, the location of input files and where outputs will be saved. Other settings outside the scope of this demo include the types of analyses that will be performed, how to connect to a database, and how to run it on a high performance computing cluster  (we are using the default single model run on a single computer). 
 
-For a demo run, you can use the example `pecan.xml` file available at: `pecan/documentation/tutorials/Demo_1_Basic_Run/pecan.xml`.
+You can read more about the settings file in the ["PEcAn XML" chapter](https://pecanproject.github.io/pecan-documentation/develop/pecanXML.html#pecanXML) of the documentation.
 
+There is an example `pecan.xml` that has been configured for this demonstration. You can find it at `pecan/documentation/tutorials/Demo_1_Basic_Run/pecan.xml`.
+
+
+This is how PEcAn loads the settings file:
 
 ```{r load-settings}
 settings_path <- here::here("documentation/tutorials/Demo_1_Basic_Run/pecan.xml")

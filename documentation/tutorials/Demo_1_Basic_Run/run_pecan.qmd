@@ -31,6 +31,18 @@ This notebook demonstrates how to:
 2. Run an ecosystem model simulation
 3. Analyze and visualize the results
 
+### The Scenario Being Modeled:
+
+We are modeling carbon and productivity dynamics at the Niwot Ridge Forest AmeriFlux site ([US-NR1](https://ameriflux.lbl.gov/sites/siteinfo/US-NR1), a high-elevation temperate coniferous forest in Colorado. The model configuration uses the SIPNET process-based ecosystem model, parameterized with a temperate coniferous plant functional type (PFT).
+
+The simulation is run for the full year 2004 (January 1 – December 31) using AmeriFlux LBL meteorological drivers from the Niwot Ridge site. The ensemble setup specifies one model run focusing on net primary productivity (NPP) as the target output variable.
+
+This scenario is designed to be a minimal, reproducible example to demonstrate how to run SIPNET within the PEcAn workflow. In later steps, this same framework can be extended to include more ensemble members, additional PFTs, longer time periods, or alternative meteorological inputs.
+
+This run is based on a study by [Moore et. al. (2007)](https://doi.org/10.1016/j.agrformet.2008.04.013) that uses SIPNET to understand the relationship between water and carbon balance at this site. 
+
+
+
 ## 1.3 Prerequisites
 
 Before running this notebook, make sure you have:

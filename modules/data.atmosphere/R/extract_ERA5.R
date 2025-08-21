@@ -57,7 +57,7 @@ extract.nc.ERA5 <-
            verbose = FALSE,
            ...) {
     
-
+    
     years <- seq(lubridate::year(start_date),
                  lubridate::year(end_date),
                  1
@@ -79,10 +79,12 @@ extract.nc.ERA5 <-
       if (verbose) PEcAn.logger::logger.info(paste0("detected new ERA5 format with ", ens_size, " ensemble members"))
     } else if (any(sapply(nc_test$var, function(v) v$ndims == 4))) {
       is_ensemble <- TRUE
+      # new ERA5 ens format [longitude, latitude, valid_time/time, number]
       var_4d <- names(nc_test$var)[sapply(nc_test$var, function(v) v$ndims == 4)][1]
       ens_size <- nc_test$var[[var_4d]]$size[4]
       if (verbose) PEcAn.logger::logger.info(paste0("detected new ERA5 format with ", ens_size, " ensemble members"))
     } else {
+      # old ERA5 ens format [longitude, latitude, time*ens]
       var_3d <- names(nc_test$var)[sapply(nc_test$var, function(v) v$ndims == 3)][1]
       if (!is.na(var_3d)) {
         tryCatch({
@@ -94,16 +96,16 @@ extract.nc.ERA5 <-
             is_ensemble <- TRUE
             ens_size <- total_layers / time_size
             if (verbose) PEcAn.logger::logger.info(paste0("detected old ERA5 format with ", ens_size, " ensemble members"))
-          } else {
-            if (verbose) PEcAn.logger::logger.info("processing ERA5 reanalysis data")
           }
         }, error = function(e) {
-          if (verbose) PEcAn.logger::logger.info("processing ERA5 reanalysis data")
+          if (verbose) PEcAn.logger::logger.debug(paste("Error during format detection:", e$message))
         })
-      } else {
-        if (verbose) PEcAn.logger::logger.info("processing ERA5 reanalysis data")
       }
     }
+    if (!is_ensemble && verbose) {
+      PEcAn.logger::logger.info("processing ERA5 reanalysis data")
+    }
+    
     ensemblesN <- if (is_ensemble) seq(1, ens_size) else 1
     ncdf4::nc_close(nc_test)
     
@@ -139,15 +141,15 @@ extract.nc.ERA5 <-
       time_var <- if ("time" %in% names(nc_data$var)) "time" else "valid_time"
       t <- ncdf4::ncvar_get(nc_data, time_var)
       tunits <- ncdf4::ncatt_get(nc_data, time_var)
-      tustr <- strsplit(tunits$units, " ")
+      tustr <- strsplit(tunits$units, " since ")
       
       # handle different time units: 'time' uses hours, 'valid_time' uses seconds
       if (time_var == "time") {
         # traditional format: "hours since YYYY-MM-DD HH:MM:SS"
-        timestamp <- as.POSIXct(t * 3600, tz = "UTC", origin = tustr[[1]][3])
+        timestamp <- as.POSIXct(t * 3600, tz = "UTC", origin = tustr[[1]][2])
       } else {
         # new format: "seconds since YYYY-MM-DD HH:MM:SS" (typically 1970-01-01)
-        timestamp <- as.POSIXct(t, tz = "UTC", origin = tustr[[1]][3])
+        timestamp <- as.POSIXct(t, tz = "UTC", origin = tustr[[1]][2])
       }
       
       # set the vars - filter for valid variables
@@ -192,19 +194,33 @@ extract.nc.ERA5 <-
                            for (ens in ensemblesN) {
                              if (is_ensemble) {
                                var_data <- ncdf4::ncvar_get(nc_data, vname)
-                               brick.tmp <- raster::brick(
-                                 var_data[, , , ens],
-                                 xmn = min(nc_data$dim$longitude$vals),
-                                 xmx = max(nc_data$dim$longitude$vals),
-                                 ymn = min(nc_data$dim$latitude$vals),
-                                 ymx = max(nc_data$dim$latitude$vals),
-                                 crs = "+proj=longlat +datum=WGS84"
-                               )
-                               raster::setZ(brick.tmp, timestamp)  
+                               # NEW FORMAT- [longitude, latitude, valid_time, number]
+                               var_subset <- if (nc_data$var[[vname]]$ndims == 4) {
+                                 var_data[, , , ens]
+                               } else {
+                                 # OLD FORMAT - [longitude, latitude, time*ens]
+                                 # time slice boundaries for specific ensemble member
+                                 time_steps_per_ens <- dim(var_data)[3] / ens_size
+                                 start_idx <- (ens - 1) * time_steps_per_ens + 1
+                                 end_idx <- ens * time_steps_per_ens
+                                 var_data[, , start_idx:end_idx]
+                               }
                              } else {
-                               brick.tmp <- raster::brick(ncfile, varname = vname)
-                               raster::setZ(brick.tmp, timestamp)
+                               # Direct brick creation for reanalysis
+                               var_subset <- NULL
                              }
+                             
+                             brick.tmp <- if (is.null(var_subset)) {
+                               raster::brick(ncfile, varname = vname)
+                             } else {
+                               raster::brick(var_subset, 
+                                             xmn = min(nc_data$dim$longitude$vals),
+                                             xmx = max(nc_data$dim$longitude$vals),
+                                             ymn = min(nc_data$dim$latitude$vals),
+                                             ymx = max(nc_data$dim$latitude$vals),
+                                             crs = "+proj=longlat +datum=WGS84")
+                             }
+                             raster::setZ(brick.tmp, timestamp)
                              nn <-
                                raster::extract(brick.tmp,
                                                sp::SpatialPoints(cbind(slon, slat)),
@@ -212,7 +228,7 @@ extract.nc.ERA5 <-
                              # replacing the missing/filled values with NA
                              nn[nn == nc_data$var[[vname]]$missval] <- NA
                              # send out the extracted var as a new col
-                             ens.out[[ens]] <- t(nn) 
+                             ens.out[[ens]] <- t(nn)
                            }
                            ens.out
                          } %>% 
@@ -249,24 +265,23 @@ extract.nc.ERA5 <-
                          .packages=c("Kendall", "ncdf4", "PEcAn.data.atmosphere", "purrr", "xts", "lubridate"),
                          .options.snow=opts,
                          .export = c("met2CF.ERA5")) %dopar% {
-                                       # Calling the met2CF inside extract bc in met process met2CF comes before extract !
-                                       out <- met2CF.ERA5(
-                                         slat[s.ind],
-                                         slon[s.ind],
-                                         year_start,
-                                         year_end,
-                                         sitename=newsite[s.ind],
-                                         outfolder,
-                                         data.point,
-                                         overwrite = FALSE,
-                                         verbose = verbose,
-                                         is_ensemble = is_ensemble,
-                                         ens_size = ens_size
-                                       )
-                                       out %>% purrr::map(~.x[['file']]) %>% unlist
-                                     }
+                           # Calling the met2CF inside extract bc in met process met2CF comes before extract !
+                           out <- met2CF.ERA5(
+                             slat[s.ind],
+                             slon[s.ind],
+                             year_start,
+                             year_end,
+                             sitename=newsite[s.ind],
+                             outfolder,
+                             data.point,
+                             overwrite = FALSE,
+                             verbose = verbose,
+                             ens_size = ens_size
+                           )
+                           out %>% purrr::map(~.x[['file']]) %>% unlist
+                         }
     }
     # we only need the by-site ensemble folders for the met2model function.
     final.nc.files <- final.nc.files[[1]] %>% purrr::map(dirname)
     return(final.nc.files)
-  }
+}

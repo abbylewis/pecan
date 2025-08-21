@@ -183,8 +183,7 @@ This step generates the model-specific configuration files that will be used to 
 2. Generating SIPNET configuration files using the `runModule.run.write.configs()` function.
 
 ```{r write-configs}
-settings$database <- NULL # Disable database operations for this demo
-settings$write <- FALSE # Disable write operations
+settings$write <- FALSE # Disable database write operations
 settings <- PEcAn.workflow::runModule.run.write.configs(settings)
 ```
 

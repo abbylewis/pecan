@@ -1,18 +1,19 @@
-##' Generate joint ensemble design for parameter sampling
-##' Creates a joint ensemble design that maintains parameter correlations across
-##' all sites in a multi-site run. This function generates sample indices that are shared across sites to ensure consistent parameter sampling.
-##'
+#' Generate joint ensemble design for parameter sampling
+#' Creates a joint ensemble design that maintains parameter correlations across
+#' all sites in a multi-site run. This function generates sample indices that are shared across sites to ensure consistent parameter sampling.
+#'
 ##' @param settings A PEcAn settings object containing ensemble configuration
 ##' @param ensemble_size Integer specifying the number of ensemble members
 ##' @return  A list containing ensemble samples and indices
 ##' 
 ##' @export
-##' @author Blesson Thomas,
-
 
 generate_joint_ensemble_design <- function(settings, ensemble_size ) {
+  
+  
+  
   ens.sample.method <- settings$ensemble$samplingspace$parameters$method
-  design_matrix <- data.frame()
+  design_list <- list()
   sampled_inputs <- list()
   posterior.files = rep(NA, length(settings$pfts))
   samp <- settings$ensemble$samplingspace
@@ -34,7 +35,7 @@ generate_joint_ensemble_design <- function(settings, ensemble_size ) {
     )
 
     sampled_inputs[[input_tag]] <- input_result$ids
-    design_matrix[[input_tag]] <- input_result$ids
+    design_list[[input_tag]] <- input_result$ids
   }
 
   # Sample parameters
@@ -48,13 +49,14 @@ generate_joint_ensemble_design <- function(settings, ensemble_size ) {
     if (!is.null(samples$ensemble.samples)) {
       # Just a placeholder: extract representative trait index per ensemble member
       # You may want to flatten or select indices per trait
-      design_matrix[["param"]] <- seq_len(ensemble_size)
+      design_list[["param"]] <- seq_len(ensemble_size)
     } else {
       PEcAn.logger::logger.warn("ensemble.samples not found in samples.Rdata")
     }
   } else {
     PEcAn.logger::logger.error(samples.file, "not found, this file is required")
   }
-
+  design_matrix<- data.frame(design_list)
   return(design_matrix)
 }
+

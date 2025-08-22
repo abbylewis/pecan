@@ -4,7 +4,7 @@
 \alias{runModule.run.write.configs}
 \title{Generate model-specific run configuration files for one or more PEcAn runs}
 \usage{
-runModule.run.write.configs(settings, overwrite = TRUE)
+runModule.run.write.configs(settings, overwrite = TRUE, input_design = NULL)
 }
 \arguments{
 \item{settings}{a PEcAn Settings or MultiSettings object}

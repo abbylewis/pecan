@@ -86,16 +86,20 @@ extract.nc.ERA5 <-
     } else {
       # old ERA5 ens format [longitude, latitude, time*ens]
       var_3d <- names(nc_test$var)[sapply(nc_test$var, function(v) v$ndims == 3)][1]
-      if (!is.na(var_3d)) {
+      if (!is.na(var_3d) && !is.null(var_3d)) {
         tryCatch({
-          test_brick <- raster::brick(sample_file, varname = var_3d)
-          total_layers <- raster::nlayers(test_brick)
-          time_size <- nc_test$dim$time$len
-          
-          if (total_layers > time_size && total_layers %% time_size == 0) {
-            is_ensemble <- TRUE
-            ens_size <- total_layers / time_size
-            if (verbose) PEcAn.logger::logger.info(paste0("detected old ERA5 format with ", ens_size, " ensemble members"))
+          # Check if time dimension exists
+          if ("time" %in% names(nc_test$dim) && !is.null(nc_test$dim$time$len)) {
+            test_brick <- raster::brick(sample_file, varname = var_3d)
+            total_layers <- raster::nlayers(test_brick)
+            time_size <- nc_test$dim$time$len
+
+            if (!is.na(total_layers) && !is.na(time_size) && 
+                total_layers > time_size && total_layers %% time_size == 0) {
+              is_ensemble <- TRUE
+              ens_size <- total_layers / time_size
+              if (verbose) PEcAn.logger::logger.info(paste0("detected old ERA5 format with ", ens_size, " ensemble members"))
+            }
           }
         }, error = function(e) {
           if (verbose) PEcAn.logger::logger.debug(paste("Error during format detection:", e$message))

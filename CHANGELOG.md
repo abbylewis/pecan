@@ -12,7 +12,8 @@ section for the next release.
 * Add function `clip_and_save_raster_file()` for subsetting rasters to match a polygon of interest (#3537).
 * Add CH4 and N2O to standard_vars in PEcAn.utils
 * New function `sat_vapor_pressure()` added for computing saturation vapor pressure from temperature using various methods.
-* 
+* Added `AmeriFlux_met_ensemble()` function with ERA5 fallback for AmeriFlux meteorological data processing and ensemble generation
+
 ## [1.9.0] - 2025-05-25
 
 ### Added
@@ -30,7 +31,6 @@ section for the next release.
 - The ERA5 NC extraction function can now handle multi-site instead of one.
 - Added function for merging images from the same tiling system (MODIS, GLANCE, ICESat-2, HLS, etc.).
 - Added function for converting images towards the GDAL-supported formats (H5, NetCDF, HDF4, GeoTIFF, etc .).
-- Added `AmeriFlux_met_process()` function with ERA5 fallback for AmeriFlux meteorological data processing and ensemble generation
 
 ### Fixed
 - api to correctly use x_var from request in plotResults #3528

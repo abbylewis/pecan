@@ -35,14 +35,32 @@ met_temporal_downscale.Gaussian_ensemble <- function(in.path, in.prefix, outfold
   year <- as.numeric(year)
   eph_year <- year
   source_name <- substr(input_met, 1, nchar(input_met) - 8)
-  # Variable names
-  var <- data.frame(CF.name <- c("air_temperature", "air_temperature_max", "air_temperature_min", 
-                                 "surface_downwelling_longwave_flux_in_air", "air_pressure", "surface_downwelling_shortwave_flux_in_air", 
-                                 "eastward_wind", "northward_wind", "specific_humidity", "precipitation_flux",
-                                 "soil_temperature", "relative_humidity", "volume_fraction_of_condensed_water_in_soil",
-                                 "surface_downwelling_photosynthetic_photon_flux_in_air"), 
-                    units <- c("Kelvin", "Kelvin", "Kelvin", "W m-2", "Pascal", "W m-2", "m/s", 
-                               "m/s", "kg/kg", "kg m-2 s-1", "Kelvin", "%", "1", "umol m-2 s-1"))
+  
+  # Get meteorological variables from PEcAn's met-specific standard table
+  processed_vars <- c(
+    "air_temperature",
+    "air_temperature_max", 
+    "air_temperature_min",
+    "surface_downwelling_longwave_flux_in_air",
+    "air_pressure",
+    "surface_downwelling_shortwave_flux_in_air",
+    "eastward_wind",
+    "northward_wind", 
+    "specific_humidity",
+    "precipitation_flux",
+    "soil_temperature",
+    "relative_humidity",
+    "volume_fraction_of_condensed_water_in_soil",
+    "surface_downwelling_photosynthetic_photon_flux_in_air"
+  )
+  
+  # Filter pecan_standard_met_table for only variables processed by your function
+  var <- PEcAn.data.atmosphere::pecan_standard_met_table %>% 
+    filter(cf_standard_name %in% processed_vars) %>%
+    select(cf_standard_name, units) %>%
+    rename(CF.name = cf_standard_name, 
+           units = units)
+  
   # Reading in the training data
   train <- list()
   tem <- ncdf4::nc_open(train_met)
@@ -102,9 +120,54 @@ met_temporal_downscale.Gaussian_ensemble <- function(in.path, in.prefix, outfold
     sp <- 365
   }
   
-  damping_factor <- 0.7  # Soil temperature variations are ~70% of air temperature
-  phase_lag_hours <- 3   # Soil temperature lags by ~3 hours at 5cm depth
-  
+  # Estimate soil thermal parameters amplitude damping factor and phase lag hours 
+  # to characterize soil-air thermal coupling
+  if (!all(is.na(train$soil_temperature)) && !all(is.na(train$air_temperature))) {
+    # Calculate daily temperature ranges and parameters
+    nsteps <- ceiling(length(train$air_temperature) / (24/reso))
+    idx <- rep(seq_len(nsteps), each = 24/reso, length.out = length(train$air_temperature))
+    air_range  <- tapply(train$air_temperature,  idx, function(x) diff(range(x, na.rm=TRUE)))
+    soil_range <- tapply(train$soil_temperature, idx, function(x) diff(range(x, na.rm=TRUE)))
+    # The 0.5 K threshold filters out sensor noise and ensures only days with
+    # good diurnal temperature cycles are included in calculations.
+    valid_days <- which(!is.na(air_range) & !is.na(soil_range) & air_range > 0.5 & soil_range > 0)
+    
+    # Damping factor calculation
+    if (length(valid_days) >= 10) {
+      damping_factor <- median(soil_range[valid_days] / air_range[valid_days], na.rm = TRUE)
+      # soil temperature amplitude is always reduced compared to air temperature (lower bound 0.3)
+      # but never exceeds it (upper bound 1.0) at shallow depths.
+      damping_factor <- min(max(damping_factor, 0.3), 1.0)
+    } else {
+      damping_factor <- NA
+    }
+    
+    # Phase lag calculation
+    air_detrend  <- train$air_temperature  - mean(train$air_temperature,  na.rm = TRUE)
+    soil_detrend <- train$soil_temperature - mean(train$soil_temperature, na.rm = TRUE)
+    valid_idx <- !is.na(air_detrend) & !is.na(soil_detrend)
+    
+    # 48 hours represents 2 complete diurnal cycles, which is the minimum for reliable 
+    # cross-correlation analysis in temperature time series with 24-hour periodicity
+    if (sum(valid_idx) >= 48) {
+      air_clean  <- air_detrend[valid_idx]
+      soil_clean <- soil_detrend[valid_idx]
+      max_lag <- min(48/reso, length(air_clean)/4)
+      if (max_lag >= 1) {
+        ccf_res <- ccf(air_clean, soil_clean, lag.max = max_lag, plot = FALSE)
+        lag_hr <- abs(ccf_res$lag[which.max(ccf_res$acf)]) * reso
+        # depths of 5, 10, 20 and 30 cm the delay amounts to 1, 2, 4 and to about 8 h, respectively
+        phase_lag_hr <- min(max(lag_hr,0),8)
+      } else {
+        phase_lag_hr <- NA
+      }
+    } else {
+      phase_lag_hr <- NA
+    }
+  } else {
+    damping_factor <- NA
+    phase_lag_hr <- NA
+  }
   
   # Now we start a for loop for the ensemble members and begin downscaling. A
   # random normal distribution is used to downscale as so;
@@ -208,22 +271,31 @@ met_temporal_downscale.Gaussian_ensemble <- function(in.path, in.prefix, outfold
     if (!all(is.na(soursoiltemp))) {
       soil.met <- vector()
       
+      # handles the common case where source data is daily but target is sub-daily
       if (length(soursoiltemp) <= 366) {
         for (i in seq_along(soursoiltemp)) {
           soil.met <- append(soil.met, rep(soursoiltemp[i], div))
         }
       } else {
+        # source data is sub-daily; used direct sampling
         for (x in seq(from=0, to=reso_len, by=div)) {
           soil.met[x] <- soursoiltemp[x / div]
         }
       }
-      lag_step <- round(phase_lag_hours / reso)
+      
+      # phase lag from hours to time steps based on target resolution
+      lag_step <- round(phase_lag_hr / reso)
+      # baseline temperature values for soil-air coupling
       tair_mean <- mean(df$air_temperature, na.rm = TRUE)
       soil_base <- mean(soursoiltemp, na.rm = TRUE)
       if (lag_step > 0 && lag_step < length(df$air_temperature)) {
+        # soil temperature responds to air temperature with a delay (typically 1-4 hours)
+        # pad beginning with mean value to maintain series length
         tair_lag <- c(rep(tair_mean, lag_step), 
                       df$air_temperature[1:(length(df$air_temperature) - lag_step)])
       } else {
+        # this occurs when lag is too large (>data length) or non-positive
+        # still reasonable due to damping factor
         tair_lag <- df$air_temperature
       }
       soil_proc <- soil_base + 
@@ -241,6 +313,7 @@ met_temporal_downscale.Gaussian_ensemble <- function(in.path, in.prefix, outfold
     } else {
       df[1:reso_len, "soil_temperature"] <- rep(NA, reso_len)
     }
+    
     # after this maybe we can run it through the random norm to add variation
     # but not sure how models will react 
     
@@ -312,8 +385,7 @@ met_temporal_downscale.Gaussian_ensemble <- function(in.path, in.prefix, outfold
               }
               uncertainty_factor <- pmax(0.7, pmin(uncertainty_factor, 1.8))
               sd_adj <- base_sd * uncertainty_factor
-              soil_moisture <- stats::rnorm(1, mean = sour[x], sd = sd_adj)
-              dwnsc_day[n] <- pmax(0, pmin(soil_moisture, 1.0))
+              dwnsc_day[n] <- truncnorm::rtruncnorm(1, a = 0, b = 1, mean = sour[x], sd = sd_adj)
             } else if (u == "relative_humidity") {
               base_sd <- stats::sd(a[lowday:highday], na.rm = TRUE)
               if (is.na(base_sd) || base_sd <= 0) {
@@ -321,13 +393,13 @@ met_temporal_downscale.Gaussian_ensemble <- function(in.path, in.prefix, outfold
               }
               temp_idx <- (x - 1) * div + n
               if (temp_idx > 0 && temp_idx <= length(df$air_temperature) && x <= length(source$air_temperature)) {
-                current_temp_c <- df$air_temperature[temp_idx] - 273.15
-                source_temp_c <- source$air_temperature[x] - 273.15
+                current_temp_c <- PEcAn.utils::ud_convert(df$air_temperature[temp_idx], "K", "C")
+                source_temp_c <- PEcAn.utils::ud_convert(source$air_temperature[x], "K", "C")
                 
                 if (current_temp_c > -40 && current_temp_c < 50 && source_temp_c > -40 && source_temp_c < 50) {
                   # magnus formula for saturation vapor pressure (kPa)
-                  es_current <- 0.61078 * exp((17.27 * current_temp_c) / (current_temp_c + 237.3))
-                  es_source <- 0.61078 * exp((17.27 * source_temp_c) / (source_temp_c + 237.3))
+                  es_current <- PEcAn.data.atmosphere::t2es(current_temp_c, method = "Magnus")
+                  es_source <- PEcAn.data.atmosphere::t2es(source_temp_c, method = "Magnus")
                   saturation_ratio <- es_source / es_current
                   adjusted_rh <- sour[x] * saturation_ratio
                 } else {
@@ -336,8 +408,7 @@ met_temporal_downscale.Gaussian_ensemble <- function(in.path, in.prefix, outfold
               } else {
                 adjusted_rh <- sour[x]
               }
-              downscaled_rh <- stats::rnorm(1, mean = adjusted_rh, sd = base_sd)
-              dwnsc_day[n] <- pmax(0, pmin(100, downscaled_rh))
+              dwnsc_day[n] <- truncnorm::rtruncnorm(1, a = 0, b = 1, mean = adjusted_rh, sd = base_sd) 
             } else {
               dwnsc_day[n] <- stats::rnorm(1, mean = sour[x], sd = stats::sd(a[lowday:highday], na.rm = TRUE))
             }
@@ -501,7 +572,7 @@ met_temporal_downscale.Gaussian_ensemble <- function(in.path, in.prefix, outfold
     # PPFD downscaling
     ppfd_source <- source$surface_downwelling_photosynthetic_photon_flux_in_air
     if (all(is.na(ppfd_source))) {
-      ppfd_flux <- swflux * 0.45 * 4.57  # PAR fraction × umol/J conversion
+      ppfd_flux <- PEcAn.data.atmosphere::sw2ppfd(swflux) / 1000  # Convert umol to mol
       ppfd_flux[ppfd_flux < 0] <- 0
       df$surface_downwelling_photosynthetic_photon_flux_in_air <- ppfd_flux
     } else {
@@ -516,7 +587,7 @@ met_temporal_downscale.Gaussian_ensemble <- function(in.path, in.prefix, outfold
       
       train_ppfd <- train$surface_downwelling_photosynthetic_photon_flux_in_air
       if (all(is.na(train_ppfd)) && !all(is.na(train$surface_downwelling_shortwave_flux_in_air))) {
-        train_ppfd <- train$surface_downwelling_shortwave_flux_in_air * 0.45 * 4.57
+        train_ppfd <- PEcAn.data.atmosphere::sw2ppfd(train$surface_downwelling_shortwave_flux_in_air) / 1000 # Convert to mol
       }
       
       train_vec <- vector()
@@ -558,9 +629,9 @@ met_temporal_downscale.Gaussian_ensemble <- function(in.path, in.prefix, outfold
     }
     df$surface_downwelling_photosynthetic_photon_flux_in_air[
       df$surface_downwelling_photosynthetic_photon_flux_in_air < 0] <- 0
-    # maximum PPFD is ~2500 umol m-2 s-1 under full sunlight
+    # maximum PPFD is ~0.0025 mol m-2 s-1 (2500 umol m-2 s-1) under full sunlight
     df$surface_downwelling_photosynthetic_photon_flux_in_air[
-      df$surface_downwelling_photosynthetic_photon_flux_in_air > 2500] <- 2500
+      df$surface_downwelling_photosynthetic_photon_flux_in_air > 0.0025] <- 0.0025
     
     # Putting all the variables together in a data frame
     downscaled.met <- data.frame(df)

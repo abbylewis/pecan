@@ -23,7 +23,7 @@ substrRight <- function(x, n) {
 ##' @param w_len - numeric value that is the window length in days  
 ##' @param utc_diff - numeric value in HOURS that is local standard time difference from UTC time. CST is -6
 ##' @param ... further arguments, currently ignored
-##' @author James Simkins
+##' @author James Simkins, Akash
 
 
 met_temporal_downscale.Gaussian_ensemble <- function(in.path, in.prefix, outfolder, 

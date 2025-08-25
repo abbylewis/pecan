@@ -11,7 +11,8 @@ section for the next release.
 
 * Add function `clip_and_save_raster_file()` for subsetting rasters to match a polygon of interest (#3537).
 * Add CH4 and N2O to standard_vars in PEcAn.utils
-
+* New function `sat_vapor_pressure()` added for computing saturation vapor pressure from temperature using various methods.
+* 
 ## [1.9.0] - 2025-05-25
 
 ### Added
@@ -33,6 +34,7 @@ section for the next release.
   - **`soilgrids_ic_process`**: A function to extract, process, and generate ensemble members from SoilGrids250m data.
   - **`preprocess_soilgrids_data`**: A helper function to handle missing values and ensure data integrity during preprocessing. 
   - **`generate_soilgrids_ensemble`**: A function to create ensemble members for a site based on processed soil carbon data. 
+- `extract.nc.ERA5()` and `met2CF.ERA5` now supports both ensemble and reanalysis data processing .
 
 ### Fixed
 - api to correctly use x_var from request in plotResults #3528
@@ -58,6 +60,7 @@ section for the next release.
     * Modules `PEcAn.allometry`, `PEcAn.assim.batch`, `PEcAn.data.mining`, `PEcAn.emulator`, `PEcAn.MA`, `PEcAn.photosynthesis`, `PEcAn.priors`, and `PEcAn.RTM`.
 - Renamed master branch to main
 - `PEcAn.all::pecan_version()` now reports commit hashes as well as version numbers for each installed package.
+- `download.ERA5_cds` now uses the R package ecmwfr (replacing python dependency of cdsapi via reticulate), enabling direct NetCDF downloads; and made flexible for both reanalysis and ensemble data product.
 
 ### Removed
 

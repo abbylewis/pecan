@@ -393,9 +393,9 @@ met_temporal_downscale.Gaussian_ensemble <- function(in.path, in.prefix, outfold
               }
               temp_idx <- (x - 1) * div + n
               if (temp_idx > 0 && temp_idx <= length(df$air_temperature) && x <= length(source$air_temperature)) {
-                current_temp_c <- PEcAn.utils::ud_convert(df$air_temperature[temp_idx], "K", "C")
-                source_temp_c <- PEcAn.utils::ud_convert(source$air_temperature[x], "K", "C")
-                
+                current_temp_c <- PEcAn.utils::ud_convert(df$air_temperature[temp_idx], "kelvin", "celsius")
+                source_temp_c <- PEcAn.utils::ud_convert(source$air_temperature[x], "kelvin", "celsius")
+
                 if (current_temp_c > -40 && current_temp_c < 50 && source_temp_c > -40 && source_temp_c < 50) {
                   # magnus formula for saturation vapor pressure (kPa)
                   es_current <- PEcAn.data.atmosphere::t2es(current_temp_c, method = "Magnus")

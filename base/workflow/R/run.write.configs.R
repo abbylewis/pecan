@@ -27,9 +27,7 @@ run.write.configs <- function(settings, input_design, write = TRUE,
                               posterior.files = rep(NA, length(settings$pfts)), 
                               overwrite = TRUE) {
   
-  if(is.null(input_design)) {
-    stop("`input_design` is required and must not be NULL.")
-  }
+
 
   ## Skip database connection if settings$database is NULL or write is False
   if (!isTRUE(write) && is.null(settings$database)) {

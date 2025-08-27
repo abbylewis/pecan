@@ -56,8 +56,13 @@ soil_process <- function(settings, input, dbfiles, overwrite = FALSE,run.local=T
     names(newfile) <- rep("path", length(newfile))
 
     if(length(newfile)==0){
-
-      newfile <- extract_soil_gssurgo(outfolder, lat = latlon$lat, lon=latlon$lon)
+      radiusL <- ifelse(is.null(settings$run$input$soil$radius), 500, as.numeric(settings$run$input$soil$radius))
+      newfile <- extract_soil_gssurgo(
+        outfolder, 
+        lat = latlon$lat, 
+        lon = latlon$lon,
+        grid_spacing = radiusL
+      )
 
       # register files in DB
       for(i in 1:length(newfile)){

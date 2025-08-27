@@ -26,6 +26,8 @@ write.ensemble.configs(
 
 \item{model}{name of model to be run, e.g. "ED2" or "SIPNET"}
 
+\item{input_design}{the input indices for samples}
+
 \item{clean}{remove old output first?}
 
 \item{write.to.db}{logical: Record this run in BETY?}

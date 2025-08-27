@@ -15,7 +15,7 @@ run.write.configs(
 \arguments{
 \item{settings}{a PEcAn settings list}
 
-\item{input_design}{the input indices}
+\item{input_design}{the input indices for samples}
 
 \item{write}{should the runs be written to the database?}
 

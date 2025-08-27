@@ -201,6 +201,7 @@ get.ensemble.samples <- function(ensemble.size, pft.samples, env.samples,
 ##' Given a pft.xml object, a list of lists as supplied by get.sa.samples, 
 ##' a name to distinguish the output files, and the directory to place the files.
 ##'
+##' @param input_design the input indices for samples 
 ##' @param defaults pft
 ##' @param ensemble.samples list of lists supplied by \link{get.ensemble.samples}
 ##' @param settings list of PEcAn settings

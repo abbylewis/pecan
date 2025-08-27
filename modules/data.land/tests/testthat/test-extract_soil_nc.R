@@ -32,7 +32,9 @@ test_that("extract_soil_gssurgo returns valid NetCDF files for valid US coordina
     expected_vars <- c("fraction_of_sand_in_soil", "fraction_of_silt_in_soil", 
                       "fraction_of_clay_in_soil", "soil_organic_carbon_stock")
     
-    nc <- ncdf4::nc_open(file_paths[2]) # 2nd file because 1st file contains original gSSURGO data
+    # Skip first ensemble member (first ensemble member always uses the reported values without sampling) 
+    # and use subsequent members are simulated ensemble member with uncertainty
+    nc <- ncdf4::nc_open(file_paths[2])
     on.exit(ncdf4::nc_close(nc), add = TRUE)
     
     # Check required variables exist

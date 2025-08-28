@@ -9,8 +9,8 @@ AmeriFlux_met_ensemble(
   start_date,
   end_date,
   outfolder,
-  username = "pecan",
-  useremail = "@",
+  ameriflux_username = "pecan",
+  ameriflux_useremail = "@",
   overwrite = FALSE,
   verbose = FALSE,
   format = NULL,
@@ -33,9 +33,9 @@ The 'SITE_ID' field in \href{http://ameriflux.lbl.gov/sites/site-list-and-pages/
 
 \item{outfolder}{character. Output directory path for ensemble files}
 
-\item{username}{character. AmeriFlux username for data access.}
+\item{ameriflux_username}{character. AmeriFlux username for data access.}
 
-\item{useremail}{character. Email address for AmeriFlux authentication (must contain "@")}
+\item{ameriflux_useremail}{character. Email address for AmeriFlux authentication (must contain "@")}
 
 \item{overwrite}{logical. Whether to overwrite existing files. Default: FALSE}
 
@@ -75,8 +75,8 @@ result <- AmeriFlux_met_process(
   start_date = "2010-01-01",
   end_date = "2010-12-31",
   outfolder = "/path/to/output",
-  username = "your_username",
-  useremail = "your.email@domain.com", 
+  ameriflux_username = "your_username",
+  ameriflux_useremail = "your.email@domain.com", 
   format = format,
   era5_user = "your_cds_user",
   era5_key = "your_cds_api_key",

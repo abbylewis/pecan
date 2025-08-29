@@ -98,7 +98,7 @@ test_that("extract_soil_gssurgo handles ensemble generation", {
   expect_false(is.null(res))
   
   expect_type(res, "list")
-  expect_gte(length(res), 1)
+  expect_equal(length(res), 4)
   
   file_paths <- unlist(res)
   expect_true(all(file.exists(file_paths)))

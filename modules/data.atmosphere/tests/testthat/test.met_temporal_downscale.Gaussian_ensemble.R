@@ -143,7 +143,7 @@ test_that("Relative humidity temperature adjustment", {
   # Mock data
   source_temp_k <- 293.15  # 20C
   current_temp_k <- 298.15  # 25C
-  source_rh <- 0.7  # 70%
+  source_rh <- 70  # 70%
   
   # Convert to Celsius for saturation vapor pressure calculation
   source_temp_c <- source_temp_k - 273.15
@@ -160,7 +160,7 @@ test_that("Relative humidity temperature adjustment", {
   adjusted_rh <- source_rh * saturation_ratio
   # For warming (current > source), adjusted RH should be lower
   expect_true(adjusted_rh < source_rh)
-  expect_true(adjusted_rh > 0 && adjusted_rh <= 1)
+  expect_true(adjusted_rh > 0 && adjusted_rh <= 100)
 })
 
 test_that("PPFD calculations respect daylight constraints", {

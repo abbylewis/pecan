@@ -25,6 +25,11 @@ runModule.run.write.configs <- function(settings, overwrite = TRUE, input_design
     if (is.null(settings$ensemble$samplingspace$parameters$method)) {
       settings$ensemble$samplingspace$parameters$method <- "uniform"
     }
+      if (is.null(input_design)) {
+      ensemble_size <- settings$ensemble$size
+      input_design <- PEcAn.uncertainty::generate_joint_ensemble_design( settings = settings, ensemble_size = ensemble_size )
+    }
+    
 
 
     #check to see if there are posterior.files tags under pft

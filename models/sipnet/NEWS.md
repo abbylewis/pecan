@@ -3,6 +3,7 @@
 ## Changed
 
 * Breaking: Renamed the setting used to pass soil and hydrology parameters. `write.config.SIPNET` previously read these from `settings$run$inputs$soilinitcond`, now `settings$run$inputs$soil_physics` to better reflect that these are state factors applicable to the whole run rather than initial conditions. (Quianyu Xuan, #3406)
+* model2netcdf.SIPNET no longer writes separate `<year>.nc.var` files for every year of output. Use `PEcAn.utils::nc_write_varfiles()` to create these as needed.
 
 ## Fixed
 

@@ -30,6 +30,15 @@ section for the next release.
 - The ERA5 NC extraction function can now handle multi-site instead of one.
 - Added function for merging images from the same tiling system (MODIS, GLANCE, ICESat-2, HLS, etc.).
 - Added function for converting images towards the GDAL-supported formats (H5, NetCDF, HDF4, GeoTIFF, etc .).
+- New utility script `IC_SOILGRID_Utilities.R` for processing SoilGrids data to generate soil carbon initial condition (IC) files. This includes  (#3508):
+  - **`soilgrids_ic_process`**: A function to extract, process, and generate ensemble members from SoilGrids250m data.
+  - **`preprocess_soilgrids_data`**: A helper function to handle missing values and ensure data integrity during preprocessing. 
+  - **`generate_soilgrids_ensemble`**: A function to create ensemble members for a site based on processed soil carbon data. 
+- `extract.nc.ERA5()` and `met2CF.ERA5` now supports both ensemble and reanalysis data processing .
+
+- Initial Quarto notebook `run_pecan.qmd` to run PEcAn Demo 1 workflow from a pre-configured `pecan.xml` file, enabling notebook-based model runs, analysis, and visualization.[#3531](https://github.com/PecanProject/pecan/pull/3531)
+ - Directory structure for PEcAn Quarto notebooks under `pecan/documentation/tutorials/Demo_1_Basic_Run`
+ - Support for inspecting and plotting NetCDF output variables within the notebook workflow.
 
 ### Fixed
 - api to correctly use x_var from request in plotResults #3528
@@ -55,6 +64,7 @@ section for the next release.
     * Modules `PEcAn.allometry`, `PEcAn.assim.batch`, `PEcAn.data.mining`, `PEcAn.emulator`, `PEcAn.MA`, `PEcAn.photosynthesis`, `PEcAn.priors`, and `PEcAn.RTM`.
 - Renamed master branch to main
 - `PEcAn.all::pecan_version()` now reports commit hashes as well as version numbers for each installed package.
+- `download.ERA5_cds` now uses the R package ecmwfr (replacing python dependency of cdsapi via reticulate), enabling direct NetCDF downloads; and made flexible for both reanalysis and ensemble data product.
 
 ### Removed
 

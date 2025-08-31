@@ -188,18 +188,17 @@ PEcAn.workflow::runModule_start_model_runs(settings, stop.on.error = stop_on_err
 
 runs_file <- file.path(settings$outdir, "runs.txt")
 if (file.exists(runs_file)) {
-  run_ids <- readLines(runs_file)  # Your 50 IDs
+  run_ids <- readLines(runs_file) 
 } else {
   stop("runs.txt not found - check settings$outdir")
 }
 
 # Loop to read outputs for each run
 all_model_out <- list()
-for (i in run_ids) {
-  # Correct run-specific outdir 
+for (i in run_ids) { 
   run_specific_outdir <- file.path(settings$outdir, i)  
   
-  # Read output (add variables/start.year/end.year if needed)
+  # Read output 
   model_out <- read.output(runid = i, 
                            outdir = run_specific_outdir)
                            
@@ -222,9 +221,9 @@ y <- sapply(run_ids, function(rid) {
   mean(out_list$GPP, na.rm = TRUE) 
 })
 
-# Check lengths match
-print(length(y))  # Should be 50
-print(nrow(sobol_obj$X))  # Should be 50
+
+#print(length(y))  
+#print(nrow(sobol_obj$X))  
 
 # Compute indices
 tell(sobol_obj, y)

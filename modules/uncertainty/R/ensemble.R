@@ -317,14 +317,7 @@ for (input_tag in names(settings$run$inputs)) {
       required_tags<-c("met","parameters")
       
     }
-    #now looking into the xml
-    samp <- settings$ensemble$samplingspace
-    #finding who has a parent
-    parents <- lapply(samp,'[[', 'parent')
-    #order parents based on the need of who has to be first
-    order <- names(samp)[lapply(parents, function(tr) which(names(samp) %in% tr)) %>% unlist()] 
-    #new ordered sampling space
-    samp.ordered <- samp[c(order, names(samp)[!(names(samp) %in% order)])]
+   
     if(is.null(samples)){
        #performing the sampling
       samples <- list()

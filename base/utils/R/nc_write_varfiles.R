@@ -46,7 +46,7 @@ nc_longnames <- function(ncfile) {
 
 
 nc_write_varfile <- function(df, varfile) {
-  write.table(
+  utils::write.table(
     x = df,
     file = varfile,
     col.names = FALSE,

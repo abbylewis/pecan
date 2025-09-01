@@ -317,7 +317,8 @@ for (input_tag in names(settings$run$inputs)) {
       required_tags<-c("met","parameters")
       
     }
-   
+    #now looking into the xml
+    samp <- settings$ensemble$samplingspace
     if(is.null(samples)){
        #performing the sampling
       samples <- list()

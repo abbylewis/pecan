@@ -3,6 +3,7 @@
 #' all sites in a multi-site run. This function generates sample indices that are shared across sites to ensure consistent parameter sampling.
 #'
 ##' @param settings A PEcAn settings object containing ensemble configuration
+##' param sobol for generating inputs for sobol
 ##' @param ensemble_size Integer specifying the number of ensemble members
 ##' @return  A list containing ensemble samples and indices
 ##' 
@@ -10,7 +11,9 @@
 
 generate_joint_ensemble_design <- function(settings, ensemble_size ) {
   
-  
+  #if(sobol==TRUE){
+  #  ensemble_size=as.numeric(ensemble_size)*2
+  #}
   
   ens.sample.method <- settings$ensemble$samplingspace$parameters$method
   design_list <- list()
@@ -29,6 +32,7 @@ generate_joint_ensemble_design <- function(settings, ensemble_size ) {
 
     input_result <- PEcAn.uncertainty::input.ens.gen(
       settings = settings,
+      ensemble_size = ensemble_size,
       input = input_tag,
       method = samp.ordered[[i]]$method,
       parent_ids = parent_ids
@@ -39,7 +43,7 @@ generate_joint_ensemble_design <- function(settings, ensemble_size ) {
   }
 
   # Sample parameters
-  PEcAn.uncertainty::get.parameter.samples(settings, posterior.files, ens.sample.method)
+  PEcAn.uncertainty::get.parameter.samples(settings, ensemble.size = ensemble_size, posterior.files, ens.sample.method)
 
   # Load samples from file
   samples.file <- file.path(settings$outdir, "samples.Rdata")
@@ -57,6 +61,14 @@ generate_joint_ensemble_design <- function(settings, ensemble_size ) {
     PEcAn.logger::logger.error(samples.file, "not found, this file is required")
   }
   design_matrix<- data.frame(design_list)
+  
+  
+  
+  
+  
+  
+  
+  
   return(design_matrix)
 }
 

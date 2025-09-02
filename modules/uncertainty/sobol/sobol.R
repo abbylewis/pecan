@@ -21,39 +21,7 @@ args <- list(continue = FALSE)
 settings <- PEcAn.settings::read.settings("/projectnb/dietzelab/bthomas/pecan_runs/sipnet_test/pecan_updated.xml")
 settings<-settings[1]
 
-if ("benchmarking" %in% names(settings)) {
-  library(PEcAn.benchmark)
-  settings <- papply(settings, read_settings_BRR)
-}
 
-if ("sitegroup" %in% names(settings)) {
-  if (is.null(settings$sitegroup$nSite)) {
-    settings <- PEcAn.settings::createSitegroupMultiSettings(settings,
-                                                             sitegroupId = settings$sitegroup$id
-    )
-  } else {
-    settings <- PEcAn.settings::createSitegroupMultiSettings(
-      settings,
-      sitegroupId = settings$sitegroup$id,
-      nSite = settings$sitegroup$nSite
-    )
-  }
-  # zero out so don't expand a second time if re-reading
-  settings$sitegroup <- NULL
-}
-
-# Update/fix/check settings.
-# Will only run the first time it's called, unless force=TRUE
-settings <-
-  PEcAn.settings::prepare.settings(settings, force = FALSE)
-
-# Write pecan.CHECKED.xml
-PEcAn.settings::write.settings(settings, outputfile = "pecan.CHECKED.xml")
-# start from scratch if no continue is passed in
-status_file <- file.path(settings$outdir, "STATUS")
-if (args$continue && file.exists(status_file)) {
-  file.remove(status_file)
-}
 
 
 

@@ -26,7 +26,8 @@
 * Included all relevant carbon pools (`ROOT_BIOMASS`, `AG_BIOMASS`, `SOIL_STOCK`, `LIT_BIOMASS`) in BADM-based IC extraction; excluded non-pool variables like `SOIL_CHEM`.
 * Added explicit support for `LIT_BIOMASS` to fully utilize **BADM** biomass capabilities.
 * Added `test-IC_BADM_Utilities.R` to validate BADM initial condition extraction and processing
-  
+* `extract_soil_gssurgo` now supports spatial sampling using a grid of user-defined size and spacing. And supports ensemble simulation of soil organic carbon (SOC) stocks, using area-weighted aggregation
+
 ## Fixed
 
 * `gSSURGO.Query()` now always returns all the columns requested, even ones that are all NA. It also now always requires `mukeys` to be specified.

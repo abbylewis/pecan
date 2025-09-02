@@ -11,7 +11,6 @@ qsub_sda(
   Q,
   pre_enkf_params,
   ensemble.samples,
-  covariates_df,
   outdir,
   control,
   block.index = NULL

@@ -471,7 +471,7 @@ sda.enkf_local <- function(settings,
 #' @author Dongchen Zhang
 #' @return NONE
 #' @export
-qsub_sda <- function(settings, obs.mean, obs.cov, Q, pre_enkf_params, ensemble.samples, covariates_df, outdir, control, block.index = NULL) {
+qsub_sda <- function(settings, obs.mean, obs.cov, Q, pre_enkf_params, ensemble.samples, outdir, control, block.index = NULL) {
   # read from settings.
   L <- length(settings)
   # grab info from settings.
@@ -539,15 +539,12 @@ qsub_sda <- function(settings, obs.mean, obs.cov, Q, pre_enkf_params, ensemble.s
                              temp.obs.cov <- obs.cov %>% purrr::map(function(obs){
                                obs[block.site.inds]
                              })
-                             # covariates for debias.
-                             temp.covariates_df <- covariates_df[which(covariates_df$site %in% block.site.inds),]
                              configs <- list(setting = temp.settings,
                                              obs.mean = temp.obs.mean,
                                              obs.cov = temp.obs.cov,
                                              Q = Q,
                                              pre_enkf_params = pre_enkf_params,
                                              ensemble.samples = ensemble.samples,
-                                             covariates_df = temp.covariates_df,
                                              outdir = folder.path, # outdir
                                              job.folder = folder.path,
                                              cores = cores,
@@ -560,10 +557,9 @@ qsub_sda <- function(settings, obs.mean, obs.cov, Q, pre_enkf_params, ensemble.s
                                         "echo \"require (PEcAnAssimSequential)", 
                                         "      require (PEcAn.uncertainty)",
                                         "      require (foreach)", 
-                                        "      qsub_sda_batch('@FOLDER_PATH@', '@CORES@')", 
+                                        "      qsub_sda_batch('@FOLDER_PATH@')", 
                                         "    \" | R --no-save")
                              jobsh <- gsub("@FOLDER_PATH@", folder.path, jobsh)
-                             jobsh <- gsub("@CORES@", cores, jobsh)
                              writeLines(jobsh, con = file.path(folder.path, "job.sh"))
                              # qsub command.
                              qsub <- "qsub -l h_rt=24:00:00 -l mem_per_core=4G -l buyin -pe omp @CORES@ -V -N @NAME@ -o @STDOUT@ -e @STDERR@ -S /bin/bash"

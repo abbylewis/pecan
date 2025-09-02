@@ -20,6 +20,12 @@
 analysis_sda_block <- function (settings, block.list.all, X, obs.mean, obs.cov, t, nt, MCMC.args, block.list.all.pre = NULL) {
   # if we didn't assign cores.
   cores <- as.numeric(settings$state.data.assimilation$batch.settings$general.job$cores)
+  # if we didn't assign number of CPUs in the settings.
+  if (is.null(cores)) {
+    cores <- parallel::detectCores() - 1
+    # if we only have one CPU.
+    if (cores < 1) cores <- 1
+  }
   #convert from vector values to block lists.
   if ("try-error" %in% class(try(block.results <- build.block.xy(settings = settings, 
                                                                  block.list.all = block.list.all, 

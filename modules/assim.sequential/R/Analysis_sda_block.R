@@ -119,7 +119,6 @@ analysis_sda_block <- function (settings, block.list.all, X, obs.mean, obs.cov, 
 ##'  
 ##' @description This function split long vector and covariance matrix into blocks corresponding to the localization.
 ##' 
-##' @return It returns the `build.block.xy` object with data and constants filled in.
 build.block.xy <- function(settings, block.list.all, X, obs.mean, obs.cov, t) {
   #set q.type from settings.
   if (settings$state.data.assimilation$q.type == "vector") {
@@ -129,7 +128,7 @@ build.block.xy <- function(settings, block.list.all, X, obs.mean, obs.cov, t) {
   }
   #grab basic arguments based on X.
   site.ids <- unique(attributes(X)$Site)
-  var.names <- unique(attributes(X)$dimnames[[2]])
+  var.names <- unique(colnames(X))
   mu.f <- colMeans(X)
   Pf <- stats::cov(X)
   if (length(diag(Pf)[which(diag(Pf)==0)]) > 0) {
@@ -137,15 +136,16 @@ build.block.xy <- function(settings, block.list.all, X, obs.mean, obs.cov, t) {
     PEcAn.logger::logger.warn("The zero variances in Pf is being replaced by one fifth of the minimum variance in those matrices respectively.")
   }
   #distance calculations and localization
-  site.locs <- settings$run %>%
-    purrr::map('site') %>%
-    purrr::map_dfr(~c(.x[['lon']],.x[['lat']]) %>% as.numeric)%>%
-    t %>%
-    `colnames<-`(c("Lon","Lat")) %>%
-    `rownames<-`(site.ids)
-  #Finding the distance between the sites
-  dis.matrix <- sp::spDists(site.locs, longlat = TRUE)
-  if (!is.null(settings$state.data.assimilation$Localization.FUN)) {
+  if (!is.null(settings$state.data.assimilation$Localization.FUN) && 
+      ! as.numeric(settings$state.data.assimilation$scalef) == 0) {
+    site.locs <- settings$run %>%
+      purrr::map('site') %>%
+      purrr::map_dfr(~c(.x[['lon']],.x[['lat']]) %>% as.numeric)%>%
+      t %>%
+      `colnames<-`(c("Lon","Lat")) %>%
+      `rownames<-`(site.ids)
+    #Finding the distance between the sites
+    dis.matrix <- sp::spDists(site.locs, longlat = TRUE)
     Localization.FUN <- get(settings$state.data.assimilation$Localization.FUN)
     #turn that into a blocked matrix format
     blocked.dis <- block_matrix(dis.matrix %>% as.numeric(), rep(length(var.names), length(site.ids)))
@@ -200,7 +200,8 @@ build.block.xy <- function(settings, block.list.all, X, obs.mean, obs.cov, t) {
       f.2.y.ind <- obs.mean[[t]] %>%
         purrr::map(\(x)which(var.names %in% names(x))) %>%
         unlist %>%
-        unique
+        unique %>% 
+        sort
       H <- list(ind = f.2.y.ind %>% purrr::map(function(start){
         seq(start, length(site.ids) * length(var.names), length(var.names))
       }) %>% unlist() %>% sort)
@@ -239,9 +240,10 @@ build.block.xy <- function(settings, block.list.all, X, obs.mean, obs.cov, t) {
           block.list[[i]]$data$r <- diag(1, length(var.names))
           block.h <- matrix(1, 1, length(var.names))
         } else {
-          block.list[[i]]$data$y.censored <- rep(NA, max(obs_per_site))
-          block.list[[i]]$data$r <- diag(1, max(obs_per_site))
-          block.h <- matrix(1, 1, max(obs_per_site))
+          block.list[[i]]$data$y.censored <- rep(NA, length(f.2.y.ind))
+          block.list[[i]]$data$r <- diag(1, length(f.2.y.ind))
+          block.h <- matrix(NA, 1, length(var.names))
+          block.h[1, f.2.y.ind] <- 1
         }
       } else {
         block.list[[i]]$data$y.censored <- y.censored[y.start:y.end]
@@ -252,7 +254,7 @@ build.block.xy <- function(settings, block.list.all, X, obs.mean, obs.cov, t) {
       block.list[[i]]$H <- block.h
       block.list[[i]]$constant$H <- which(apply(block.h, 2, sum) == 1)
       block.list[[i]]$constant$N <- length(f.start:f.end)
-      block.list[[i]]$constant$YN <- length(y.start:y.end)
+      block.list[[i]]$constant$YN <- length(block.list[[i]]$data$y.censored)
       block.list[[i]]$constant$q.type <- q.type
     }
     names(block.list) <- site.ids
@@ -382,7 +384,7 @@ build.block.xy <- function(settings, block.list.all, X, obs.mean, obs.cov, t) {
 ##' 
 ##' @return It returns the `block.list` object with initial conditions filled in.
 MCMC_Init <- function (block.list, X) {
-  var.names <- unique(attributes(X)$dimnames[[2]])
+  var.names <- unique(names(X))
   #sample mu.f from X.
   sample.mu.f <- colMeans(X)
   for (i in seq_along(block.list)) {
@@ -403,7 +405,11 @@ MCMC_Init <- function (block.list, X) {
     #if we want the vector q.
     if (block.list[[i]]$constant$q.type == 3) {
       for (j in seq_along(block.list[[i]]$data$y.censored)) {
-        block.list[[i]]$Inits$q <- c(block.list[[i]]$Inits$q, stats::rgamma(1, shape = block.list[[i]]$data$aq[j], rate = block.list[[i]]$data$bq[j]))
+        temp.q <- stats::rgamma(1, shape = block.list[[i]]$data$aq[j], rate = block.list[[i]]$data$bq[j])
+        if (temp.q < 0.001) {
+          temp.q <- 0.001
+        }
+        block.list[[i]]$Inits$q <- c(block.list[[i]]$Inits$q, temp.q)
       }
     } else if (block.list[[i]]$constant$q.type == 4) {
       #if we want the wishart Q.
@@ -426,6 +432,8 @@ MCMC_Init <- function (block.list, X) {
 ##' 
 ##' @return It returns the `block` object with analysis results filled in.
 MCMC_block_function <- function(block) {
+  # disable printing out messages.
+  nimbleOptions(verbose = FALSE, MCMCprogressBar = FALSE, checkNimbleFunction = FALSE, checkDuplicateNodeDefinitions = FALSE)
   #build nimble model
   #TODO: harmonize the MCMC code between block-based and general analysis functions to reduce the complexity of code.
   model_pred <- nimble::nimbleModel(GEF.MultiSite.Nimble,
@@ -455,12 +463,11 @@ MCMC_block_function <- function(block) {
   conf$addSampler(target = samplerLists[[X.mod.ind]]$target, type = "ess",
                   control = list(propCov= block$data$pf, adaptScaleOnly = TRUE,
                                  latents = "X", pfOptimizeNparticles = TRUE))
-
   #add toggle Y sampler.
   for (i in 1:block$constant$YN) {
     conf$addSampler(paste0("y.censored[", i, "]"), 'toggle', control=list(type='RW'))
   }
-  conf$printSamplers()
+  # conf$printSamplers()
   #compile MCMC
   Rmcmc <- nimble::buildMCMC(conf)
   Cmodel <- nimble::compileNimble(model_pred)
@@ -529,15 +536,28 @@ MCMC_block_function <- function(block) {
     mua <- colMeans(dat[, iX])
     pa <- stats::cov(dat[, iX])
   }
-  
-  if (length(iX.mod) == 1) {
-    mufa <- mean(dat[, iX.mod])
-    pfa <- stats::var(dat[, iX.mod])
+  # construct X.all object.
+  # NA only occurs when there is zero observation.
+  if (!any(is.na(block$data$y.censored))) {
+    H <- colSums(block$H)
+    obs.inds <- which(H == 1)
+    non.obs.inds <- which(H == 0)
+    X.all.inds <- H
+    X.all.inds[obs.inds] <- iX
+    X.all.inds[non.obs.inds] <- iX.mod[non.obs.inds]
+    mufa <- colMeans(dat[, X.all.inds])
+    pfa <- stats::cov(dat[, X.all.inds])
   } else {
     mufa <- colMeans(dat[, iX.mod])
     pfa <- stats::cov(dat[, iX.mod])
   }
-  
+  # if (length(iX.mod) == 1) {
+  #   mufa <- mean(dat[, iX.mod])
+  #   pfa <- stats::var(dat[, iX.mod])
+  # } else {
+  #   mufa <- colMeans(dat[, iX.mod])
+  #   pfa <- stats::cov(dat[, iX.mod])
+  # }
   #return values.
   block$update <- list(aq = aq, bq = bq, mua = mua, pa = pa, mufa = mufa, pfa = pfa)
   return(block)
@@ -640,6 +660,7 @@ block.2.vector <- function (block.list, X, H) {
   site.ids <- attributes(X)$Site
   mu.f <- mu.a <- c()
   Pf <- Pa <- matrix(0, length(site.ids), length(site.ids))
+  analysis <- X
   for (L in block.list) {
     ind <- c()
     for (id in L$site.ids) {
@@ -648,6 +669,12 @@ block.2.vector <- function (block.list, X, H) {
     #convert mu.f and pf
     mu.a[ind] <- mu.f[ind] <- L$update$mufa
     Pa[ind, ind] <- Pf[ind, ind] <- L$update$pfa
+    # MVN sample based on block.
+    sample <- as.data.frame(mvtnorm::rmvnorm(nrow(X), 
+                                             L$update$mufa, 
+                                             L$update$pfa, 
+                                             method = "svd"))
+    analysis[,ind] <- sample
     #convert mu.a and pa
     ind <- intersect(ind, H$H.ind)
     mu.a[ind] <- L$update$mua
@@ -656,5 +683,6 @@ block.2.vector <- function (block.list, X, H) {
   return(list(mu.f = mu.f,
               Pf = Pf,
               mu.a = mu.a,
-              Pa = Pa))
+              Pa = Pa,
+              analysis = analysis))
 }

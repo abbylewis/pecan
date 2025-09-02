@@ -277,7 +277,7 @@ sda.enkf_local <- function(settings,
     gc()
     # submit jobs for writing configs.
     PEcAn.logger::logger.info("Writting configs!")
-    out.configs <-furrr::future_pmap(list(conf.settings %>% `class<-`(c("list")),restart.list, inputs), function(settings, restart.arg, inputs) {
+    out.configs <- furrr::future_pmap(list(conf.settings %>% `class<-`(c("list")), restart.list, inputs), function(settings, restart.arg, inputs) {
       # Loading the model package - this is required bc of the furrr
       library(paste0("PEcAn.",settings$model$type), character.only = TRUE)
       # wrtting configs for each settings - this does not make a difference with the old code
@@ -466,19 +466,26 @@ sda.enkf_local <- function(settings,
 #' `keepNC` decide if we want to keep the NetCDF files inside the out directory;
 #' `forceRun` decide if we want to proceed the Bayesian MCMC sampling without observations;
 #' `MCMC.args` include lists for controling the MCMC sampling process (iteration, nchains, burnin, and nthin.).
+#' @param block.index list of site ids for each block, default is NULL. This is used when the localization turns on.
+#' Please keep using the default value because the localization feature is still in development.
 #' @author Dongchen Zhang
 #' @return NONE
 #' @export
-qsub_sda <- function(settings, obs.mean, obs.cov, Q, pre_enkf_params, ensemble.samples, outdir = NULL, control) {
-  if (future::supportsMulticore()) {
-    future::plan(future::multicore)
-  } else {
-    future::plan(future::multisession)
-  }
+qsub_sda <- function(settings, obs.mean, obs.cov, Q, pre_enkf_params, ensemble.samples, covariates_df, outdir, control, block.index = NULL) {
+  # read from settings.
   L <- length(settings)
-  # grab info from settings for the parallel job submissions.
-  num.folder <- as.numeric(settings$state.data.assimilation$batch.settings$general.job$folder.num)
+  # grab info from settings.
+  # if we aleady specified how many blocks to be running.
+  if (!is.null(block.index)) {
+    num.folder <- length(block.index)
+  } else {
+    num.folder <- as.numeric(settings$state.data.assimilation$batch.settings$general.job$folder.num)
+  }
   cores <- as.numeric(settings$state.data.assimilation$batch.settings$general.job$cores)
+  # initialize parallel.
+  cl <- parallel::makeCluster(cores)
+  on.exit(parallel::stopCluster(cl), add = TRUE)
+  doSNOW::registerDoSNOW(cl)
   num.per.folder <- ceiling(L/num.folder)
   if (is.null(outdir)) {
     outdir <- settings$outdir
@@ -488,82 +495,131 @@ qsub_sda <- function(settings, obs.mean, obs.cov, Q, pre_enkf_params, ensemble.s
   # delete the whole folder if it's not empty.
   if (file.exists(batch.folder)){
     PEcAn.logger::logger.info("Deleting batch folder!")
-    list.files(batch.folder, full.names = T) %>% furrr::future_map(function(f){
-      temp <- system(paste0("rm -rf ", f))
-    }, .progress = T)
+    foreach::foreach(f = list.files(batch.folder, full.names = T), 
+                     .packages=c("Kendall")) %dopar% {
+                       temp <- system(paste0("rm -rf ", f))
+                     }
     unlink(batch.folder, recursive = T)
   } 
   dir.create(batch.folder)
   # loop over sub-folders.
   folder.paths <- job.ids <- rep(NA, num.folder)
   PEcAn.logger::logger.info(paste("Submitting", num.folder, "jobs."))
-  temp <- 1:num.folder %>% furrr::future_map(function(i){
-    # create folder for each set of job runs.
-    # calculate start and end index for the current folder.
-    head.num <- (i-1)*num.per.folder + 1
-    if (i*num.per.folder > L) {
-      tail.num <- L
-    } else {
-      tail.num <- i*num.per.folder
+  # setup progress bar.
+  pb <- utils::txtProgressBar(min=1, max=num.folder, style=3)
+  on.exit(close(pb), add = TRUE)
+  progress <- function(n) utils::setTxtProgressBar(pb, n)
+  opts <- list(progress=progress)
+  temp <- foreach::foreach(i = 1:num.folder, 
+                           .packages=c("Kendall", "purrr"), 
+                           .options.snow=opts) %dopar% {
+                             # create folder for each set of job runs.
+                             # calculate start and end index for the current folder.
+                             head.num <- (i-1)*num.per.folder + 1
+                             if (i*num.per.folder > L) {
+                               tail.num <- L
+                             } else {
+                               tail.num <- i*num.per.folder
+                             }
+                             if (!is.null(block.index)) {
+                               block.site.inds <- block.index[[i]]
+                             } else {
+                               block.site.inds <- head.num:tail.num
+                             }
+                             # naming and creating folder by the folder index.
+                             folder.name <- paste0("Job_", i)
+                             folder.path <- file.path(batch.folder, folder.name)
+                             folder.paths[i] <- folder.path
+                             dir.create(folder.path)
+                             # save corresponding block list to the folder.
+                             temp.settings <- PEcAn.settings::write.settings(settings[block.site.inds], outputfile = "pecan.xml", outputdir = folder.path)
+                             temp.obs.mean <- obs.mean %>% purrr::map(function(obs){
+                               obs[block.site.inds]
+                             })
+                             temp.obs.cov <- obs.cov %>% purrr::map(function(obs){
+                               obs[block.site.inds]
+                             })
+                             # covariates for debias.
+                             temp.covariates_df <- covariates_df[which(covariates_df$site %in% block.site.inds),]
+                             configs <- list(setting = temp.settings,
+                                             obs.mean = temp.obs.mean,
+                                             obs.cov = temp.obs.cov,
+                                             Q = Q,
+                                             pre_enkf_params = pre_enkf_params,
+                                             ensemble.samples = ensemble.samples,
+                                             covariates_df = temp.covariates_df,
+                                             outdir = folder.path, # outdir
+                                             job.folder = folder.path,
+                                             cores = cores,
+                                             control = control,
+                                             site.ids = block.site.inds)
+                             saveRDS(configs, file = file.path(folder.path, "configs.rds"))
+                             # create job file.
+                             jobsh <- c("#!/bin/bash -l", 
+                                        "module load R/4.1.2", 
+                                        "echo \"require (PEcAnAssimSequential)", 
+                                        "      require (PEcAn.uncertainty)",
+                                        "      require (foreach)", 
+                                        "      qsub_sda_batch('@FOLDER_PATH@', '@CORES@')", 
+                                        "    \" | R --no-save")
+                             jobsh <- gsub("@FOLDER_PATH@", folder.path, jobsh)
+                             jobsh <- gsub("@CORES@", cores, jobsh)
+                             writeLines(jobsh, con = file.path(folder.path, "job.sh"))
+                             # qsub command.
+                             qsub <- "qsub -l h_rt=24:00:00 -l mem_per_core=4G -l buyin -pe omp @CORES@ -V -N @NAME@ -o @STDOUT@ -e @STDERR@ -S /bin/bash"
+                             qsub <- gsub("@NAME@", paste0("Job-", i), qsub)
+                             qsub <- gsub("@STDOUT@", file.path(folder.path, "stdout.log"), qsub)
+                             qsub <- gsub("@STDERR@", file.path(folder.path, "stderr.log"), qsub)
+                             qsub <- gsub("@CORES@", cores, qsub)
+                             qsub <- strsplit(qsub, " (?=([^\"']*\"[^\"']*\")*[^\"']*$)", perl = TRUE)
+                             cmd <- qsub[[1]]
+                             out <- system2(cmd, file.path(folder.path, "job.sh"), stdout = TRUE, stderr = TRUE)
+                           }
+}
+
+##' This function can help to execute sda function.
+##' @title qsub_sda_batch
+##' @param folder.path character: path where the `configs.rds` file is stored.
+##' @author Dongchen Zhang.
+##' @export
+qsub_sda_batch <- function(folder.path) {
+  configs <- readRDS(file.path(folder.path, "configs.rds"))
+  setting <- PEcAn.settings::read.settings(configs$setting)
+  sda.enkf_local(setting, 
+                 configs$obs.mean, 
+                 configs$obs.cov, 
+                 configs$Q, 
+                 configs$pre_enkf_params,
+                 configs$ensemble.samples,
+                 configs$outdir,
+                 configs$job.folder,
+                 as.numeric(configs$cores),
+                 configs$control)
+}
+
+##' This function can help to assemble sda outputs (analysis and forecasts) from each job execution.
+##' @title sda_assemble
+##' @param batch.folder character: path where the SDA batch jobs stored.
+##' @param outdir character: path where we want to store the assembled analysis and forecasts.
+##' @author Dongchen Zhang.
+##' @export
+sda_assemble <- function (batch.folder, outdir) {
+  # find folder paths to each SDA job.
+  folders <- list.files(batch.folder, full.names = T)
+  fail.folders <- (folders %>% furrr::future_map(function(f){
+    if(!file.exists(file.path(f, "sda.all.forecast.analysis.Rdata"))) {
+      return(f)
     }
-    if (!is.null(block.index)) {
-      block.site.inds <- block.index[[i]]
-    } else {
-      block.site.inds <- head.num:tail.num
-    }
-    # naming and creating folder by the folder index.
-    folder.name <- paste0("Job_", i)
-    folder.path <- file.path(batch.folder, folder.name)
-    folder.paths[i] <- folder.path
-    dir.create(folder.path)
-    # save corresponding block list to the folder.
-    temp.settings <- PEcAn.settings::write.settings(settings[block.site.inds], outputfile = "pecan.xml", outputdir = folder.path)
-    temp.obs.mean <- obs.mean %>% purrr::map(function(obs){
-      obs[block.site.inds]
-    })
-    temp.obs.cov <- obs.cov %>% purrr::map(function(obs){
-      obs[block.site.inds]
-    })
-    configs <- list(setting = temp.settings,
-                    obs.mean = temp.obs.mean,
-                    obs.cov = temp.obs.cov,
-                    Q = Q,
-                    pre_enkf_params = pre_enkf_params,
-                    ensemble.samples = ensemble.samples,
-                    outdir = folder.path, # outdir
-                    job.folder = folder.path,
-                    cores = cores,
-                    control = control,
-                    site.ids = block.site.inds)
-    saveRDS(configs, file = file.path(folder.path, "configs.rds"))
-    # create job file.
-    jobsh <- c("#!/bin/bash -l", 
-               "module load R/4.1.2", 
-               "echo \"require (PEcAnAssimSequential)", 
-               "      require (PEcAn.uncertainty)",
-               "      require (foreach)", 
-               "      qsub_sda_batch('@FOLDER_PATH@')", 
-               "    \" | R --no-save")
-    jobsh <- gsub("@FOLDER_PATH@", folder.path, jobsh)
-    writeLines(jobsh, con = file.path(folder.path, "job.sh"))
-    # qsub command.
-    qsub <- "qsub -l h_rt=10:00:00 -l mem_per_core=4G -l buyin -pe omp @CORES@ -V -N @NAME@ -o @STDOUT@ -e @STDERR@ -S /bin/bash"
-    qsub <- gsub("@NAME@", paste0("Job-", i), qsub)
-    qsub <- gsub("@STDOUT@", file.path(folder.path, "stdout.log"), qsub)
-    qsub <- gsub("@STDERR@", file.path(folder.path, "stderr.log"), qsub)
-    qsub <- gsub("@CORES@", cores, qsub)
-    qsub <- strsplit(qsub, " (?=([^\"']*\"[^\"']*\")*[^\"']*$)", perl = TRUE)
-    cmd <- qsub[[1]]
-    out <- system2(cmd, file.path(folder.path, "job.sh"), stdout = TRUE, stderr = TRUE)
-  }, .progress = T)
-  # check job completion
-  completed.folder.num <- sum(file.exists(file.path(folder.paths, "sda.all.forecast.analysis.Rdata")))
-  while (completed.folder.num < length(folder.paths)) {
-    Sys.sleep(60)
-    completed.folder.num <- sum(file.exists(file.path(folder.paths, "sda.all.forecast.analysis.Rdata")))
+  }) %>% unlist)
+  # if we find any failed job.
+  if (length(fail.folders) > 0) {
+    PEcAn.logger::logger.info("Failed jobs found.")
+    PEcAn.logger::logger.info(fail.folders)
+    return(fail.folders)
   }
+  # assemble SDA forecast and analysis.
   # order folder names.
-  folder.inds <- folder.paths %>% purrr::map(function(f){
+  folder.inds <- folders %>% purrr::map(function(f){
     as.numeric(strsplit(basename(f), "_")[[1]][2])
   }) %>% unlist
   order.folders <- folders[order(folder.inds)]
@@ -585,24 +641,4 @@ qsub_sda <- function(settings, obs.mean, obs.cov, Q, pre_enkf_params, ensemble.s
   names(forecast.all) <- times
   # save results.
   save(list = c("analysis.all", "forecast.all"), file = file.path(outdir, "sda.all.forecast.analysis.Rdata"))
-}
-
-##' This function can help to execute sda function.
-##' @title qsub_sda_batch
-##' @param folder.path character: path where the `configs.rds` file is stored.
-##' @author Dongchen Zhang.
-##' @export
-qsub_sda_batch <- function(folder.path) {
-  configs <- readRDS(file.path(folder.path, "configs.rds"))
-  setting <- PEcAn.settings::read.settings(configs$setting)
-  sda.enkf_local(setting, 
-                 configs$obs.mean, 
-                 configs$obs.cov, 
-                 configs$Q, 
-                 configs$pre_enkf_params,
-                 configs$ensemble.samples,
-                 configs$outdir,
-                 configs$job.folder,
-                 as.numeric(configs$cores),
-                 configs$control)
 }

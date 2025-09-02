@@ -12,7 +12,8 @@ qsub_sda(
   pre_enkf_params,
   ensemble.samples,
   outdir = NULL,
-  control
+  control,
+  block.index = NULL
 )
 }
 \arguments{
@@ -38,6 +39,9 @@ The default is NULL, where we will be using outdir from the settings object.}
 `keepNC` decide if we want to keep the NetCDF files inside the out directory;
 `forceRun` decide if we want to proceed the Bayesian MCMC sampling without observations;
 `MCMC.args` include lists for controling the MCMC sampling process (iteration, nchains, burnin, and nthin.).}
+
+\item{block.index}{list of site ids for each block, default is NULL. This is used when the localization turns on.
+Please keep using the default value because the localization feature is still in development.}
 }
 \value{
 NONE

@@ -10,14 +10,19 @@
 ##' @param t time point in format of YYYY-MM-DD.
 ##' @param nt total length of time steps, corresponding to the `nt` variable in the `sda.enkf.multisite` function.
 ##' @param MCMC.args arguments for the MCMC sampling, details can be found in the roxygen strucutre for control list in the `sda.enkf.multisite` function.
-##' @param block.list.all.pre pre-existed block.list.all object for passing the aqq and bqq to the current SDA run, the default is NULL. Details can be found in the roxygen structure for `pre_enkf_params` of the `sda.enkf.multisite` function
+##' @param block.list.all.pre pre-existed block.list.all object for passing the aqq and bqq to the current SDA run, the default is NULL. Details can be found in the roxygen structure for `pre_enkf_params` of the `sda.enkf.multisite` function.
+##' @param cores number of CPUs used for parallel computation. Default is NULL.
 ##' @details This function will add data and constants into each block that are needed for the MCMC sampling.
 ##'  
 ##' @description This function provides the block-based MCMC sampling approach.
 ##' 
 ##' @return It returns the `build.block.xy` object and the analysis results.
 ##' @importFrom dplyr %>%
-analysis_sda_block <- function (settings, block.list.all, X, obs.mean, obs.cov, t, nt, MCMC.args, block.list.all.pre = NULL) {
+analysis_sda_block <- function (settings, block.list.all, X, obs.mean, obs.cov, t, nt, MCMC.args, block.list.all.pre = NULL, cores = NULL) {
+  # if we didn't assign cores.
+  if (is.null(cores)) {
+    cores <- parallel::detectCores() - 1
+  }
   #convert from vector values to block lists.
   if ("try-error" %in% class(try(block.results <- build.block.xy(settings = settings, 
                                                                  block.list.all = block.list.all, 
@@ -58,9 +63,31 @@ analysis_sda_block <- function (settings, block.list.all, X, obs.mean, obs.cov, 
   
   #parallel for loop over each block.
   PEcAn.logger::logger.info(paste0("Running MCMC ", "for ", length(block.list.all[[t]]), " blocks"))
-  if ("try-error" %in% class(try(block.list.all[[t]] <- furrr::future_map(block.list.all[[t]], MCMC_block_function, .progress = T)))) {
-    PEcAn.logger::logger.severe("Something wrong within the MCMC_block_function function.")
-    return(0)
+  if (!is.null(settings$state.data.assimilation$batch.settings$analysis)) {
+    if ("try-error" %in% class(try(block.list.all[[t]] <- qsub_analysis_submission(settings = settings, block.list = block.list.all[[t]])))) {
+      PEcAn.logger::logger.severe("Something wrong within the qsub_analysis_submission function.")
+      return(0)
+    }
+  } else {
+    cl <- parallel::makeCluster(as.numeric(cores))
+    doSNOW::registerDoSNOW(cl)
+    l <- NULL
+    if ("try-error" %in% class(try(block.list.all[[t]] <- foreach::foreach(l = block.list.all[[t]], 
+                                                                           .packages = c("Kendall", 
+                                                                                         "purrr", 
+                                                                                         "nimble", 
+                                                                                         "PEcAnAssimSequential")) %dopar% {MCMC_block_function(l)}))) {
+      parallel::stopCluster(cl)
+      foreach::registerDoSEQ()
+      PEcAn.logger::logger.severe("Something wrong within the MCMC_block_function function.")
+      return(0)
+    }
+    parallel::stopCluster(cl)
+    foreach::registerDoSEQ()
+    # if ("try-error" %in% class(try(block.list.all[[t]] <- furrr::future_map(block.list.all[[t]], MCMC_block_function, .progress = T)))) {
+    #   PEcAn.logger::logger.severe("Something wrong within the MCMC_block_function function.")
+    #   return(0)
+    # }
   }
   PEcAn.logger::logger.info("Completed!")
   
@@ -77,7 +104,8 @@ analysis_sda_block <- function (settings, block.list.all, X, obs.mean, obs.cov, 
               mu.a = V$mu.a,
               Pa = V$Pa,
               Y = Y,
-              R = R))
+              R = R,
+              analysis = V$analysis))
 }
 
 ##' @title build.block.xy

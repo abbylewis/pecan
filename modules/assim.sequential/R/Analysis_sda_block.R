@@ -22,6 +22,7 @@ analysis_sda_block <- function (settings, block.list.all, X, obs.mean, obs.cov, 
   # if we didn't assign cores.
   if (is.null(cores)) {
     cores <- parallel::detectCores() - 1
+    if (cores < 1) cores <- 1 # if we only have one CPU.
   }
   #convert from vector values to block lists.
   if ("try-error" %in% class(try(block.results <- build.block.xy(settings = settings, 
@@ -84,10 +85,6 @@ analysis_sda_block <- function (settings, block.list.all, X, obs.mean, obs.cov, 
     }
     parallel::stopCluster(cl)
     foreach::registerDoSEQ()
-    # if ("try-error" %in% class(try(block.list.all[[t]] <- furrr::future_map(block.list.all[[t]], MCMC_block_function, .progress = T)))) {
-    #   PEcAn.logger::logger.severe("Something wrong within the MCMC_block_function function.")
-    #   return(0)
-    # }
   }
   PEcAn.logger::logger.info("Completed!")
   

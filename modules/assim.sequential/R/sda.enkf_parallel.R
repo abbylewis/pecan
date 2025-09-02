@@ -185,7 +185,7 @@ sda.enkf_local <- function(settings,
     load(file.path(settings$outdir, "samples.Rdata"))
   }
   #reformatting params
-  new.params <- PEcAnAssimSequential:::sda_matchparam(settings, ensemble.samples, site.ids, nens)
+  new.params <- sda_matchparam(settings, ensemble.samples, site.ids, nens)
   #sample met ensemble members
   #sample all inputs specified in the settings$ensemble
   #now looking into the xml
@@ -313,16 +313,16 @@ sda.enkf_local <- function(settings,
     }, .progress = F)
     # submit jobs for reading sda outputs.
     PEcAn.logger::logger.info("Reading forecast outputs!")
-    reads <- PEcAnAssimSequential:::build_X(out.configs = out.configs, 
-                                            settings = settings, 
-                                            new.params = new.params, 
-                                            nens = nens, 
-                                            read_restart_times = read_restart_times, 
-                                            outdir = outdir, 
-                                            t = t, 
-                                            var.names = var.names, 
-                                            my.read_restart = my.read_restart,
-                                            restart_flag = FALSE)
+    reads <- build_X(out.configs = out.configs, 
+                     settings = settings, 
+                     new.params = new.params, 
+                     nens = nens, 
+                     read_restart_times = read_restart_times, 
+                     outdir = outdir, 
+                     t = t, 
+                     var.names = var.names, 
+                     my.read_restart = my.read_restart,
+                     restart_flag = FALSE)
     #let's read the parameters of each site/ens
     params.list <- reads %>% purrr::map(~.x %>% purrr::map("params"))
     # add namespace for variables inside the foreach.
@@ -368,7 +368,7 @@ sda.enkf_local <- function(settings,
       #running analysis function.
       # forbid submitting jobs to remote.
       settings$state.data.assimilation$batch.settings$analysis <- NULL
-      enkf.params[[obs.t]] <- PEcAnAssimSequential:::analysis_sda_block(settings, block.list.all, X, obs.mean, obs.cov, t, nt, MCMC.args, pre_enkf_params, cores)
+      enkf.params[[obs.t]] <- analysis_sda_block(settings, block.list.all, X, obs.mean, obs.cov, t, nt, MCMC.args, pre_enkf_params, cores)
       enkf.params[[obs.t]] <- c(enkf.params[[obs.t]], RestartList = list(restart.list %>% stats::setNames(site.ids)))
       block.list.all <- enkf.params[[obs.t]]$block.list.all
       #Forecast

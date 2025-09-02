@@ -474,10 +474,17 @@ write.config.SIPNET <- function(defaults, trait.values, settings, run.id, inputs
                                           & leafphdata$site_id == settings$run$site$id]
         leafOffDay <- leafphdata$leafoffday[leafphdata$year == obs_year_start
                                             & leafphdata$site_id == settings$run$site$id]
-        if (!is.na(leafOnDay)) {
-          param[which(param[, 1] == "leafOnDay"), 2] <- leafOnDay
+        # when we have NAs for phenology.
+        if (is.na(leafOnDay)) {
+          leafOnDay <- param[which(param[, 1] == "leafOnDay"), 2]
         }
-        if (!is.na(leafOffDay)) {
+        if (is.na(leafOffDay)) {
+          leafOffDay <- param[which(param[, 1] == "leafOffDay"), 2]
+        }
+        # when we have Leaf off date larger than leaf on date.
+        # Otherwise the phenology will not be used.
+        if (leafOffDay > leafOnDay) {
+          param[which(param[, 1] == "leafOnDay"), 2] <- leafOnDay
           param[which(param[, 1] == "leafOffDay"), 2] <- leafOffDay
         }
       } else {

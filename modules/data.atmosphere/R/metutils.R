@@ -103,6 +103,17 @@ get.vpd <- function(rh, temp) {
 #' WMO (2014) Guide to Instruments and Methods of Observation (WMO-No. 8), ch. 4.
 #' @md
 #' @author David LeBauer
+#' @examples
+#' # Calculate saturation vapor pressure at 20°C
+#' sat_vapor_pressure(20)
+#' t2es(20)
+#' 
+#' # Using different methods
+#' t2es(c(10, 20, 30), method = "Magnus")
+#' t2es(283.15, temp_units = "K", method = "GoffGratch")
+#' 
+#' # Different output units
+#' t2es(20, out_units = "hPa")
 #' @export
 sat_vapor_pressure <- function(
     temp,
@@ -115,23 +126,23 @@ sat_vapor_pressure <- function(
 
   if (method == "Magnus") {
     # canonical temp: degC; canonical pressure: kPa
-    Tc <- units::ud_convert(temp, temp_units, "degC")
+    Tc <- PEcAn.utils::ud_convert(temp, temp_units, "degC")
     es_kPa <- 0.61078 * exp((17.27 * Tc) / (Tc + 237.3))
-    return(units::ud_convert(es_kPa, "kPa", out_units))
+    return(PEcAn.utils::ud_convert(es_kPa, "kPa", out_units))
   }
 
   if (method == "ClausiusClapeyron") {
     # canonical temp: degC; canonical pressure: hPa
-    Tc <- units::ud_convert(temp, temp_units, "degC")
+    Tc <- PEcAn.utils::ud_convert(temp, temp_units, "degC")
     L <- 2.5e6 # J kg^-1
     Rv <- 461 # J kg^-1 K^-1
     es_hPa <- 6.11 * exp((L / Rv) * (1 / 273 - 1 / (273 + Tc)))
-    return(units::ud_convert(es_hPa, "hPa", out_units))
+    return(PEcAn.utils::ud_convert(es_hPa, "hPa", out_units))
   }
 
   if (method == "GoffGratch") {
     # canonical temp: K; canonical pressure: hPa
-    Tk <- units::ud_convert(temp, temp_units, "K")
+    Tk <- PEcAn.utils::ud_convert(temp, temp_units, "K")
     Tst <- 373.15 # K
     est <- 1013.246 # hPa at steam point
     lg10 <- function(z) log10(z)
@@ -141,7 +152,7 @@ sat_vapor_pressure <- function(
       8.1328e-3 * (10^(-3.49149 * (Tst / Tk - 1)) - 1) +
       lg10(est)
     es_hPa <- 10^log10_es
-    return(units::ud_convert(es_hPa, "hPa", out_units))
+    return(PEcAn.utils::ud_convert(es_hPa, "hPa", out_units))
   }
 }
 
@@ -156,6 +167,12 @@ get.es <- function(temp) {
     temp_units = "degC",
     out_units = "hPa"
   )
+}
+
+#' @rdname sat_vapor_pressure
+#' @export
+t2es <- function(temp, temp_units = "degC", out_units = "kPa", method = "ClausiusClapeyron") {
+  sat_vapor_pressure(temp = temp, temp_units = temp_units, out_units = out_units, method = method)
 }
 
 ##' Calculate RH from temperature and dewpoint

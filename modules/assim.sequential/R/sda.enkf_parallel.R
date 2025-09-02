@@ -10,6 +10,7 @@
 #' @param Q         Process covariance matrix given if there is no data to estimate it.
 #' @param pre_enkf_params Used for passing pre-existing time-series of process error into the current SDA runs to ignore the impact by the differences between process errors.
 #' @param ensemble.samples Pass ensemble.samples from outside to avoid GitHub check issues.
+#' @param outdir physical path to the folder that stores the SDA outputs. Default is NULL.
 #' @param control   List of flags controlling the behavior of the SDA. 
 #' `TimeseriesPlot` for post analysis examination; 
 #' `OutlierDetection` decide if we want to execute the outlier detection each time after the model forecasting;
@@ -28,8 +29,6 @@ sda.enkf_local <- function(settings,
                            pre_enkf_params = NULL,
                            ensemble.samples = NULL,
                            outdir = NULL,
-                           job.folder = NULL,
-                           cores = NULL,
                            control=list(TimeseriesPlot = FALSE,
                                         OutlierDetection = FALSE,
                                         send_email = NULL,
@@ -41,6 +40,14 @@ sda.enkf_local <- function(settings,
     future::plan(future::multicore)
   } else {
     future::plan(future::multisession)
+  }
+  # grab cores from settings.
+  cores <- as.numeric(settings$state.data.assimilation$batch.settings$general.job$cores)
+  # if we didn't assign number of CPUs in the settings.
+  if (is.null(cores)) {
+    cores <- parallel::detectCores() - 1
+    # if we only have one CPU.
+    if (cores < 1) cores <- 1
   }
   # Tweak outdir if it's specified from outside.
   if (!is.null(outdir)) {
@@ -404,16 +411,8 @@ sda.enkf_local <- function(settings,
                         ens_weights[[obs.t]],
                         params.list = params.list,
                         restart.list = restart.list)
-    # save file to the job folder if it's specified.
-    if (!is.null(job.folder)) {
-      # create the job folder if it doesn't exist.
-      if (!file.exists(job.folder)) {
-        dir.create(job.folder)
-      }
-      save(sda.outputs, file = file.path(job.folder, paste0("sda.output", t, ".Rdata")))
-    } else {
-      save(sda.outputs, file = file.path(settings$outdir, paste0("sda.output", t, ".Rdata")))
-    }
+    # save file to the out folder.
+    save(sda.outputs, file = file.path(settings$outdir, paste0("sda.output", t, ".Rdata")))
     # remove files as SDA runs
     if (!(control$keepNC) && t == 1){
       PEcAn.logger::logger.info("Deleting NC files!")
@@ -442,13 +441,9 @@ sda.enkf_local <- function(settings,
   }
   names(analysis.all) <- as.character(lubridate::date(obs.times))
   names(forecast.all) <- as.character(lubridate::date(obs.times))
-  if (!is.null(job.folder)) {
-    save(list = c("analysis.all", "forecast.all"), file = file.path(job.folder, "sda.all.forecast.analysis.Rdata"))
-  } else {
-    save(list = c("analysis.all", "forecast.all"), file = file.path(settings$outdir, "sda.all.forecast.analysis.Rdata"))
-  }
+  save(list = c("analysis.all", "forecast.all"), file = file.path(settings$outdir, "sda.all.forecast.analysis.Rdata"))
   gc()
-} # sda.enkf
+}
 
 
 ##' This function provides means to split large SDA runs into separate `qsub` jobs.
@@ -550,7 +545,6 @@ qsub_sda <- function(settings, obs.mean, obs.cov, Q, pre_enkf_params, ensemble.s
                                              pre_enkf_params = pre_enkf_params,
                                              ensemble.samples = ensemble.samples,
                                              outdir = folder.path, # outdir
-                                             job.folder = folder.path,
                                              cores = cores,
                                              control = control,
                                              site.ids = block.site.inds)
@@ -600,8 +594,6 @@ qsub_sda_batch <- function(folder.path) {
                  configs$pre_enkf_params,
                  configs$ensemble.samples,
                  configs$outdir,
-                 configs$job.folder,
-                 as.numeric(configs$cores),
                  configs$control)
 }
 

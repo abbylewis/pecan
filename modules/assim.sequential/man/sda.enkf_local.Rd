@@ -12,8 +12,6 @@ sda.enkf_local(
   pre_enkf_params = NULL,
   ensemble.samples = NULL,
   outdir = NULL,
-  job.folder = NULL,
-  cores = NULL,
   control = list(TimeseriesPlot = FALSE, OutlierDetection = FALSE, send_email = NULL,
     keepNC = TRUE, forceRun = TRUE, MCMC.args = NULL)
 )
@@ -30,6 +28,8 @@ sda.enkf_local(
 \item{pre_enkf_params}{Used for passing pre-existing time-series of process error into the current SDA runs to ignore the impact by the differences between process errors.}
 
 \item{ensemble.samples}{Pass ensemble.samples from outside to avoid GitHub check issues.}
+
+\item{outdir}{physical path to the folder that stores the SDA outputs. Default is NULL.}
 
 \item{control}{List of flags controlling the behavior of the SDA. 
 `TimeseriesPlot` for post analysis examination; 

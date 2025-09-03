@@ -62,13 +62,11 @@ generate_joint_ensemble_design <- function(settings, ensemble_size, sobol = FALS
   
   if(sobol){
     half<-floor(ensemble_size / 2)
-    X1 <- design_matrix[1:half_size, ]    
-    X2 <- design_matrix[(half_size + 1):ensemble_size, ] 
+    X1 <- design_matrix[1:half, ]    
+    X2 <- design_matrix[(half + 1):ensemble_size, ] 
     sobol_obj <- soboljansen(model = NULL, X1 = X1, X2 = X2)
-   
     return(sobol_obj)
   }
-  
   
   
   

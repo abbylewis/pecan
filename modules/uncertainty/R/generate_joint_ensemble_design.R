@@ -11,8 +11,7 @@
 
 generate_joint_ensemble_design <- function(settings, ensemble_size, sobol = FALSE) {
   
-  if(sobol) ensemble_size=as.numeric(ensemble_size)*2
-  
+  if(sobol){ ensemble_size = as.numeric(ensemble_size)*2 }
   
   ens.sample.method <- settings$ensemble$samplingspace$parameters$method
   design_list <- list()
@@ -63,20 +62,11 @@ generate_joint_ensemble_design <- function(settings, ensemble_size, sobol = FALS
   
   if(sobol){
     half<-floor(ensemble_size / 2)
-    X1 <- data.frame(
-      met = design_matrix$met[1:half],
-      params = design_matrix$params[1:half],
-      ic = design_matrix$ic[1:half]
-    )
-    
-    X2 <- data.frame(
-      met = design_matrix$met[(half + 1):ensemble_size],
-      params = design_matrix$params[(half + 1):ensemble_size],
-      ic = design_matrix$ic[(half + 1):ensemble_size]
-    )
+    X1 <- design_matrix[1:half_size, ]    
+    X2 <- design_matrix[(half_size + 1):ensemble_size, ] 
     sobol_obj <- soboljansen(model = NULL, X1 = X1, X2 = X2)
-    U <- sobol_obj$X
-    return(U)
+   
+    return(sobol_obj)
   }
   
   

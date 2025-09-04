@@ -147,7 +147,6 @@ single_site_nc_merge <- function (model.outdir, nc.outdir, ens.num, site.id, lat
     if (i == 1) {
       # create nc file.
       nc_file <- ncdf4::nc_create(file.path(nc.outdir, paste0(site.id, "_", time, ".nc")), list(site_id_var, lon_var, lat_var, temp_var))
-      # record current nc path.
       # add the site-specific variables.
       ncdf4::ncvar_put(nc_file, varid = "site_id", vals = site.id)
       ncdf4::ncvar_put(nc_file, varid = "latitude", vals = lat)

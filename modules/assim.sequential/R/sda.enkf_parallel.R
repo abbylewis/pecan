@@ -212,10 +212,10 @@ sda.enkf_local <- function(settings,
     }
     for (i in seq_along(samp.ordered)){
       #call the function responsible for generating the ensemble
-      inputs[[s]][[names(samp.ordered)[i]]] <- input.ens.gen(settings=conf.settings[[s]],
-                                                             input=names(samp.ordered)[i],
-                                                             method=samp.ordered[[i]]$method,
-                                                             parent_ids=NULL)
+      inputs[[s]][[names(samp.ordered)[i]]] <- PEcAn.uncertainty::input.ens.gen(settings=conf.settings[[s]],
+                                                                                input=names(samp.ordered)[i],
+                                                                                method=samp.ordered[[i]]$method,
+                                                                                parent_ids=NULL)
     }
   }
   ###------------------------------------------------------------------------------------------------###
@@ -494,6 +494,7 @@ qsub_sda <- function(settings, obs.mean, obs.cov, Q, pre_enkf_params, ensemble.s
   # delete the whole folder if it's not empty.
   if (file.exists(batch.folder)){
     PEcAn.logger::logger.info("Deleting batch folder!")
+    f <- NULL
     foreach::foreach(f = list.files(batch.folder, full.names = T), 
                      .packages=c("Kendall")) %dopar% {
                        temp <- system(paste0("rm -rf ", f))
@@ -509,6 +510,7 @@ qsub_sda <- function(settings, obs.mean, obs.cov, Q, pre_enkf_params, ensemble.s
   on.exit(close(pb), add = TRUE)
   progress <- function(n) utils::setTxtProgressBar(pb, n)
   opts <- list(progress=progress)
+  i <- NULL
   temp <- foreach::foreach(i = 1:num.folder, 
                            .packages=c("Kendall", "purrr"), 
                            .options.snow=opts) %dopar% {

@@ -66,28 +66,21 @@ analysis_sda_block <- function (settings, block.list.all, X, obs.mean, obs.cov, 
   
   #parallel for loop over each block.
   PEcAn.logger::logger.info(paste0("Running MCMC ", "for ", length(block.list.all[[t]]), " blocks"))
-  if (!is.null(settings$state.data.assimilation$batch.settings$analysis)) {
-    if ("try-error" %in% class(try(block.list.all[[t]] <- qsub_analysis_submission(settings = settings, block.list = block.list.all[[t]])))) {
-      PEcAn.logger::logger.severe("Something wrong within the qsub_analysis_submission function.")
-      return(0)
-    }
-  } else {
-    cl <- parallel::makeCluster(as.numeric(cores))
-    doSNOW::registerDoSNOW(cl)
-    l <- NULL
-    if ("try-error" %in% class(try(block.list.all[[t]] <- foreach::foreach(l = block.list.all[[t]], 
-                                                                           .packages = c("Kendall", 
-                                                                                         "purrr", 
-                                                                                         "nimble", 
-                                                                                         "PEcAnAssimSequential")) %dopar% {MCMC_block_function(l)}))) {
-      parallel::stopCluster(cl)
-      foreach::registerDoSEQ()
-      PEcAn.logger::logger.severe("Something wrong within the MCMC_block_function function.")
-      return(0)
-    }
+  cl <- parallel::makeCluster(as.numeric(cores))
+  doSNOW::registerDoSNOW(cl)
+  l <- NULL
+  if ("try-error" %in% class(try(block.list.all[[t]] <- foreach::foreach(l = block.list.all[[t]], 
+                                                                         .packages = c("Kendall", 
+                                                                                       "purrr", 
+                                                                                       "nimble", 
+                                                                                       "PEcAnAssimSequential")) %dopar% {MCMC_block_function(l)}))) {
     parallel::stopCluster(cl)
     foreach::registerDoSEQ()
+    PEcAn.logger::logger.severe("Something wrong within the MCMC_block_function function.")
+    return(0)
   }
+  parallel::stopCluster(cl)
+  foreach::registerDoSEQ()
   PEcAn.logger::logger.info("Completed!")
   
   #convert from block lists to vector values.

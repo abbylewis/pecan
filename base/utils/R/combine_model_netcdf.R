@@ -1,13 +1,13 @@
-#' Merge model outputted NetCDF files by time steps specified by pecan settings file.
+#' Merge model outputted netCDF files by time steps specified by pecan settings file.
 #' @details
 #' The function is only tested for SIPNET model runs.
-#' Please make sure you have the same NetCDF formats if you want to proceed with different models.
+#' Please make sure you have the same netCDF formats if you want to proceed with different models.
 #' We could also have more functions that deal with different dimensions (e.g., by site instead of by year).
 #' 
 #' @param settings.dir character: physical path to the pecan standard multi-settings file.
-#' @param nc.outdir  character: physical path to the folder that contains the merged NetCDF files.
+#' @param nc.outdir  character: physical path to the folder that contains the merged netCDF files.
 #'
-#' @return character: file paths to the merged NetCDF files.
+#' @return character: file paths to the merged netCDF files.
 #' @export
 #' 
 #' @author Dongchen Zhang
@@ -16,7 +16,7 @@
 all_site_nc_merge_by_year <- function (settings.dir, nc.outdir) {
   # check shell environments.
   if ("try-error" %in% class(try(temp <- system("which cdo", intern = T), silent = T))) {
-    PEcAn.logger::logger.info("The gdalwarp function is not detected in shell command.")
+    PEcAn.logger::logger.info("The cdo function is not detected in shell command.")
     return(NA)
   }
   # read settings.
@@ -88,18 +88,18 @@ all_site_nc_merge_by_year <- function (settings.dir, nc.outdir) {
   return(nc.paths)
 }
 
-#' Merge model outputted NetCDF files across ensembles for a single site.
+#' Merge model outputted netCDF files across ensembles for a single site.
 #' @details
 #' The function is only tested for SIPNET model runs.
-#' Please make sure you have the same NetCDF formats if you want to proceed with different models.
+#' Please make sure you have the same netCDF formats if you want to proceed with different models.
 #' 
 #' @param model.outdir character: physical path to the model output folder.
-#' @param nc.outdir  character: physical path to the folder that contains the merged NetCDF files.
+#' @param nc.outdir  character: physical path to the folder that contains the merged netCDF files.
 #' @param ens.num numeric: ensemble size.
 #' @param site.id numeric: identification number of the site.
 #' @param lat numeric: latitude of the site.
 #' @param lon numeric: longitude of the site.
-#' @return character: file path to the merged NetCDF file.
+#' @return character: file path to the merged netCDF file.
 #' @export
 #' 
 #' @author Dongchen Zhang

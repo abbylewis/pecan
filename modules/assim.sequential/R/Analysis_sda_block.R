@@ -344,7 +344,7 @@ build.block.xy <- function(settings, block.list.all, X, obs.mean, obs.cov, t) {
   #if it's Wishart Q, we need to replace any NA Y with corresponding muf, and r with Pf.
   #also, if length of observation is 1, the Wishart Q is not suitable for the MCMC.
   #we will then need to change the Q type to 3, which is the vector Q.
-  #the wishart-MCMC is still under development, so I commanded them out for now.
+  #the wishart-MCMC is still under development, so I commented them out for now.
   if (q.type == 4) {
     for (i in seq_along(block.list)) {
       #check length.

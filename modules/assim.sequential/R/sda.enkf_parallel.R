@@ -357,10 +357,10 @@ sda.enkf_local <- function(settings,
     ###-------------------------------------------------------------------###---- 
     #To trigger the analysis function with free run, you need to first specify the control$forceRun as TRUE,
     #Then specify the settings$state.data.assimilation$scalef as 0, and settings$state.data.assimilation$free.run as TRUE.
-    if (!is.null(obs.mean[[t]][[1]]) | (as.logical(settings$state.data.assimilation$free.run) & control$forceRun)) {
+    if (!is.null(obs.mean[[t]][[1]]) || (as.logical(settings$state.data.assimilation$free.run) & control$forceRun)) {
       #decide if we want the block analysis function or multi-site analysis function.
       #initialize block.list.all.
-      if (t == 1 | !exists("block.list.all")) {
+      if (t == 1 || !exists("block.list.all")) {
         block.list.all <- obs.mean %>% purrr::map(function(l){NULL})
       }
       #initialize MCMC arguments.
@@ -606,11 +606,7 @@ qsub_sda_batch <- function(folder.path) {
 sda_assemble <- function (batch.folder, outdir) {
   # find folder paths to each SDA job.
   folders <- list.files(batch.folder, full.names = T)
-  fail.folders <- (folders %>% furrr::future_map(function(f){
-    if(!file.exists(file.path(f, "sda.all.forecast.analysis.Rdata"))) {
-      return(f)
-    }
-  }) %>% unlist)
+  fail.folders <- folders[!file.exists(file.path(folders, "sda.all.forecast.analysis.Rdata"))]
   # if we find any failed job.
   if (length(fail.folders) > 0) {
     PEcAn.logger::logger.info("Failed jobs found.")

@@ -13,6 +13,7 @@ section for the next release.
 * Add CH4 and N2O to standard_vars in PEcAn.utils
 * New function `sat_vapor_pressure()` added for computing saturation vapor pressure from temperature using various methods.
 * Added `AmeriFlux_met_ensemble()` function with ERA5 fallback for AmeriFlux meteorological data processing and ensemble generation
+* Added parallel mode for the entire SDA workflow.
 
 ## [1.9.0] - 2025-05-25
 
@@ -41,8 +42,6 @@ section for the next release.
  - Directory structure for PEcAn Quarto notebooks under `pecan/documentation/tutorials/Demo_1_Basic_Run`
  - Support for inspecting and plotting NetCDF output variables within the notebook workflow.
 - added support for soil temperature, relative humidity, soil moisture, and PPFD downscaling to `met_temporal_downscale.Gaussian_ensemble`
-
-- Added parallel mode for the entire SDA workflow.
 
 ### Fixed
 - api to correctly use x_var from request in plotResults #3528

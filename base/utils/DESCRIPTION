@@ -42,6 +42,7 @@ Imports:
     magrittr,
     ncdf4 (>= 1.15),
     PEcAn.logger,
+    PEcAn.settings,
     purrr,
     rlang,
     stringi,
@@ -49,6 +50,7 @@ Imports:
 Suggests:
     coda (>= 0.18),
     data.table,
+    doSNOW,
     ggplot2,
     MASS,
     mockery,

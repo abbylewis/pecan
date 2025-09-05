@@ -42,6 +42,7 @@
 "doParallel","*","modules/data.atmosphere","Suggests",FALSE
 "doParallel","*","modules/data.remote","Imports",FALSE
 "doSNOW","*","base/remote","Suggests",FALSE
+"doSNOW","*","base/utils","Suggests",FALSE
 "doSNOW","*","modules/assim.sequential","Suggests",FALSE
 "doSNOW","*","modules/data.atmosphere","Suggests",FALSE
 "doSNOW","*","modules/data.land","Imports",FALSE
@@ -380,6 +381,7 @@
 "PEcAn.remote","*","modules/data.land","Imports",TRUE
 "PEcAn.remote","*","modules/data.remote","Imports",TRUE
 "PEcAn.settings","*","base/all","Depends",TRUE
+"PEcAn.settings","*","base/utils","Imports",TRUE
 "PEcAn.settings","*","base/workflow","Imports",TRUE
 "PEcAn.settings","*","models/biocro","Imports",TRUE
 "PEcAn.settings","*","models/ed","Imports",TRUE

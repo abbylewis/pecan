@@ -34,27 +34,10 @@ nc_merge_all_sites_by_year <- function (model.outdir,
     PEcAn.logger::logger.info("The cdo function is not detected in shell command.")
     return(NA)
   }
-  # load arguments from the ancillary.inputs.
-  if (all(!is.null(unlist(ancillary.inputs)))) {
-    # grab model outdir.
-    model.outdir <- ancillary.inputs$modeloutdir
-    # grab ensemble size.
-    ens.num <- ancillary.inputs$ens.num
-    # grab site info.
-    site.ids <- ancillary.inputs$site.ids
-    # grab time points.
-    time.points <- lubridate::year(seq(lubridate::date(ancillary.inputs$start.date), 
-                                       lubridate::date(ancillary.inputs$end.date), 
-                                       ancillary.inputs$time.step))
-    # if we have missing variables from the ancillary.inputs list.
-  } else {
-    # record the missing inputs.
-    arg.names <- names(ancillary.inputs)
-    missing.inds <- which(ancillary.inputs %>% purrr::map(is.null) %>% unlist)
-    missing.vars.message <- paste(arg.names[missing.inds], collapse = ", ")
-    PEcAn.logger::logger.info(paste0("The following inputs are missing from the ancillary.inputs list: ", missing.vars.message))
-    return(0)
-  }
+  # calculate time points.
+  time.points <- lubridate::year(seq(lubridate::date(ancillary.inputs$start.date), 
+                                     lubridate::date(ancillary.inputs$end.date), 
+                                     ancillary.inputs$time.step))
   
   # loop over time.
   # initialize parallel.
@@ -72,7 +55,7 @@ nc_merge_all_sites_by_year <- function (model.outdir,
     s <- NULL # For passing the GitHub actions.
     nc.files <- 
       foreach::foreach(s = seq_along(site.ids), 
-                       .packages = c("Kendall", "purrr", "ncdf4"), 
+                       .packages = c("purrr", "ncdf4"), 
                        .options.snow=opts) %dopar% {
                          nc_merge_single_site(model.outdir = model.outdir, 
                                               nc.outdir = nc.outdir, 

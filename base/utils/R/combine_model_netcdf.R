@@ -157,7 +157,6 @@ nc_merge_all_sites_by_year <- function (settings.dir = NULL,
 #' @param site.id numeric: identification number of the site.
 #'   See details for use with non-numeric siteIDs
 #' @return character: file path to the merged netCDF file.
-#' @export
 #' 
 #' @author Dongchen Zhang
 nc_merge_single_site <- function (model.outdir, nc.outdir, ens.num, site.id, time) {

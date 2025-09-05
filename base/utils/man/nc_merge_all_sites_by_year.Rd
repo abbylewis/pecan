@@ -5,24 +5,32 @@
 \title{Combine many netCDFs into one file per year}
 \usage{
 nc_merge_all_sites_by_year(
+  model.outdir,
   nc.outdir,
-  cores = NULL,
-  ancillary.inputs = list(model.outdir = NULL, ens.num = NULL, site.ids = NULL,
-    start.date = NULL, end.date = NULL, time.step = NULL)
+  ens.num,
+  site.ids,
+  start.date,
+  end.date,
+  time.step,
+  cores = 1
 )
 }
 \arguments{
+\item{model.outdir}{character: path to the folder that contains model outputs.}
+
 \item{nc.outdir}{character: physical path to the folder that contains the merged netCDF files.}
 
-\item{cores}{numeric: the number of CPUs for the parallel computation. Default is NULL.}
+\item{ens.num}{numeric: number of ensembles for the model run.}
 
-\item{ancillary.inputs}{list: necessary arguments if settings.dir is NULL. See
-\code{model.outdir} path to the folder that contains model outputs;
-\code{ens.num} number of ensembles for the model run;
-\code{site.ids} vector of site ids across locations;
-\code{start.date} start date of the model run;
-\code{end.date} end date of the model run.
-\code{time.step} time step of the model run (e.g., 1 year).}
+\item{site.ids}{numeric or character: vector of site ids across locations.}
+
+\item{start.date}{date or character in YYYY-MM-DD format: start date of the model run.}
+
+\item{end.date}{date or character in YYYY-MM-DD format: end date of the model run.}
+
+\item{time.step}{character: time step of the model run (e.g., 1 year).}
+
+\item{cores}{numeric: the number of CPUs for the parallel computation. Default is 1.}
 }
 \value{
 character: file paths to the merged netCDF files.

@@ -6,15 +6,14 @@
 #' Please make sure you have the same netCDF formats if you want to proceed with different models.
 #' We could also have more functions that deal with different dimensions (e.g., by site instead of by year).
 #' 
+#' @param model.outdir character: path to the folder that contains model outputs.
 #' @param nc.outdir  character: physical path to the folder that contains the merged netCDF files.
-#' @param cores numeric: the number of CPUs for the parallel computation. Default is NULL.
-#' @param ancillary.inputs list: necessary arguments if settings.dir is NULL. See 
-#' `model.outdir` path to the folder that contains model outputs; 
-#' `ens.num` number of ensembles for the model run;
-#' `site.ids` vector of site ids across locations;
-#' `start.date` start date of the model run;
-#' `end.date` end date of the model run.
-#' `time.step` time step of the model run (e.g., 1 year).
+#' @param ens.num numeric: number of ensembles for the model run.
+#' @param site.ids numeric or character: vector of site ids across locations.
+#' @param start.date date or character in YYYY-MM-DD format: start date of the model run.
+#' @param end.date date or character in YYYY-MM-DD format: end date of the model run.
+#' @param time.step character: time step of the model run (e.g., 1 year).
+#' @param cores numeric: the number of CPUs for the parallel computation. Default is 1.
 #'
 #' @return character: file paths to the merged netCDF files.
 #' @export
@@ -22,24 +21,18 @@
 #' @author Dongchen Zhang
 #' @importFrom magrittr %>%
 #' @importFrom foreach %dopar%
-nc_merge_all_sites_by_year <- function (nc.outdir,
-                                        cores = NULL,
-                                        ancillary.inputs = list(model.outdir = NULL,
-                                                                ens.num = NULL,
-                                                                site.ids = NULL,
-                                                                start.date = NULL,
-                                                                end.date = NULL,
-                                                                time.step = NULL)) {
+nc_merge_all_sites_by_year <- function (model.outdir, 
+                                        nc.outdir, 
+                                        ens.num, 
+                                        site.ids, 
+                                        start.date, 
+                                        end.date, 
+                                        time.step, 
+                                        cores = 1) {
   # check shell environments.
   if (suppressWarnings(system2("which", "cdo", stdout = FALSE)) != 0) {
     PEcAn.logger::logger.info("The cdo function is not detected in shell command.")
     return(NA)
-  }
-  # if we didn't specify the number of CPUs.
-  if (is.null(cores)) {
-    cores <- parallel::detectCores() - 1
-    # if we only have one CPU.
-    if (cores < 1) cores <- 1
   }
   # load arguments from the ancillary.inputs.
   if (all(!is.null(unlist(ancillary.inputs)))) {

@@ -93,7 +93,7 @@ all_site_nc_merge_by_year <- function (settings.dir = NULL,
   cl <- parallel::makeCluster(as.numeric(cores))
   doSNOW::registerDoSNOW(cl)
   #progress bar
-  pb <- utils::txtProgressBar(min = 1, max = length(site_info$site_id), style = 3)
+  pb <- utils::txtProgressBar(min = 1, max = length(site.ids), style = 3)
   progress <- function(n) utils::setTxtProgressBar(pb, n)
   opts <- list(progress=progress)
   # record nc paths.
@@ -102,14 +102,14 @@ all_site_nc_merge_by_year <- function (settings.dir = NULL,
     time <- time.points[t] # grab the current time point.
     # loop over sites.
     nc.files <- 
-      foreach::foreach(s = seq_along(site_info$site_id), 
+      foreach::foreach(s = seq_along(site.ids), 
                        .packages = c("Kendall", "purrr", "ncdf4"), 
                        .options.snow=opts) %dopar% {
                          single_site_nc_merge(model.outdir = model.outdir, 
                                               nc.outdir = nc.outdir, 
                                               ens.num = ens.num, 
                                               # cdo collgrid only works for numeric data type.
-                                              site.id = site_info$site_id[s], 
+                                              site.id = site_id[s], 
                                               time)
                        } %>% unlist
     # merge across sites using CDO command.
@@ -119,11 +119,11 @@ all_site_nc_merge_by_year <- function (settings.dir = NULL,
     cmd <- gsub("@OUTFILE@", file.path(nc.outdir, paste0(time, ".nc")), cmd)
     out <- system(cmd, intern = TRUE, ignore.stdout = TRUE, ignore.stderr = TRUE)
     # if we have site ids in character format.
-    if (all(is.character(site_info$site_id))) {
+    if (all(is.character(site.ids))) {
       nc <- ncdf4::nc_open(file.path(nc.outdir, paste0(time, ".nc")))
-      site_dim <- ncdf4::ncdim_def("site", units = "", vals = site_info$lat)
+      site_dim <- ncdf4::ncdim_def("site", units = "", vals = seq_along(site.ids))
       site_id_var <- ncdf4::ncvar_def("site_id", units = "", dim = site_dim, prec = "char")
-      ncdf4::ncvar_put(nc, varid = "site_id", vals = site_info$site_id)
+      ncdf4::ncvar_put(nc, varid = "site_id", vals = site.ids)
       ncdf4::nc_close(nc) # close nc connection.
     }
     # record the current nc path.

@@ -7,11 +7,11 @@
 #' We could also have more functions that deal with different dimensions (e.g., by site instead of by year).
 #' 
 #' @param nc.outdir  character: physical path to the folder that contains the merged netCDF files.
+#' @param cores numeric: the number of CPUs for the parallel computation. Default is NULL.
 #' @param ancillary.inputs list: necessary arguments if settings.dir is NULL. See 
 #' `model.outdir` path to the folder that contains model outputs; 
 #' `ens.num` number of ensembles for the model run;
 #' `site.ids` vector of site ids across locations;
-#' `cores` number of CPUs for the parallel computation;
 #' `start.date` start date of the model run;
 #' `end.date` end date of the model run.
 #' `time.step` time step of the model run (e.g., 1 year).
@@ -22,11 +22,11 @@
 #' @author Dongchen Zhang
 #' @importFrom magrittr %>%
 #' @importFrom foreach %dopar%
-nc_merge_all_sites_by_year <- function (nc.outdir, 
+nc_merge_all_sites_by_year <- function (nc.outdir,
+                                        cores = NULL,
                                         ancillary.inputs = list(model.outdir = NULL,
                                                                 ens.num = NULL,
                                                                 site.ids = NULL,
-                                                                cores = NULL,
                                                                 start.date = NULL,
                                                                 end.date = NULL,
                                                                 time.step = NULL)) {
@@ -35,20 +35,18 @@ nc_merge_all_sites_by_year <- function (nc.outdir,
     PEcAn.logger::logger.info("The cdo function is not detected in shell command.")
     return(NA)
   }
+  # if we didn't assign number of CPUs in the settings.
+  if (is.null(cores)) {
+    cores <- parallel::detectCores() - 1
+    # if we only have one CPU.
+    if (cores < 1) cores <- 1
+  }
   # load arguments from the ancillary.inputs.
   if (all(!is.null(unlist(ancillary.inputs)))) {
     # grab model outdir.
     model.outdir <- ancillary.inputs$modeloutdir
     # grab ensemble size.
     ens.num <- ancillary.inputs$ens.num
-    # grab number of CPUs for parallel computation.
-    cores <- ancillary.inputs$cores
-    # if we didn't assign number of CPUs in the settings.
-    if (is.null(cores)) {
-      cores <- parallel::detectCores() - 1
-      # if we only have one CPU.
-      if (cores < 1) cores <- 1
-    }
     # grab site info.
     site.ids <- ancillary.inputs$site.ids
     # grab time points.

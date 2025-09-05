@@ -6,18 +6,20 @@
 \usage{
 nc_merge_all_sites_by_year(
   nc.outdir,
-  ancillary.inputs = list(model.outdir = NULL, ens.num = NULL, site.ids = NULL, cores =
-    NULL, start.date = NULL, end.date = NULL, time.step = NULL)
+  cores = NULL,
+  ancillary.inputs = list(model.outdir = NULL, ens.num = NULL, site.ids = NULL,
+    start.date = NULL, end.date = NULL, time.step = NULL)
 )
 }
 \arguments{
 \item{nc.outdir}{character: physical path to the folder that contains the merged netCDF files.}
 
+\item{cores}{numeric: the number of CPUs for the parallel computation. Default is NULL.}
+
 \item{ancillary.inputs}{list: necessary arguments if settings.dir is NULL. See
 \code{model.outdir} path to the folder that contains model outputs;
 \code{ens.num} number of ensembles for the model run;
 \code{site.ids} vector of site ids across locations;
-\code{cores} number of CPUs for the parallel computation;
 \code{start.date} start date of the model run;
 \code{end.date} end date of the model run.
 \code{time.step} time step of the model run (e.g., 1 year).}

@@ -124,6 +124,7 @@ all_site_nc_merge_by_year <- function (settings.dir = NULL,
       site_dim <- ncdf4::ncdim_def("site", units = "", vals = site_info$lat)
       site_id_var <- ncdf4::ncvar_def("site_id", units = "", dim = site_dim, prec = "char")
       ncdf4::ncvar_put(nc, varid = "site_id", vals = site_info$site_id)
+      ncdf4::nc_close(nc) # close nc connection.
     }
     # record the current nc path.
     nc.paths <- c(nc.paths, file.path(nc.outdir, paste0(time, ".nc")))

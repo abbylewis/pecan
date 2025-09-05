@@ -381,7 +381,7 @@
 "PEcAn.remote","*","modules/data.land","Imports",TRUE
 "PEcAn.remote","*","modules/data.remote","Imports",TRUE
 "PEcAn.settings","*","base/all","Depends",TRUE
-"PEcAn.settings","*","base/utils","Imports",TRUE
+"PEcAn.settings","*","base/utils","Suggests",TRUE
 "PEcAn.settings","*","base/workflow","Imports",TRUE
 "PEcAn.settings","*","models/biocro","Imports",TRUE
 "PEcAn.settings","*","models/ed","Imports",TRUE

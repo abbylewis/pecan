@@ -12,7 +12,7 @@
 #' @param site.ids numeric or character: vector of site ids across locations.
 #' @param start.date date or character in YYYY-MM-DD format: start date of the model run.
 #' @param end.date date or character in YYYY-MM-DD format: end date of the model run.
-#' @param time.step character: time step of the model run (e.g., 1 year).
+#' @param time.step character: time step of the model run. Default is 1 year.
 #' @param cores numeric: the number of CPUs for the parallel computation. Default is 1.
 #'
 #' @return character: file paths to the merged netCDF files.
@@ -27,7 +27,7 @@ nc_merge_all_sites_by_year <- function (model.outdir,
                                         site.ids, 
                                         start.date, 
                                         end.date, 
-                                        time.step, 
+                                        time.step = "1 year", 
                                         cores = 1) {
   # check shell environments.
   if (suppressWarnings(system2("which", "cdo", stdout = FALSE)) != 0) {

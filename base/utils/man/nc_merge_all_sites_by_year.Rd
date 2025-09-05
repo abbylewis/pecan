@@ -11,7 +11,7 @@ nc_merge_all_sites_by_year(
   site.ids,
   start.date,
   end.date,
-  time.step,
+  time.step = "1 year",
   cores = 1
 )
 }
@@ -28,7 +28,7 @@ nc_merge_all_sites_by_year(
 
 \item{end.date}{date or character in YYYY-MM-DD format: end date of the model run.}
 
-\item{time.step}{character: time step of the model run (e.g., 1 year).}
+\item{time.step}{character: time step of the model run. Default is 1 year.}
 
 \item{cores}{numeric: the number of CPUs for the parallel computation. Default is 1.}
 }

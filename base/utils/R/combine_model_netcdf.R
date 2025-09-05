@@ -109,7 +109,7 @@ all_site_nc_merge_by_year <- function (settings.dir = NULL,
                                               nc.outdir = nc.outdir, 
                                               ens.num = ens.num, 
                                               # cdo collgrid only works for numeric data type.
-                                              site.id = site_id[s], 
+                                              site.id = site.ids[s], 
                                               time)
                        } %>% unlist
     # merge across sites using CDO command.

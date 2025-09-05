@@ -13,7 +13,8 @@ single_site_nc_merge(model.outdir, nc.outdir, ens.num, site.id, time)
 
 \item{ens.num}{numeric: ensemble size.}
 
-\item{site.id}{numeric: identification number of the site.}
+\item{site.id}{numeric: identification number of the site.
+See details for use with non-numeric siteIDs}
 }
 \value{
 character: file path to the merged netCDF file.
@@ -24,6 +25,12 @@ Merge model outputted netCDF files across ensembles for a single site.
 \details{
 The function is only tested for SIPNET model runs.
 Please make sure you have the same netCDF formats if you want to proceed with different models.
+
+This function requires \code{site.id} to be an integer.
+If your sites have non-numeric IDs, one possible workaround is to
+pass a dummy value and then edit the output file afterward to replace its \code{site_id} variable
+with character data. If you do this, do be aware many legacy netCDF tools have poor support
+for netCDFs containing character data.
 }
 \author{
 Dongchen Zhang

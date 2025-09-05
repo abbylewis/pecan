@@ -2,7 +2,7 @@
 % Please edit documentation in R/combine_model_netcdf.R
 \name{all_site_nc_merge_by_year}
 \alias{all_site_nc_merge_by_year}
-\title{Merge model outputted netCDF files by time steps specified by pecan settings file.}
+\title{Combine many netCDFs into one file per year}
 \usage{
 all_site_nc_merge_by_year(
   settings.dir = NULL,
@@ -29,10 +29,10 @@ all_site_nc_merge_by_year(
 character: file paths to the merged netCDF files.
 }
 \description{
-Merge model outputted netCDF files by time steps specified by pecan settings file.
+Merges model outputted netCDF files by the time steps specified in a pecan settings file.
 }
 \details{
-The function is only tested for SIPNET model runs.
+The function is only tested for SIPNET model runs that were run with state data assimilation enabled.
 Please make sure you have the same netCDF formats if you want to proceed with different models.
 We could also have more functions that deal with different dimensions (e.g., by site instead of by year).
 }

@@ -1,6 +1,8 @@
-#' Merge model outputted netCDF files by time steps specified by pecan settings file.
-#' @details
-#' The function is only tested for SIPNET model runs.
+#' Combine many netCDFs into one file per year
+#'
+#' Merges model outputted netCDF files by the time steps specified in a pecan settings file.
+#'
+#' The function is only tested for SIPNET model runs that were run with state data assimilation enabled.
 #' Please make sure you have the same netCDF formats if you want to proceed with different models.
 #' We could also have more functions that deal with different dimensions (e.g., by site instead of by year).
 #' 
@@ -19,7 +21,7 @@
 #' @export
 #' 
 #' @author Dongchen Zhang
-#' @importFrom purrr %>%
+#' @importFrom magrittr %>%
 #' @importFrom foreach %dopar%
 all_site_nc_merge_by_year <- function (settings.dir = NULL, 
                                        nc.outdir, 
@@ -142,11 +144,18 @@ all_site_nc_merge_by_year <- function (settings.dir = NULL,
 #' @details
 #' The function is only tested for SIPNET model runs.
 #' Please make sure you have the same netCDF formats if you want to proceed with different models.
+#'
+#' This function requires `site.id` to be an integer. 
+#' If your sites have non-numeric IDs, one possible workaround is to 
+#' pass a dummy value and then edit the output file afterward to replace its `site_id` variable 
+#' with character data. If you do this, do be aware many legacy netCDF tools have poor support 
+#' for netCDFs containing character data.
 #' 
 #' @param model.outdir character: physical path to the model output folder.
 #' @param nc.outdir  character: physical path to the folder that contains the merged netCDF files.
 #' @param ens.num numeric: ensemble size.
 #' @param site.id numeric: identification number of the site.
+#'   See details for use with non-numeric siteIDs
 #' @return character: file path to the merged netCDF file.
 #' @export
 #' 
@@ -155,7 +164,7 @@ single_site_nc_merge <- function (model.outdir, nc.outdir, ens.num, site.id, tim
   # grab basic formats from the first nc file of the site.
   # create the folder name associated with first ensemble and first site.
   prefix <- "ENS-"
-  folder.name <- paste0(prefix, sprintf("%05d", 1), "-", 1)
+  folder.name <- paste0(prefix, sprintf("%05d", 1), "-", site.id)
   # read nc file.
   nc <- ncdf4::nc_open(file.path(model.outdir, folder.name, paste0(time, ".nc")))
   nc.vars <- nc$var # grab variable definitions.

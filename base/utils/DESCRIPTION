@@ -53,7 +53,6 @@ Suggests:
     ggplot2,
     MASS,
     mockery,
-    PEcAn.settings,
     randtoolbox,
     rjags,
     testthat (>= 2.0.0),

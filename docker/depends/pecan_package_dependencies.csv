@@ -68,6 +68,7 @@
 "ellipse","*","modules/assim.batch","Imports",FALSE
 "exactextractr","*","modules/assim.sequential","Suggests",FALSE
 "foreach","*","base/remote","Imports",FALSE
+"foreach","*","base/utils","Imports",FALSE
 "foreach","*","modules/assim.sequential","Imports",FALSE
 "foreach","*","modules/data.atmosphere","Imports",FALSE
 "foreach","*","modules/data.land","Imports",FALSE

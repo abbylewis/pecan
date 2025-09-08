@@ -34,6 +34,10 @@ nc_merge_all_sites_by_year <- function (model.outdir,
     PEcAn.logger::logger.info("The cdo function is not detected in shell command.")
     return(NA)
   }
+  # create the nc output folder if it doesn't exist.
+  if (!file.exists(nc.outdir)) {
+    dir.create(nc.outdir)
+  }
   # calculate time points.
   time.points <- lubridate::year(seq(lubridate::date(start.date), 
                                      lubridate::date(end.date), 

@@ -138,6 +138,7 @@ nc_merge_single_site <- function (model.outdir, nc.outdir, ens.num, site.id, tim
   lon_var <- ncdf4::ncvar_def("longitude", units = "degrees_east", dim = site_dim, prec = "double")
   site_id_var <- ncdf4::ncvar_def("site_id", units = "", dim = site_dim, prec = "integer")
   # loop over variables.
+  first.creation <- TRUE
   for (i in seq_along(nc.vars)) {
     # grab the variable name.
     var <- nc.vars[[i]]$name
@@ -158,7 +159,9 @@ nc_merge_single_site <- function (model.outdir, nc.outdir, ens.num, site.id, tim
                                  dim = list(site_dim, ens_dim, time_dim), 
                                  prec = nc.vars[[i]]$prec)
     # if it's the first variable, we will need to create the NC file along with the site-specific variables.
-    if (i == 1) {
+    if (first.creation) {
+      # turn the flag off.
+      first.creation <- !first.creation
       # create nc file.
       nc_file <- ncdf4::nc_create(file.path(nc.outdir, paste0(site.id, "_", time, ".nc")), list(site_id_var, lon_var, lat_var, temp_var))
       # add the site-specific variables.

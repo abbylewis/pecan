@@ -69,9 +69,10 @@ nc_merge_all_sites_by_year <- function (model.outdir,
                                               time)
                        } %>% unlist
     # merge across sites using CDO command.
-    cmd <- "cdo -P @CORES@ collgrid @NC.OUTDIR@/*.nc @OUTFILE@"
+    cmd <- "cdo -P @CORES@ collgrid @NC.OUTDIR@/*@TIME@.nc @OUTFILE@"
     cmd <- gsub("@CORES@", cores, cmd)
     cmd <- gsub("@NC.OUTDIR@", nc.outdir, cmd)
+    cmd <- gsub("@TIME@", time, cmd)
     cmd <- gsub("@OUTFILE@", file.path(nc.outdir, paste0(time, ".nc")), cmd)
     out <- system(cmd, intern = TRUE, ignore.stdout = TRUE, ignore.stderr = TRUE)
     # if we have site ids in character format.

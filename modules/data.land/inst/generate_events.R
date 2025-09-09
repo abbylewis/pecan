@@ -33,7 +33,7 @@ ca_field_attributes <- vroom::vroom(
 )
 
 if (DESIGN_POINTS) {
-  design_points <- readr::read_csv("../downscaling/data/design_points.csv")
+  design_points <- readr::read_csv("~/downscaling/data/design_points.csv")
   ca_field_attributes <- ca_field_attributes |>
     dplyr::filter(site_id %in% design_points$site_id)
 } else if (!PRODUCTION) {
@@ -42,8 +42,9 @@ if (DESIGN_POINTS) {
 }
 
 ca_fields <- ca_field_attributes |>
-  dplyr::select(site_id, year, pft) |>
+  dplyr::select(site_id, pft) |>
   dplyr::distinct() |>
+  tidyr::crossing(year = 2016:2024) |>
   dplyr::group_by(site_id) |>
   dplyr::mutate(first_year = min(year)) |>
   dplyr::ungroup()
@@ -56,7 +57,7 @@ planting_annual <- ca_fields |>
     date = paste0(year, "-03-15"),
     site_id = site_id,
     # required for planting
-    leaf_c_g_m2 = 50
+    leaf_c_kg_m2 = 0.5
   )
 
 # Planting (woody): first year
@@ -67,7 +68,7 @@ planting_woody <- ca_fields |>
     event_type = "planting",
     date = paste0(year, "-03-15"),
     site_id = site_id,
-    leaf_c_g_m2 = 200
+    leaf_c_kg_m2 = 0.5
   )
 
 # Harvest
@@ -115,7 +116,7 @@ irrigation <- ca_fields |>
     event_type = "irrigation",
     date       = paste0(year, "-", month, "-", day),
     site_id    = site_id,
-    amount_cm  = 4, # (= 40 mm)
+    amount_mm  = 40,
     method     = "soil"
   )
 
@@ -142,21 +143,42 @@ site_objs <- purrr::map(sites, function(sid) {
 
   # Only include required fields for each event type
   evs_list <- purrr::pmap(
-    evs_df[, c("event_type", "date", "site_id", "leaf_c_g_m2", "frac_above_removed_0to1")],
-    function(event_type, date, site_id, leaf_c_g_m2 = NA_real_, frac_above_removed_0to1 = NA_real_) {
-      base <- list(event_type = event_type, date = date, site_id = site_id)
-      if (event_type == "planting" && !is.na(leaf_c_g_m2)) base$leaf_c_g_m2 <- leaf_c_g_m2
-      if (event_type == "harvest" && !is.na(frac_above_removed_0to1)) base$frac_above_removed_0to1 <- frac_above_removed_0to1
+    evs_df,
+    function(event_type, date, site_id, leaf_c_kg_m2 = NA_real_, frac_above_removed_0to1 = NA_real_,
+             frac_below_removed_0to1 = NA_real_, frac_above_to_litter_0to1 = NA_real_,
+             frac_below_to_litter_0to1 = NA_real_, amount_mm = NA_real_, method = NA_character_,
+             tillage_eff_0to1 = NA_real_, ...) {
+      base <- list(event_type = event_type, date = date)
+
+      # Add required fields per event type
+      if (event_type == "planting" && !is.na(leaf_c_kg_m2)) {
+        base$leaf_c_kg_m2 <- leaf_c_kg_m2
+      }
+      if (event_type == "harvest" && !is.na(frac_above_removed_0to1)) {
+        base$frac_above_removed_0to1 <- frac_above_removed_0to1
+        if (!is.na(frac_below_removed_0to1)) base$frac_below_removed_0to1 <- frac_below_removed_0to1
+        if (!is.na(frac_above_to_litter_0to1)) base$frac_above_to_litter_0to1 <- frac_above_to_litter_0to1
+        if (!is.na(frac_below_to_litter_0to1)) base$frac_below_to_litter_0to1 <- frac_below_to_litter_0to1
+      }
+      if (event_type == "irrigation" && !is.na(amount_mm) && !is.na(method)) {
+        base$amount_mm <- amount_mm
+        base$method <- method
+      }
+      if (event_type == "tillage" && !is.na(tillage_eff_0to1)) {
+        base$tillage_eff_0to1 <- tillage_eff_0to1
+      }
+
       compact_list(base)
     }
   )
-
   list(
     pecan_events_version = "0.1.0",
     site_id = sid,
     events = evs_list
   )
 })
+
+# TODO add PEcAn Schema info
 
 # Validate JSON given schema
 # schema <- "data/pecan_events_schema_v0.1.0.json"
@@ -170,16 +192,17 @@ site_objs <- purrr::map(sites, function(sid) {
 
 # Complete
 jsonlite::write_json(site_objs, path = output_json, pretty = FALSE, auto_unbox = TRUE)
-
+# Single site example
+jsonlite::write_json(site_objs[1], path = gsub(".json", "_site1.json", output_json), pretty = TRUE, auto_unbox = TRUE)
 # When dealing with full dataset, may need to write to more performant files
 # #Sample
 # jsonlite::write_json(site_objs[1:100], path = sample_output_json, pretty = TRUE, auto_unbox = TRUE)
 
 # # Complete - compressed
-# output_json_gz <- paste0(output_json, ".gz")
-# gz_con <- gzfile(output_json_gz, "w")
-# jsonlite::write_json(site_objs, path = gz_con, pretty = FALSE, auto_unbox = TRUE)
-# close(gz_con)
+output_json_gz <- paste0(output_json, ".gz")
+gz_con <- gzfile(output_json_gz, "w")
+jsonlite::write_json(site_objs, path = gz_con, pretty = FALSE, auto_unbox = TRUE)
+close(gz_con)
 
 # --- Profiling End ---
 # Rprof(NULL)

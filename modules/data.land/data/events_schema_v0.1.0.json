@@ -13,21 +13,20 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["event_type", "date", "site_id"],
+        "required": ["event_type", "date"],
         "properties": {
           "event_type": {
             "type": "string",
             "enum": ["planting", "harvest", "irrigation", "fertilization", "tillage"]
           },
           "date": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
-          "site_id": { "type": "string" },
           "fraction_area": { "type": "number", "minimum": 0, "maximum": 1, "default": 1.0 },
           "source": { "type": "string" },
 
-          "leaf_c_g_m2": { "type": "number", "minimum": 0 },
-          "wood_c_g_m2": { "type": "number", "minimum": 0 },
-          "fine_root_c_g_m2": { "type": "number", "minimum": 0 },
-          "coarse_root_c_g_m2": { "type": "number", "minimum": 0 },
+          "leaf_c_kg_m2": { "type": "number", "minimum": 0 },
+          "wood_c_kg_m2": { "type": "number", "minimum": 0 },
+          "fine_root_c_kg_m2": { "type": "number", "minimum": 0 },
+          "coarse_root_c_kg_m2": { "type": "number", "minimum": 0 },
           "cultivar": { "type": "string" },
           "crop_code": { "type": "string" },
           "crop_display": { "type": "string" },
@@ -37,11 +36,11 @@
           "frac_above_to_litter_0to1": { "type": "number", "minimum": 0, "maximum": 1 },
           "frac_below_to_litter_0to1": { "type": "number", "minimum": 0, "maximum": 1 },
 
-          "amount_cm": { "type": "number", "minimum": 0 },
+          "amount_mm": { "type": "number", "minimum": 0 },
           "method": { "type": "string", "enum": ["soil", "canopy", "flood"] },
           "immed_evap_frac_0to1": { "type": "number", "minimum": 0, "maximum": 1 },
 
-          "org_c_g_m2": { "type": "number", "minimum": 0 },
+          "org_c_kg_m2": { "type": "number", "minimum": 0 },
           "org_n_g_m2": { "type": "number", "minimum": 0 },
           "min_n_g_m2": { "type": "number", "minimum": 0 },
           "fertilizer_code": { "type": "string" },
@@ -53,13 +52,13 @@
         },
         "allOf": [
           { "if": { "properties": { "event_type": { "const": "planting" } } },
-            "then": { "required": ["leaf_c_g_m2"] } },
+            "then": { "required": ["leaf_c_kg_m2"] } },
           { "if": { "properties": { "event_type": { "const": "harvest" } } },
             "then": { "required": ["frac_above_removed_0to1"] } },
           { "if": { "properties": { "event_type": { "const": "irrigation" } } },
-            "then": { "required": ["amount_cm", "method"] } },
+            "then": { "required": ["amount_mm", "method"] } },
           { "if": { "properties": { "event_type": { "const": "fertilization" } } },
-            "then": { "required": ["org_c_g_m2"] } },
+            "then": { "required": ["org_c_kg_m2"] } },
           { "if": { "properties": { "event_type": { "const": "tillage" } } },
             "then": { "required": ["tillage_eff_0to1"] } }
         ],

@@ -38,7 +38,7 @@ compute_sobol_indices <- function(outdir,
   }, numeric(1))
   
   # Compute Sobol indices
-  sobol_obj <- tell(sobol_obj, y)
+  sobol_obj <-sensitivity::tell(sobol_obj, y)
   
   # Return the updated object
   return(invisible(sobol_obj))

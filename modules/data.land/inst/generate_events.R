@@ -64,7 +64,19 @@ planting_annual <- ca_fields |>
     date = paste0(year, "-03-15"),
     site_id = site_id,
     # required for planting
-    leaf_c_kg_m2 = 500,
+    leaf_c_kg_m2 = 0.05,
+    crop = crop
+  )
+
+# Planting (woody): first year
+planting_woody <- ca_fields |>
+  dplyr::filter(pft == "woody perennial crop") |>
+  dplyr::filter(year == first_year) |>
+  dplyr::transmute(
+    event_type = "planting",
+    date = paste0(year, "-03-15"),
+    site_id = site_id,
+    leaf_c_kg_m2 = 0.2,
     crop = crop
   )
 
@@ -90,18 +102,6 @@ organic_matter_addition <- ca_fields |>
     org_c_kg_m2 = 0.5,
     nh4_n_kg_m2 = 0.0,
     no3_n_kg_m2 = 0.0
-  )
-
-# Planting (woody): first year
-planting_woody <- ca_fields |>
-  dplyr::filter(pft == "woody perennial crop") |>
-  dplyr::filter(year == first_year) |>
-  dplyr::transmute(
-    event_type = "planting",
-    date = paste0(year, "-03-15"),
-    site_id = site_id,
-    leaf_c_kg_m2 = 1,
-    crop = crop
   )
 
 # Harvest
@@ -237,7 +237,7 @@ site_objs <- purrr::map(sites, function(sid) {
 # Complete
 jsonlite::write_json(site_objs, path = output_json, pretty = FALSE, auto_unbox = TRUE)
 # Single site example
-jsonlite::write_json(site_objs[1], path = gsub(".json", "_site1.json", output_json), pretty = TRUE, auto_unbox = TRUE)
+jsonlite::write_json(site_objs[1:3], path = gsub(".json", "_3sites.json", output_json), pretty = TRUE, auto_unbox = TRUE)
 # When dealing with full dataset, may need to write to more performant files
 # #Sample
 # jsonlite::write_json(site_objs[1:100], path = sample_output_json, pretty = TRUE, auto_unbox = TRUE)

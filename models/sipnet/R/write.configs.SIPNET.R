@@ -204,22 +204,22 @@ write.config.SIPNET <- function(defaults, trait.values, settings, run.id, inputs
     id <- which(param[, 1] == "leafCSpWt")
     if ("SLA" %in% pft.names) {
       SLA <- pft.traits[which(pft.names == "SLA")]
-      param[id, 2] <- 10 * leafC / SLA
+      param[id, 2] <- PEcAn.utils::ud_convert(leafC / SLA, "kg/m2", "g/m2")
     } else {
-      SLA <- 10 * leafC / param[id, 2]
+      SLA <- PEcAn.utils::ud_convert(leafC / param[id, 2], "kg", "g")
     }
     
-    # Maximum photosynthesis
-    # amax [nmol CO2 * g^{-1} leaf * sec^{-1}]
-    # Amax [umol CO2 * m^2 leaf * sec^{-1}]
-    Amax <- NA
-    id <- which(param[, 1] == "aMax")
+    # SIPNET: aMax [nmol CO2 / g   leaf / sec]
+    # PEcAn:  Amax [umol CO2 / m^2 leaf / sec]
+    SLA_g <- PEcAn.utils::ud_convert(SLA, "1/kg", "1/g") 
     if ("Amax" %in% pft.names) {
-      Amax <- pft.traits[which(pft.names == "Amax")]
-      param[id, 2] <- Amax * SLA
+      Amax_area <- pft.traits[which(pft.names == "Amax")] # [µmol/m2/s]
+      param[id, 2] <- PEcAn.utils::ud_convert(Amax_area * SLA_g, "umol/m2/s", "nmol/g/s")
     } else {
-      Amax <- param[id, 2] / SLA
+      amax_mass <- param[id, 2] # [nmol/g/s]
+      Amax <- PEcAn.utils::ud_convert(amax_mass / SLA_g, "nmol/g/s", "umol/m2/s")
     }
+    
     # Daily fraction of maximum photosynthesis
     if ("AmaxFrac" %in% pft.names) {
       param[which(param[, 1] == "aMaxFrac"), 2] <- pft.traits[which(pft.names == "AmaxFrac")]

@@ -29,10 +29,17 @@ if (PRODUCTION) {
 set.seed(123)
 
 ca_field_attributes <- vroom::vroom(
-  input_csv
+  input_csv,
+  show_col_types = FALSE
 )
 
 if (DESIGN_POINTS) {
+  # design_points <- readr::read_csv("https://raw.githubusercontent.com/ccmmf/workflows/refs/heads/main/data/design_points.csv")
+  # d <- update_design_point_site_ids(design_points, ca_field_attributes)
+  # readr::write_csv(d, file.path(data_dir, "design_points.csv"))
+  # readr::write_csv(d, "~/downscaling/data/design_points.csv")
+  # design_points <- readr::read_csv(file.path(data_dir, "design_points.csv"))
+  # use the one under version control
   design_points <- readr::read_csv("~/downscaling/data/design_points.csv")
   ca_field_attributes <- ca_field_attributes |>
     dplyr::filter(site_id %in% design_points$site_id)
@@ -42,7 +49,7 @@ if (DESIGN_POINTS) {
 }
 
 ca_fields <- ca_field_attributes |>
-  dplyr::select(site_id, pft) |>
+  dplyr::select(site_id, pft, crop) |>
   dplyr::distinct() |>
   tidyr::crossing(year = 2016:2024) |>
   dplyr::group_by(site_id) |>
@@ -57,7 +64,32 @@ planting_annual <- ca_fields |>
     date = paste0(year, "-03-15"),
     site_id = site_id,
     # required for planting
-    leaf_c_kg_m2 = 0.5
+    leaf_c_kg_m2 = 500,
+    crop = crop
+  )
+
+# Fertilization
+fertilization <- ca_fields |>
+  dplyr::transmute(
+    event_type = "fertilization",
+    date = paste0(year, "-02-11"),
+    site_id = site_id,
+    org_n_kg_m2 = 0.0,
+    org_c_kg_m2 = 0.0,
+    nh4_n_kg_m2 = 0.02,
+    no3_n_kg_m2 = 0.03
+  )
+
+# Organic Matter Addition
+organic_matter_addition <- ca_fields |>
+  dplyr::transmute(
+    event_type = "fertilization",
+    date = paste0(year, "-03-11"),
+    site_id = site_id,
+    org_n_kg_m2 = 0.05,
+    org_c_kg_m2 = 0.5,
+    nh4_n_kg_m2 = 0.0,
+    no3_n_kg_m2 = 0.0
   )
 
 # Planting (woody): first year
@@ -68,7 +100,8 @@ planting_woody <- ca_fields |>
     event_type = "planting",
     date = paste0(year, "-03-15"),
     site_id = site_id,
-    leaf_c_kg_m2 = 0.5
+    leaf_c_kg_m2 = 1,
+    crop = crop
   )
 
 # Harvest
@@ -77,7 +110,8 @@ harvest <- ca_fields |>
     event_type              = "harvest",
     date                    = paste0(year, "-10-15"),
     site_id                 = site_id,
-    frac_above_removed_0to1 = 0.10
+    frac_above_removed_0to1 = 0.10,
+    crop                    = crop
   )
 
 # Pruning (woody)
@@ -92,7 +126,8 @@ pruning <- ca_fields |>
     frac_above_removed_0to1     = 0.30,
     frac_below_removed_0to1     = 0.0,
     frac_above_to_litter_0to1   = 0.0,
-    frac_below_to_litter_0to1   = 0.0
+    frac_below_to_litter_0to1   = 0.0,
+    crop                        = crop
   )
 
 # Tillage
@@ -124,7 +159,8 @@ irrigation <- ca_fields |>
 events_all <- dplyr::bind_rows(
   planting_annual, planting_woody,
   harvest, pruning,
-  tillage, irrigation
+  tillage, irrigation,
+  fertilization, organic_matter_addition
 ) |>
   dplyr::arrange(site_id, date)
 
@@ -147,18 +183,22 @@ site_objs <- purrr::map(sites, function(sid) {
     function(event_type, date, site_id, leaf_c_kg_m2 = NA_real_, frac_above_removed_0to1 = NA_real_,
              frac_below_removed_0to1 = NA_real_, frac_above_to_litter_0to1 = NA_real_,
              frac_below_to_litter_0to1 = NA_real_, amount_mm = NA_real_, method = NA_character_,
-             tillage_eff_0to1 = NA_real_, ...) {
+             tillage_eff_0to1 = NA_real_, org_c_kg_m2 = NA_real_, org_n_kg_m2 = NA_real_,
+             nh4_n_kg_m2 = NA_real_, no3_n_kg_m2 = NA_real_,
+             crop = NA_character_, ...) {
       base <- list(event_type = event_type, date = date)
 
       # Add required fields per event type
       if (event_type == "planting" && !is.na(leaf_c_kg_m2)) {
         base$leaf_c_kg_m2 <- leaf_c_kg_m2
+        if (!is.na(crop)) base$crop <- crop
       }
       if (event_type == "harvest" && !is.na(frac_above_removed_0to1)) {
         base$frac_above_removed_0to1 <- frac_above_removed_0to1
         if (!is.na(frac_below_removed_0to1)) base$frac_below_removed_0to1 <- frac_below_removed_0to1
         if (!is.na(frac_above_to_litter_0to1)) base$frac_above_to_litter_0to1 <- frac_above_to_litter_0to1
         if (!is.na(frac_below_to_litter_0to1)) base$frac_below_to_litter_0to1 <- frac_below_to_litter_0to1
+        if (!is.na(crop)) base$crop <- crop
       }
       if (event_type == "irrigation" && !is.na(amount_mm) && !is.na(method)) {
         base$amount_mm <- amount_mm
@@ -166,6 +206,10 @@ site_objs <- purrr::map(sites, function(sid) {
       }
       if (event_type == "tillage" && !is.na(tillage_eff_0to1)) {
         base$tillage_eff_0to1 <- tillage_eff_0to1
+      }
+      if (event_type == "fertilization" && !is.na(org_c_kg_m2)) {
+        base$org_c_kg_m2 <- org_c_kg_m2
+        if (!is.na(org_n_kg_m2)) base$org_n_kg_m2 <- org_n_kg_m2
       }
 
       compact_list(base)

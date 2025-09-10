@@ -9,9 +9,9 @@ extract_nc_sda(site.id, start.date, end.date, var.name, nc.path)
 \arguments{
 \item{site.id}{numeric or character: identification of the site.}
 
-\item{start.date}{date or character in YYYY-MM-DD format: start date of the requested time window.}
+\item{start.date}{date in YYYY-MM-DD format: start date of the requested time window.}
 
-\item{end.date}{date or character in YYYY-MM-DD format: end date of the requested time window.}
+\item{end.date}{date in YYYY-MM-DD format: end date of the requested time window.}
 
 \item{var.name}{character: variable name.}
 

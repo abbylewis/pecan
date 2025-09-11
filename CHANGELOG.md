@@ -1,9 +1,10 @@
 # Change Log
+
 All notable changes are kept in this file. All changes made should be added to the section called
 `Unreleased`. Once a new release is made this file will be updated to create a new `Unreleased`
 section for the next release.
 
-	For more information about this file see also [Keep a Changelog](http://keepachangelog.com/) .
+For more information about this file see also [Keep a Changelog](http://keepachangelog.com/) .
 
 ## Unreleased
 
@@ -13,6 +14,7 @@ section for the next release.
 * Add CH4 and N2O to standard_vars in PEcAn.utils
 * New function `sat_vapor_pressure()` added for computing saturation vapor pressure from temperature using various methods.
 * Added `AmeriFlux_met_ensemble()` function with ERA5 fallback for AmeriFlux meteorological data processing and ensemble generation
+* `write.events.SIPNET()` to generate SIPNET `events.in` files from a `events.json` file.
 
 ## [1.9.0] - 2025-05-25
 

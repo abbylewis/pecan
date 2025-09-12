@@ -39,41 +39,6 @@ mergeNC <- function(
 }
 
 #--------------------------------------------------------------------------------------------------#
-##'
-##' Convert SIPNET DOY to datetime
-##' 
-##' @param sipnet_tval vector of SIPNET DOY values
-##' @param base_year base year to calculate datetime from DOY
-##' @param base_month reference month for converting from DOY to datetime 
-##' @param force_cf force output to follow CF convention. Default FALSE
-##'
-##' @export
-##'
-##' @author Alexey Shiklomanov, Shawn Serbin
-##' 
-sipnet2datetime <- function(sipnet_tval, base_year, base_month = 1,
-                            force_cf = FALSE) {
-  base_date <- ISOdatetime(base_year, base_month, 1,
-                           0, 0, 0, "UTC")
-  base_date_str <- strftime(base_date, "%F %T %z", tz = "UTC")
-  if (force_cf) {
-    is_cf <- TRUE
-  } else {
-    # HACK: Determine heuristically
-    # Is CF if first time step is zero
-    is_cf <- sipnet_tval[[1]] == 0
-  }
-  
-  if (is_cf) {
-    cfval <- sipnet_tval
-  } else {
-    cfval <- sipnet_tval - 1
-  }
-  
-  PEcAn.utils::cf2datetime(cfval, paste("days since", base_date_str))
-}
-
-#--------------------------------------------------------------------------------------------------#
 ##' Convert SIPNET output to netCDF
 ##'
 ##' Converts all output contained in a folder to netCDF.
@@ -126,7 +91,6 @@ model2netcdf.SIPNET <- function(outdir, sitelat, sitelon, start_date, end_date, 
   
   
   ### Loop over years in SIPNET output to create separate netCDF outputs
-  last_date <- start_date
   for (y in year_seq) {
     #initialize the conflicted as FALSE
     conflicted <- FALSE
@@ -142,24 +106,26 @@ model2netcdf.SIPNET <- function(outdir, sitelat, sitelon, start_date, end_date, 
     
     ## Subset data for processing
     sub.sipnet.output <- subset(sipnet_output, sipnet_output$year == y)
+    
+    raw_time <- sub.sipnet.output[["time"]] # decimal hours (eg 13.75 = 1:45 PM)
+    doy <- sub.sipnet.output[["day"]] # day of year, not of month
+    hr <- floor(raw_time)
+    minsec <- PEcAn.utils::ud_convert(raw_time - hr, "hour", "min")
+    min <- floor(minsec)
+    sec <- PEcAn.utils::ud_convert(minsec - min, "minute", "second")
+    sub_dates <- strptime(
+      paste(y, doy, hr, min, sec),
+      "%Y %j %H %M %S",
+      tz = "UTC"
+    )
+    sub_dates_cf <- PEcAn.utils::datetime2cf(
+      sub_dates,
+      paste0("days since ", y, "-01-01"),
+      tz = "UTC"
+    )
+    
     sub.sipnet.output.dims <- dim(sub.sipnet.output)
     dayfrac <- 1 / out_day
-    
-    # try to determine if DOY is CF compliant (i.e. 0 based index) or not (1 base index)
-    # The previous code was assuming the constant pecan_start_doy throughout times.
-    # However, when we go to the next year, we will still need to account for the difference in day of the year.
-    pecan_start_doy <- PEcAn.utils::datetime2cf(last_date, paste0("days since ", y, "-01-01"), tz = "UTC")
-    tvals <- sub.sipnet.output[["day"]] + sub.sipnet.output[["time"]] / 24
-    # the first condition is to detect if we are jumping within a year (e.g., from 2012-07-15 to 2012-07-16)
-    # the second condition is to detect if we are jumping between years (e.g., from 2012-12-31 to 2013-01-01)
-    if (sub.sipnet.output[["day"]][1]-pecan_start_doy==1 | sub.sipnet.output[["day"]][1]+pecan_start_doy==0) {
-      sub_dates <- sipnet2datetime(tvals, y, force_cf = FALSE)
-    } else {
-      sub_dates <- sipnet2datetime(tvals, y, force_cf = TRUE)
-    }
-    # record the last date for the next round of pecan_start_doy calculation.
-    last_date <- lubridate::date(sub_dates[length(sub_dates)])
-    sub_dates_cf <- PEcAn.utils::datetime2cf(sub_dates, paste0("days since ",paste0(y,"-01-01")))
     
     # create netCDF time.bounds variable
     bounds <- array(data=NA, dim=c(length(sub_dates_cf),2))

@@ -396,52 +396,38 @@ sda.enkf.multisite <- function(settings,
       }
     }
   }
-  
-  get_covariates_for_date <- function(settings, obs_date) {
-    yr <- lubridate::year(obs_date)
-    settings$covariates_df %>%
-      dplyr::filter(year == yr) %>%
-      dplyr::right_join(dplyr::select(settings$site_coords, site), by = "site") %>%
-      dplyr::arrange(site)    # don't drop 'site' or 'year' here
-  }
-  reticulate::source_python("/projectnb/dietzelab/Shashank-PECAN/debias.py")  # your module with train_full_model/predict_residual
-  
-  obs_vec_for_time <- function(t_idx, site_index, col_vars, obs.mean, name_map = NULL) {
-    om  <- obs.mean[[t_idx]]
-    out <- rep(NA_real_, length(col_vars))
-    for (s in unique(site_index)) {
-      vals <- om[[as.character(s)]]
-      if (is.null(vals)) next
-      if (!is.null(name_map)) {
-        keep <- names(vals) %in% names(name_map)
-        names(vals)[keep] <- unname(name_map[names(vals)[keep]])
-      }
-      v_here <- unique(col_vars[site_index == s])
-      vnames <- intersect(names(vals), v_here)
-      for (v in vnames) {
-        idx <- which(site_index == s & col_vars == v)
-        if (length(idx)) out[idx] <- as.numeric(vals[[v]][1])
-      }
-    }
-    out
-  }
-  
-  cov_by_columns <- function(obs_date, site_index) {
-    df <- get_covariates_for_date(settings, obs_date)
-    idx <- match(site_index, df$site)  # repeat each site's row for each column of X
-    as.matrix(df[idx, setdiff(names(df), c("site","year")), drop = FALSE])
-  }
-  
-  name_map <- c(AGB = "AbvGrndWood",
-                LAI = "LAI",
-                SMP = "SoilMoistFrac",
-                SoilC = "TotSoilCarb")
-  
-  
+  py <- .get_debias_mod()
   train_X      <- NULL   # a data.frame or matrix of size (N_past × P_features)
   train_y      <- numeric()  # a numeric vector of residuals
   raw_prev     <- NULL   # raw forecast mean from previous step
   train_buf <- new.env(parent = emptyenv()) 
+  # --- New: containers for storing debias weights over time ---
+  DEBIAS_WEIGHTS <- list()   # nested list: DEBIAS_WEIGHTS[[time]][[var]] = named vector (KNN weight, TREE weight)
+  DEBIAS_WEIGHTS_DF <- data.frame(
+    time    = character(),
+    var     = character(),
+    learner = character(),
+    weight  = numeric(),
+    stringsAsFactors = FALSE
+  )
+  .append_weights_row <- function(t_label, var, w_named) {
+    if (is.null(names(w_named))) names(w_named) <- paste0("learner_", seq_along(w_named))
+    data.frame(
+      time    = rep(t_label, length(w_named)),
+      var     = rep(var, length(w_named)),
+      learner = names(w_named),
+      weight  = as.numeric(w_named),
+      stringsAsFactors = FALSE
+    )
+  }
+  DIAG <- list()  # per-time: DIAG[[time]] = list(comp=..., rmse=...)
+  RMSE_DF <- data.frame(
+    time      = character(),
+    var       = character(),
+    rmse_pre  = numeric(),
+    rmse_post = numeric(),
+    stringsAsFactors = FALSE
+  )
   
   ###------------------------------------------------------------------------------------------------###
   ### loop over time                                                                                 ###
@@ -587,10 +573,12 @@ sda.enkf.multisite <- function(settings,
       site_index <- attr(X, "Site")
       col_vars   <- colnames(X)
       FORECAST[[obs.t]] <- X
+      name_map <- debias_name_map
+      #DEBIAS STEP 
       if (t > 1) {
-        obs_prev_vec <- obs_vec_for_time(t - 1, site_index, col_vars, obs.mean, name_map)
-        cov_prev_mat <- cov_by_columns(obs.times[t - 1], site_index)
-        cov_t_mat    <- cov_by_columns(obs.times[t],     site_index)
+        obs_prev_vec <- debias_obs_vec_for_time(t - 1, site_index, col_vars, obs.mean, name_map)
+        cov_prev_mat <- debias_cov_by_columns(settings,obs.times[t - 1], site_index)
+        cov_t_mat    <- debias_cov_by_columns(settings,obs.times[t],     site_index)
         pred_resid <- rep(0, ncol(X))
         
         for (v in unique(col_vars)) {
@@ -609,17 +597,27 @@ sda.enkf.multisite <- function(settings,
             rec$X <- rbind(rec$X, Xprev_all[mask, , drop = FALSE])
             rec$y <- c(rec$y, y_v_all[mask])
             assign(v, rec, train_buf)
-            train_full_model(name = as.character(v),X = as.matrix(rec$X), y= as.numeric(rec$y))
-          
+            py$train_full_model(name = as.character(v),X = as.matrix(rec$X),y = as.numeric(rec$y))
+            w_now <- py$get_model_weights(as.character(v))
+            if (!is.null(w_now)) {
+              # tree weight is 1 - w
+              w_named <- c(KNN = w_now, TREE = 1 - w_now)
+              
+              if (is.null(DEBIAS_WEIGHTS[[obs.t]])) DEBIAS_WEIGHTS[[obs.t]] <- list()
+              DEBIAS_WEIGHTS[[obs.t]][[as.character(v)]] <- w_named
+              
+              DEBIAS_WEIGHTS_DF <- rbind(DEBIAS_WEIGHTS_DF,
+                                          .append_weights_row(obs.t, as.character(v), w_named))
             }
+          }
           
           # predict residuals at t (only where features are complete)
-          if (has_model(v)) {
+          if (py$has_model(v)) {
             Xt_v <- cbind(cov_t_mat[cols_v, , drop = FALSE],
                           raw = as.numeric(raw_mean_t[cols_v]))
             ok <- complete.cases(Xt_v)  # <-- vectorized
             if (any(ok)) {
-              pred_resid[cols_v[ok]] <- predict_residual(v, Xt_v[ok, , drop = FALSE])
+              pred_resid[cols_v[ok]] <- py$predict_residual(v, Xt_v[ok, , drop = FALSE])
             }
           }
         }
@@ -630,7 +628,7 @@ sda.enkf.multisite <- function(settings,
         post_mean <- raw_mean_t + pred_resid
         
         # observations at the current time t (mapped to columns)
-        obs_t_vec <- obs_vec_for_time(t, site_index, col_vars, obs.mean, name_map)
+        obs_t_vec <- debias_obs_vec_for_time(t, site_index, col_vars, obs.mean, name_map)
         
         # tidy comparison table
         comp_df <- data.frame(
@@ -669,7 +667,10 @@ sda.enkf.multisite <- function(settings,
         print(rmse_tbl)
         
         # stash for later inspection/export if you want
-        if (!exists("DIAG", inherits = FALSE)) DIAG <- list()
+        rmse_tbl$time <- obs.t
+        RMSE_DF <- rbind(RMSE_DF, rmse_tbl[, c("time","var","rmse_pre","rmse_post")])
+        
+        # keep full diagnostics (comparison table + rmse) for this time
         DIAG[[obs.t]] <- list(comp = comp_df, rmse = rmse_tbl)
         
         offsets   <- sweep(X, 2, raw_mean_t, FUN = "-")
@@ -907,6 +908,7 @@ sda.enkf.multisite <- function(settings,
            enkf.params,
            new.state, new.params,params.list, ens_weights,
            out.configs, ensemble.samples, inputs, Viz.output,
+           DIAG, DEBIAS_WEIGHTS, DEBIAS_WEIGHTS_DF, RMSE_DF,
            file = file.path(settings$outdir, "sda.output.Rdata"))
       
       tictoc::tic(paste0("Visulization for cycle = ", t))

@@ -67,7 +67,6 @@ run.sensitivity.analysis <- function(settings,
       var <- which(names(settings$sensitivity.analysis) == "variable")
       for (i in seq_along(var)) {
         variable[i] <- settings$sensitivity.analysis[[var[i]]]
-
       }
     }
   }

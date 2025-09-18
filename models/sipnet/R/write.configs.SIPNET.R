@@ -211,6 +211,7 @@ write.config.SIPNET <- function(defaults, trait.values, settings, run.id, inputs
     
     # SIPNET: aMax [nmol CO2 / g   leaf / sec]
     # PEcAn:  Amax [umol CO2 / m^2 leaf / sec]
+    id <- which(param[, 1] == "aMax")
     SLA_g <- PEcAn.utils::ud_convert(SLA, "1/kg", "1/g") 
     if ("Amax" %in% pft.names) {
       Amax_area <- pft.traits[which(pft.names == "Amax")] # [µmol/m2/s]

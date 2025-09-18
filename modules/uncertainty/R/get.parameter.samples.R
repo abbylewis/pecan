@@ -13,7 +13,7 @@ get.parameter.samples <- function(settings, ensemble.size = 1,
                                   posterior.files = rep(NA, length(settings$pfts)),
                                   ens.sample.method = "uniform") {
   ### Identify PFTs in the input settings.xml file
-  pfts      <- settings$pfts.
+  pfts      <- settings$pfts
   pft.names <- list()
   outdirs   <- list()
 

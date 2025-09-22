@@ -32,7 +32,7 @@ get.trait.data <-
            forceupdate,
            write = FALSE,
            trait.names = NULL,
-           input_file= NULL) {
+           input_file = NULL) {
     
   if (!is.list(pfts)) {
     PEcAn.logger::logger.severe('pfts must be a list')

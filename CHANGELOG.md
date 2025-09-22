@@ -14,6 +14,7 @@ section for the next release.
 - New function `sat_vapor_pressure()` added for computing saturation vapor pressure from temperature using various methods.
 - Added `AmeriFlux_met_ensemble()` function with ERA5 fallback for AmeriFlux meteorological data processing and ensemble generation
 - Added `all_site_nc_merge_by_year()` and `single_site_nc_merge()` functions to merge netCDF files across ensembles and sites from pecan model netCDF outputs.
+- Added parallel mode for the entire SDA workflow.
 - Included all relevant carbon pools (`ROOT_BIOMASS`, `AG_BIOMASS`, `SOIL_STOCK`, `LIT_BIOMASS`) in BADM-based IC extraction; excluded non-pool variables like `SOIL_CHEM`.
 - Added explicit support for `LIT_BIOMASS` to fully utilize **BADM** biomass capabilities.
 - Added `test-IC_BADM_Utilities.R` to validate BADM initial condition extraction and processing

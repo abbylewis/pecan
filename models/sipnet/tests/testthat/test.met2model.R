@@ -16,7 +16,9 @@ add_gaps_to_nc <- function(src_nc, gapped_nc,
 }
 
 test_that("Met conversion runs without error", {
-  nc_path <- system.file("test-data", "CRUNCEP.2000.nc",
+  nc_path <- system.file(
+    "test-data",
+    "CRUNCEP.2000.nc",
     package = "PEcAn.utils"
   )
   in.path <- dirname(nc_path)

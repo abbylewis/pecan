@@ -1,75 +1,72 @@
-#' Generate site-year covariates from yearly GeoTIFF stacks
+#' Generate site-year covariates from yearly GeoTIFF stacks (internal)
 #'
-#' Scans `cov_dir` for files named `covariates_YYYY.tiff`, extracts raster values
-#' at site coordinates from `settings$run`, and returns one long tibble with all
-#' years stacked.
+#' Scans `cov_dir` for files like `<file_prefix><YYYY>.tiff`, extracts raster
+#' values at the provided site coordinates, and returns a long tibble.
 #'
-#' @details
-#' - Expected filename pattern: `covariates_YYYY.tiff` (one multi-layer stack per year).
-#' - Point CRS defaults to EPSG:4326 (lon/lat). If the rasters are in a different CRS,
-#'   `terra::extract()` will handle on-the-fly reprojection.
-#' - Output has columns `site`, `year`, and one column per covariate layer in the TIFF.
-#'   Rows are ordered by the order of sites in `settings$run` and by year ascending.
+#' @param site_coords data.frame with columns: site (chr or coercible), lon (num), lat (num).
+#' @param cov_dir directory containing yearly multi-layer GeoTIFFs.
+#' @param crs CRS string for the input points (default "EPSG:4326").
+#' @param file_prefix character prefix before the 4-digit year (default "covariates_").
+#'        Ignored if `file_regex` is provided.
+#' @param file_regex optional full regex to match files (must contain a 4-digit year).
 #'
-#' @param settings PEcAn settings list; must contain `settings$run[[i]]$site$id/lat/lon`.
-#' @param cov_dir  Directory containing files named like `"covariates_YYYY.tiff"`.
-#' @param crs      CRS for site coordinates, default `"EPSG:4326"`.
-#'
-#' @return A tibble with columns: `site`, `year`, and one column per covariate layer.
-#'
-#' @examples
-#' \dontrun{
-#' cov_dir <- "/path/to/covariates"
-#' cov_df  <- generate_covariates_df(settings, cov_dir)
-#' dplyr::glimpse(cov_df)
-#' }
-#'
-#' @importFrom purrr map_df map2_dfr
-#' @importFrom dplyr mutate select filter arrange
-#' @importFrom tibble tibble as_tibble
-#' @importFrom stringr str_extract
-#' @importFrom terra vect rast extract
-#' @importFrom rlang .data
-#' @export
-generate_covariates_df <- function(settings, cov_dir, crs = "EPSG:4326") {
-  # --- checks ---
+#' @return tibble with columns site, year, and per-layer covariates.
+#' @keywords internal
+#' @noRd
+generate_covariates_df <- function(site_coords,
+                                   cov_dir,
+                                   crs = "EPSG:4326",
+                                   file_prefix = "covariates_",
+                                   file_regex = NULL) {
   if (!dir.exists(cov_dir)) stop("`cov_dir` does not exist: ", cov_dir)
-  if (is.null(settings$run) || length(settings$run) == 0) {
-    stop("`settings$run` is missing or empty; cannot build site coordinates.")
+  
+  # validate site_coords
+  if (!all(c("lon", "lat") %in% names(site_coords))) {
+    stop("`site_coords` must have columns: lon, lat (and ideally site).")
+  }
+  if (!("site" %in% names(site_coords))) site_coords$site <- seq_len(nrow(site_coords))
+  site_coords$site <- as.character(site_coords$site)
+  
+  site_coords$lon <- suppressWarnings(as.numeric(site_coords$lon))
+  site_coords$lat <- suppressWarnings(as.numeric(site_coords$lat))
+  if (anyNA(site_coords$lon) || anyNA(site_coords$lat)) {
+    bad <- site_coords$site[is.na(site_coords$lon) | is.na(site_coords$lat)]
+    stop("Found non-numeric lon/lat for sites: ", paste(bad, collapse = ", "))
   }
   
-  # 1) Build site_coords and coerce lon/lat to numeric
-  site_coords <- purrr::map_df(settings$run, ~ tibble::tibble(
-    site = as.character(.x$site$id),
-    lat  = suppressWarnings(as.numeric(.x$site$lat)),
-    lon  = suppressWarnings(as.numeric(.x$site$lon))
-  ))
-  if (anyNA(site_coords$lat) || anyNA(site_coords$lon)) {
-    bad <- dplyr::filter(site_coords, is.na(.data$lat) | is.na(.data$lon))$site
-    stop("Found non-numeric lat/lon for sites: ", paste(bad, collapse = ", "))
-  }
-  
-  # 2) Create the SpatVector
+  # build points
   coords_mat <- as.matrix(site_coords[, c("lon", "lat")])
   pts        <- terra::vect(coords_mat, type = "points", crs = crs)
   pts$site   <- site_coords$site
   
-  # 3) Discover years from filenames
-  tif_files <- list.files(cov_dir, pattern = "^covariates_\\d{4}\\.tiff$", full.names = TRUE)
-  if (length(tif_files) == 0) {
-    stop("No files matched '^covariates_\\d{4}\\.tiff$' in: ", cov_dir)
+  # discover files/years
+  pattern <- if (is.null(file_regex)) {
+    # escape any regex chars in prefix, then expect YYYY.tiff
+    paste0("^",
+           stringr::str_replace_all(file_prefix, "([\\^$.|?*+()\\[\\]{}])", "\\\\\\1"),
+           "\\d{4}\\.tiff$")
+  } else {
+    file_regex
   }
+  tif_files <- list.files(cov_dir, pattern = pattern, full.names = TRUE)
+  if (length(tif_files) == 0) {
+    stop("No files matched pattern in: ", cov_dir, " (pattern: ", pattern, ")")
+  }
+  
   years <- as.integer(stringr::str_extract(basename(tif_files), "\\d{4}"))
-  ord   <- order(years)
+  if (any(is.na(years))) {
+    stop("Could not parse years from filenames: ",
+         paste(basename(tif_files)[is.na(years)], collapse = ", "))
+  }
+  ord <- order(years)
   tif_files <- tif_files[ord]
   years     <- years[ord]
   
-  # 4) Per-year extractor
+  # per-year extractor
   extract_year <- function(tif_path, year) {
     r    <- terra::rast(tif_path)
     vals <- terra::extract(r, pts)
     
-    # Drop "ID" column if present (wherever it appears)
     if ("ID" %in% names(vals)) {
       vals <- vals[, setdiff(names(vals), "ID"), drop = FALSE]
     }
@@ -77,17 +74,12 @@ generate_covariates_df <- function(settings, cov_dir, crs = "EPSG:4326") {
     out <- tibble::as_tibble(vals)
     if (nrow(out) != nrow(site_coords)) {
       stop("Row mismatch for year ", year, ": expected ", nrow(site_coords),
-           " rows but got ", nrow(out), ". Check CRS/coordinates.")
+           " but got ", nrow(out), ". Check CRS/coordinates or raster extent.")
     }
     
-    dplyr::mutate(
-      out,
-      site = site_coords$site,
-      year = as.integer(year)
-    ) |>
-      dplyr::select(.data$site, .data$year, dplyr::everything())
+    dplyr::mutate(out, site = site_coords$site, year = as.integer(year)) |>
+      dplyr::select(site, year, dplyr::everything())
   }
   
-  # 5) Map over all years and return a single tibble
   purrr::map2_dfr(tif_files, years, extract_year)
 }

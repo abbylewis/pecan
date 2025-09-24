@@ -17,6 +17,10 @@ sda.enkf.multisite(
     keepNC = TRUE, forceRun = TRUE, run_parallel = TRUE, MCMC.args = NULL),
   cov_dir = NULL,
   debias_mode = FALSE,
+  debias_start_year = NULL,
+  debias_drop_incomplete_covariates = TRUE,
+  debias_enforce_consistent_obs = TRUE,
+  debias_require_obs_at_t_for_predict = FALSE,
   ...
 )
 }
@@ -52,6 +56,14 @@ sda.enkf.multisite(
 \item{cov_dir}{Directory containing yearly covariate stacks named like "covariates_YYYY.tiff".}
 
 \item{debias_mode}{Logical; if TRUE, run the residual debias step each cycle (t > 1).}
+
+\item{debias_start_year}{Integer year (e.g., 2015). If set, debiasing starts at this year (inclusive).}
+
+\item{debias_drop_incomplete_covariates}{Logical; drop sites with any NA covariates}
+
+\item{debias_enforce_consistent_obs}{Logical; drop sites that lost any previously}
+
+\item{debias_require_obs_at_t_for_predict}{Logical; only make residual predictions}
 
 \item{...}{Additional arguments, currently ignored}
 }

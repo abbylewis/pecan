@@ -491,7 +491,6 @@ write.config.STICS <- function(defaults, trait.values, settings, run.id) {
   }
   
   SticsRFiles::gen_sols_xml(sols_file, param_df = soils_df, template = system.file("sols.xml", package = "PEcAn.STICS"))
-  SticsRFiles:::gen_sol_xsl_file(soil_name = paste0("sol", str_ns))
   SticsRFiles::convert_xml2txt(file = sols_file)
   file.copy(file.path(rundir, "param.sol"), file.path(usmdirs, "param.sol"))
   

@@ -18,6 +18,7 @@ testthat::test_that("write.events.SIPNET produces expected lines", {
         "2022  250 harv   0.1"
     )
     expect_equal(norm(got), norm(expected))
+    # TODO determine What's generating the whitespace differences and eliminate use of norm()
 })
 
 testthat::test_that("write.events.SIPNET handles multi-site events.json (one file per site)", {

@@ -51,6 +51,6 @@ done <<< "$pkgdirs"
 if [[ -n "$unbumped" ]]; then
 	echo "These packages have changed since $git_ref and need a version increment:"
 	echo "    $unbumped"
-	echo "Edit the DESCRIPTION files to add '.9000' to the 'Version:' field"
+	echo "Edit the DESCRIPTION file(s) to add '.9000' to the 'Version:' field."
 	exit 1
 fi

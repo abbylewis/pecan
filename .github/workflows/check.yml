@@ -41,6 +41,7 @@ jobs:
     - uses: actions/checkout@v4
       with:
         set-safe-directory: false
+        fetch-tags: true # needed by ensure_version_bump
 
     # Forbid spaces in names. Yes, *we* know it's not 1980 anymore, but Make doesn't.
     - name: check for filenames that would confuse Make

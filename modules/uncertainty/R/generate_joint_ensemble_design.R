@@ -20,7 +20,8 @@ generate_joint_ensemble_design <- function(settings,
   ens.sample.method <- settings$ensemble$samplingspace$parameters$method
   design_list <- list()
   sampled_inputs <- list()
-  posterior.files <- rep(NA, length(settings$pfts))
+  posterior.files <- settings$pfts %>%
+    purrr::map_chr("posterior.files", .default = NA_character_)
   samp <- settings$ensemble$samplingspace
   parents <- lapply(samp, "[[", "parent")
   order <- names(samp)[

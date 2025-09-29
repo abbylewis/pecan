@@ -1,18 +1,18 @@
 
-##' Convert priors / MCMC samples to chains that can be sampled for model parameters 
-##' 
-##' @param settings PEcAn settings object
-##' @param ensemble.size number of runs in model ensemble
-##' @param posterior.files list of filenames to read from
-##' @param ens.sample.method one of "halton", "sobol", "torus", "lhc", "uniform"
-##' @export
-##'
-##' @author David LeBauer, Shawn Serbin, Istem Fer
+#' Convert priors / MCMC samples to chains that can be sampled for model parameters
+#'
+#' @param settings PEcAn settings object
+#' @param ensemble.size number of runs in model ensemble
+#' @param posterior.files list of filenames to read from
+#' @param ens.sample.method one of "halton", "sobol", "torus", "lhc", "uniform"
+#' @export
+#'
+#' @author David LeBauer, Shawn Serbin, Istem Fer
 #' @importFrom purrr `%||%`
-### Identify PFTs in the input settings.xml file
 get.parameter.samples <- function(settings, ensemble.size = 1,
-                                  posterior.files = rep(NA, length(settings$pfts)), 
+                                  posterior.files = rep(NA, length(settings$pfts)),
                                   ens.sample.method = "uniform") {
+  ### Identify PFTs in the input settings.xml file
   pfts      <- settings$pfts
   pft.names <- list()
   outdirs   <- list()
@@ -192,7 +192,7 @@ get.parameter.samples <- function(settings, ensemble.size = 1,
                                      quantiles = quantiles)
   }
   if ("ensemble" %in% names(settings)) {
-   
+
     if (ensemble.size == 1) {
       ## run at median if only one run in ensemble
       ensemble.samples <- PEcAn.utils::get.sa.sample.list(

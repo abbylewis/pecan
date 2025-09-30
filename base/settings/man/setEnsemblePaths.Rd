@@ -7,7 +7,7 @@
 setEnsemblePaths(
   settings,
   n_reps,
-  input_type = c("met", "poolinitcond", "soilinitcond"),
+  input_type = "met",
   path_template = "./{id}/{n}.nc",
   ...
 )

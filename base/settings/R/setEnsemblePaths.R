@@ -50,7 +50,7 @@
 setEnsemblePaths <- function(
     settings,
     n_reps,
-    input_type = c("met", "poolinitcond", "soilinitcond"),
+    input_type = "met",
     path_template = "./{id}/{n}.nc",
     ...) {
   if (!is.MultiSettings(settings)) {
@@ -58,7 +58,11 @@ setEnsemblePaths <- function(
       "Setting ensemble paths is only implemented for MultiSettings objects"
     )
   }
-  input_type <- match.arg(input_type)
+  if (is.null(settings$run$inputs[[input_type]])) {
+    PEcAn.logger::logger.error(
+      "input type", sQuote(input_type), "not found in settings"
+    )
+  }
 
   papply(
     settings,

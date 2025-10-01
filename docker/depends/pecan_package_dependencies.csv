@@ -131,6 +131,7 @@
 "IDPmisc","*","modules/assim.batch","Imports",FALSE
 "itertools","*","modules/assim.sequential","Suggests",FALSE
 "jsonlite","*","base/remote","Imports",FALSE
+"jsonlite","*","models/sipnet","Imports",FALSE
 "jsonlite","*","models/stics","Imports",FALSE
 "jsonlite","*","modules/data.atmosphere","Imports",FALSE
 "jsonlite","*","modules/data.remote","Suggests",FALSE

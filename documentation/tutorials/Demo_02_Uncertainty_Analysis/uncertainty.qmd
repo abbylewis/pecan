@@ -229,6 +229,35 @@ runModule.run.ensemble.analysis(settings)
 runModule.run.sensitivity.analysis(settings)
 ```
 
+
+# 11. Visualize Uncertainty Analysis Results
+
+This section loads the results from the uncertainty analyses and generates plots directly in the notebook. This provides an immediate view of the ensemble time series, sensitivity plots, and variance decomposition.
+
+```{r visualize-uncertainty-results, results='hold'}
+# Load the ensemble time series data and generate the plot
+ensemble_ts_file <- file.path(settings$outdir, "ensemble.ts.Rdata")
+if (file.exists(ensemble_ts_file)) {
+  load(ensemble_ts_file)
+  PEcAn.uncertainty::plot.ensemble.ts(ensemble.ts)
+}
+
+# Load the sensitivity analysis data and generate the plots
+sa_file <- file.path(settings$outdir, "sensitivity.analysis.Rdata")
+if (file.exists(sa_file)) {
+  load(sa_file)
+  PEcAn.uncertainty::plot.sensitivity.analysis(sa.samples)
+}
+
+# Load the variance decomposition data and generate the plot
+vd_file <- file.path(settings$outdir, "variance.decomposition.Rdata")
+if (file.exists(vd_file)) {
+  load(vd_file)
+  PEcAn.uncertainty::plot.variance.decomposition(variance.decomposition.output)
+}
+```
+
+
 # 12. Understanding PEcAn Uncertainty Analysis Outputs
 
 After running ensemble and sensitivity analyses, PEcAn generates several important outputs that help you understand model uncertainty and parameter sensitivity.

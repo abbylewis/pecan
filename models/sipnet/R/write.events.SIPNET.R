@@ -40,6 +40,7 @@
 #' files <- write.events.SIPNET(tmp, outdir)
 #' files
 #'
+#' @importFrom rlang %||%
 #' @export
 write.events.SIPNET <- function(events_json, outdir) {
     # TODO add overwrite argument

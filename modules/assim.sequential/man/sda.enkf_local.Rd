@@ -27,7 +27,7 @@ sda.enkf_local(
 
 \item{pre_enkf_params}{Used for passing pre-existing time-series of process error into the current SDA runs to ignore the impact by the differences between process errors.}
 
-\item{ensemble.samples}{Pass ensemble.samples from outside to avoid GitHub check issues.}
+\item{ensemble.samples}{list of ensemble parameters across PFTs. Default is NULL.}
 
 \item{outdir}{physical path to the folder that stores the SDA outputs. Default is NULL.}
 

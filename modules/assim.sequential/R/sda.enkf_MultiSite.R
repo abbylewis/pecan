@@ -17,7 +17,7 @@
 #' @param Q         Process covariance matrix given if there is no data to estimate it.
 #' @param restart   Used for iterative updating previous forecasts. Default NULL. List object includes file path to previous runs and start date for SDA.
 #' @param pre_enkf_params Used for passing pre-existing time-series of process error into the current SDA runs to ignore the impact by the differences between process errors.
-#' @param ensemble.samples Pass ensemble.samples from outside to avoid GitHub check issues.
+#' @param ensemble.samples list of ensemble parameters across PFTs. Default is NULL.
 #' @param control   List of flags controlling the behavior of the SDA. 
 #' `trace` for reporting back the SDA outcomes; 
 #' `TimeseriesPlot` for post analysis examination; 
@@ -295,7 +295,13 @@ sda.enkf.multisite <- function(settings,
           # Loading the model package - this is required bc of the furrr
           library(paste0("PEcAn.",settings$model$type), character.only = TRUE)
           # wrtting configs for each settings - this does not make a difference with the old code
+          # if we don't specify the input_design.
+          if (!exists("input_design")) {
+            input_design <- NULL
+          }
+          # wrtting configs for each settings - this does not make a difference with the old code
           PEcAn.uncertainty::write.ensemble.configs(
+            input_design = input_design,
             ensemble.size = nens,
             defaults = settings$pfts,
             ensemble.samples = ensemble.samples,
@@ -336,6 +342,12 @@ sda.enkf.multisite <- function(settings,
           `attr<-`('Site',c(rep(site.ids, each=length(var.names))))
       }
     }
+  } else {
+    # if it's not a restart run, we will generate the joint input design.
+    # get the joint input design.
+    input_design <- generate_joint_ensemble_design(settings = settings[[1]], 
+                                                   ensemble_samples = ensemble.samples, 
+                                                   ensemble_size = nens)[[1]]
   }
   
   ###-------------------------------------------------------------------###
@@ -447,8 +459,13 @@ sda.enkf.multisite <- function(settings,
         out.configs <-furrr::future_pmap(list(conf.settings %>% `class<-`(c("list")),restart.list, inputs), function(settings, restart.arg, inputs) {
             # Loading the model package - this is required bc of the furrr
             library(paste0("PEcAn.",settings$model$type), character.only = TRUE)
+            # if we don't specify the input_design.
+            if (!exists("input_design")) {
+              input_design <- NULL
+            }
             # wrtting configs for each settings - this does not make a difference with the old code
             PEcAn.uncertainty::write.ensemble.configs(
+              input_design = input_design,
               ensemble.size = nens,
               defaults = settings$pfts,
               ensemble.samples = ensemble.samples,

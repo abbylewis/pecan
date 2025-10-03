@@ -9,7 +9,7 @@
 #' @param obs.cov   Lists of date times named by time points, which contains lists of sites named by site ids, which contains observation covariances for all state variables of each site for each time point. 
 #' @param Q         Process covariance matrix given if there is no data to estimate it.
 #' @param pre_enkf_params Used for passing pre-existing time-series of process error into the current SDA runs to ignore the impact by the differences between process errors.
-#' @param ensemble.samples Pass ensemble.samples from outside to avoid GitHub check issues.
+#' @param ensemble.samples list of ensemble parameters across PFTs. Default is NULL.
 #' @param outdir physical path to the folder that stores the SDA outputs. Default is NULL.
 #' @param control   List of flags controlling the behavior of the SDA. 
 #' `TimeseriesPlot` for post analysis examination; 
@@ -218,6 +218,10 @@ sda.enkf_local <- function(settings,
                                                                                 parent_ids=NULL)
     }
   }
+  # get the joint input design.
+  input_design <- generate_joint_ensemble_design(settings = settings[[1]], 
+                                                 ensemble_samples = ensemble.samples, 
+                                                 ensemble_size = nens)[[1]]
   ###------------------------------------------------------------------------------------------------###
   ### loop over time                                                                                 ###
   ###------------------------------------------------------------------------------------------------###
@@ -290,8 +294,13 @@ sda.enkf_local <- function(settings,
     out.configs <- furrr::future_pmap(list(conf.settings %>% `class<-`(c("list")), restart.list, inputs), function(settings, restart.arg, inputs) {
       # Loading the model package - this is required bc of the furrr
       library(paste0("PEcAn.",settings$model$type), character.only = TRUE)
+      # if we don't specify the input_design.
+      if (!exists("input_design")) {
+        input_design <- NULL
+      }
       # wrtting configs for each settings - this does not make a difference with the old code
       PEcAn.uncertainty::write.ensemble.configs(
+        input_design = input_design,
         ensemble.size = nens,
         defaults = settings$pfts,
         ensemble.samples = ensemble.samples,

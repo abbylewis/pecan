@@ -31,7 +31,7 @@ sda.enkf.multisite(
 
 \item{pre_enkf_params}{Used for passing pre-existing time-series of process error into the current SDA runs to ignore the impact by the differences between process errors.}
 
-\item{ensemble.samples}{Pass ensemble.samples from outside to avoid GitHub check issues.}
+\item{ensemble.samples}{list of ensemble parameters across PFTs. Default is NULL.}
 
 \item{control}{List of flags controlling the behavior of the SDA. 
 `trace` for reporting back the SDA outcomes; 

@@ -107,11 +107,14 @@ organic_matter_addition <- ca_fields |>
 # Harvest
 harvest <- ca_fields |>
   dplyr::transmute(
-    event_type              = "harvest",
-    date                    = paste0(year, "-10-15"),
-    site_id                 = site_id,
+    event_type = "harvest",
+    date = paste0(year, "-10-15"),
+    site_id = site_id,
     frac_above_removed_0to1 = 0.10,
-    crop                    = crop
+    frac_below_removed_0to1 = 0.0,
+    frac_above_to_litter_0to1 = 0.0,
+    frac_below_to_litter_0to1 = 0.0,
+    crop = crop
   )
 
 # Pruning (woody)

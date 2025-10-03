@@ -15,7 +15,7 @@ testthat::test_that("write.events.SIPNET produces expected lines", {
         "2022  40  irrig  5 1",
         "2022  40  fert   0 0 10",
         "2022  50  plant  10 3 2 5",
-        "2022  250 harv   0.1"
+        "2022  250 harv   0.1 0 0 0"
     )
     expect_equal(norm(got), norm(expected))
     # TODO determine What's generating the whitespace differences and eliminate use of norm()

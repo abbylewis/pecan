@@ -145,6 +145,7 @@ tillage <- ca_fields |>
   )
 
 # Irrigation (both pfts): 3 per month for all months
+# TODO: Should annual crops skip irrigation during fallow season?
 months <- sprintf("%02d", 1:12)
 days <- c("05", "15", "25")
 

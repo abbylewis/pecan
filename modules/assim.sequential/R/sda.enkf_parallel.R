@@ -292,6 +292,7 @@ sda.enkf_local <- function(settings,
       library(paste0("PEcAn.",settings$model$type), character.only = TRUE)
       # wrtting configs for each settings - this does not make a difference with the old code
       PEcAn.uncertainty::write.ensemble.configs(
+        ensemble.size = nens,
         defaults = settings$pfts,
         ensemble.samples = ensemble.samples,
         settings = settings,

@@ -234,26 +234,103 @@ runModule.run.sensitivity.analysis(settings)
 
 This section loads the results from the uncertainty analyses and generates plots directly in the notebook. This provides an immediate view of the ensemble time series, sensitivity plots, and variance decomposition.
 
-```{r visualize-uncertainty-results}
-# Load the ensemble time series data and generate the plot
-ensemble_ts_file <- file.path(settings$outdir, "ensemble.ts.Rdata")
-if (file.exists(ensemble_ts_file)) {
-  load(ensemble_ts_file)
-  PEcAn.uncertainty::plot.ensemble.ts(ensemble.ts)
+## 11.1 Ensemble Analysis Visualization
+
+This block visualizes the results of the ensemble analysis. It shows the overall distribution of the model output and how the output and its uncertainty change over time.
+
+```{r visualize-ensemble-results}
+# --- 1. Define Helper Variables ---
+# Extract key variables from the settings object to simplify file path construction
+# and plotting. This makes the code cleaner and easier to read.
+variable <- settings$ensemble$variable
+pft <- settings$pfts[[1]]
+start.year <- lubridate::year(settings$run$start.date)
+end.year <- lubridate::year(settings$run$end.date)
+ensemble.id <- if (!is.null(settings$ensemble$id)) settings$ensemble$id else "NOENSEMBLEID"
+
+# --- 2. Load and Plot Ensemble Output Distribution ---
+# This section visualizes the distribution of the ensemble model runs.
+# It generates a histogram and a boxplot to show the central tendency, spread,
+# and shape of the output variable's distribution.
+
+# Construct the path to the ensemble output file
+ens_file <- PEcAn.uncertainty::ensemble.filename(
+  settings,
+  prefix = "ensemble.output",
+  ensemble.id = ensemble.id,
+  variable = variable,
+  start.year = start.year,
+  end.year = end.year
+)
+
+# Check if the file exists, then load and plot the data
+if (file.exists(ens_file)) {
+  ens_env <- new.env()
+  load(ens_file, envir = ens_env)
+  ens_data <- as.numeric(unlist(ens_env$ensemble.output))
+
+  # Define units for plot labels
+  units <- paste0(variable, " (", PEcAn.utils::mstmipvar(variable, silent = TRUE)$units, ")")
+
+  # Create side-by-side histogram and boxplot
+  par(mfrow = c(1, 2), mar = c(4, 4.8, 1, 2))
+  hist(ens_data, xlab = units, main = "Ensemble Distribution", cex.lab = 1.4, col = "grey85")
+  box(lwd = 2.2)
+  boxplot(ens_data, ylab = units, main = "Ensemble Boxplot", col = "grey85", cex.lab = 1.5)
+  box(lwd = 2.2)
+  par(mfrow = c(1, 1))
+} else {
+  PEcAn.logger::logger.warn("Could not find ensemble output file:", ens_file)
 }
 
-# Load the sensitivity analysis data and generate the plots
-sa_file <- file.path(settings$outdir, "sensitivity.analysis.Rdata")
-if (file.exists(sa_file)) {
-  load(sa_file)
-  PEcAn.uncertainty::plot.sensitivity.analysis(sa.samples)
-}
 
-# Load the variance decomposition data and generate the plot
-vd_file <- file.path(settings$outdir, "variance.decomposition.Rdata")
-if (file.exists(vd_file)) {
-  load(vd_file)
-  PEcAn.uncertainty::plot.variance.decomposition(variance.decomposition.output)
+# --- 3. Plot Ensemble Time Series ---
+# This section visualizes the ensemble results over time, showing the mean,
+# median, and 95% confidence interval of the model output.
+ens_ts_data <- PEcAn.uncertainty::read.ensemble.ts(settings, variable = variable)
+if (!is.null(ens_ts_data)) {
+  PEcAn.uncertainty::ensemble.ts(ens_ts_data)
+}
+```
+
+## 11.2 Sensitivity and Variance Decomposition Visualization
+
+This block visualizes the results of the sensitivity analysis. The plots show how sensitive the model output is to changes in each parameter and which parameters contribute most to the overall uncertainty.
+
+```{r visualize-sensitivity-results}
+# --- 1. Load Sensitivity Analysis Results ---
+# This section loads the saved sensitivity analysis data, which contains the
+# outputs needed to generate the sensitivity and variance decomposition plots.
+
+# Construct the path to the sensitivity analysis results file
+sens_file <- file.path(
+  settings$outdir,
+  paste0("sensitivity.results", ".", ensemble.id, ".", variable, ".", start.year, ".", end.year, ".Rdata")
+)
+
+# Check if the file exists, then load the data and generate plots
+if (file.exists(sens_file)) {
+  sens_env <- new.env()
+  load(sens_file, envir = sens_env)
+  sensitivity.results <- sens_env$sensitivity.results
+
+  # --- 2. Generate Sensitivity Plots ---
+  # These plots show how the model output changes as each parameter is varied
+  # one at a time, helping to identify which parameters have the strongest influence.
+  sa_plots <- PEcAn.uncertainty::plot_sensitivities(
+    sensitivity.results[[pft$name]]$sensitivity.output
+  )
+  print(do.call(gridExtra::grid.arrange, c(sa_plots, ncol = floor(sqrt(length(sa_plots))))))
+
+  # --- 3. Generate Variance Decomposition Plots ---
+  # These plots break down the total output variance into contributions from
+  # each parameter, highlighting the most important sources of uncertainty.
+  vd_plots <- PEcAn.uncertainty::plot_variance_decomposition(
+    sensitivity.results[[pft$name]]$variance.decomposition.output
+  )
+  print(do.call(gridExtra::grid.arrange, c(vd_plots, ncol = 4)))
+} else {
+  PEcAn.logger::logger.warn("Could not find sensitivity results file:", sens_file)
 }
 ```
 
@@ -320,156 +397,5 @@ settings$ensemble$samplingspace$parameters$method <- "halton"
 
 # 14. Customizing Sensitivity Analysis Parameters (Optional)
 
-## (Optional) Use this section only if you want to override the default sensitivity analysis parameters. Skip if defaults are sufficient.
-> **Important:** If you modify the sensitivity analysis parameters in this section, you must re-run sections 8, 9, and 10 to regenerate the model output with the new sensitivity analysis configuration.
-
-```{r customize-sensitivity}
-# Set the quantiles (in standard deviations) for parameter distribution in sensitivity analysis
-settings$sensitivity.analysis$quantiles$sigma <- c(-2, -1, 1, 2)
-
-# Specify the variable to be analyzed in sensitivity analysis
-settings$sensitivity.analysis$variable <- "NEE"
-```
-
-
-
-# 15. Extract Model Results and Prepare for Analysis
-
-After the model simulation completes, we need to extract the results and prepare them for analysis. This involves:
-
-1. Reading the run ID
-2. Setting up output paths
-3. Defining time period
-4. Loading model output
-
-```{r get-plot-vars}
-runid <- as.character(read.table(paste(settings$outdir, "/run/", "runs.txt", sep = ""))[1, 1]) # Note: if you are using an xml from a run with multiple ensembles this line will provide only the first run id
-# You can change [1,1] to [10,1], [5,1], etc. to select different run IDs from runs.txt
-# For example: [10,1] selects the 10th run ID, [5,1] selects the 5th run ID
-outdir <- paste(settings$outdir, "/out/", runid, sep = "")
-start.year <- as.numeric(lubridate::year(settings$run$start.date))
-end.year <- as.numeric(lubridate::year(settings$run$end.date))
-model_output <- PEcAn.utils::read.output(
-  runid,
-  outdir,
-  start.year,
-  end.year,
-  variables = NULL,
-  dataframe = TRUE,
-  verbose = FALSE
-)
-available_vars <- names(model_output)[!names(model_output) %in% c("posix", "time_bounds")]
-```
-
-# 16. Display Available Model Variables
-
-This section shows all the variables that are available in the model output. These variables represent different ecosystem processes and states that the model has simulated.
-
-```{r show-variables}
-vars_df <- PEcAn.utils::standard_vars |>
-  dplyr::select(
-    Variable = Variable.Name,
-    Description = Long.name
-  ) |>
-  dplyr::filter(Variable %in% available_vars) |>
-  # TODO: add year to PEcAn.utils::standard vars
-  dplyr::bind_rows(
-    dplyr::tibble(
-      Variable = "year",
-      Description = "Year"
-    )
-  )
-
-vars_df$Description[is.na(vars_df$Description)] <- "(No description available)"
-knitr::kable(vars_df, caption = "Model Output Variables and Descriptions")
-```
-
-# 17. Visualize Model Results
-
-This section provides examples of how to create time series plots of different model variables. The examples cover various ecosystem processes including carbon fluxes, carbon pools, water variables, and structural variables like Leaf Area Index (LAI).
-
-## 17.1 Plot Carbon Fluxes
-
-```{r plot-carbon-fluxes}
-# Plot Gross Primary Productivity (GPP) and Net Primary Productivity (NPP)
-plot(model_output$posix, model_output$GPP,
-  type = "l",
-  col = "green",
-  xlab = "Date",
-  ylab = "Carbon Flux (kg C m-2 s-1)",
-  main = paste("Carbon Fluxes Over Time — PEcAn", runid)
-)
-lines(model_output$posix, model_output$NPP, col = "blue")
-legend("topright", legend = c("GPP", "NPP"), col = c("green", "blue"), lty = 1)
-```
-
-## 17.2 Plot Carbon Pools
-
-```{r plot-carbon-pools}
-# Plot Total Live Biomass and Total Soil Carbon
-plot(model_output$posix, model_output$TotLivBiom,
-  type = "l",
-  col = "darkgreen",
-  xlab = "Date",
-  ylab = "Carbon Pool (kg C m-2)",
-  main = paste("Carbon Pools Over Time — PEcAn", runid)
-)
-lines(model_output$posix, model_output$TotSoilCarb, col = "brown")
-legend("topright", legend = c("Total Live Biomass", "Total Soil Carbon"), col = c("darkgreen", "brown"), lty = 1)
-```
-
-## 17.3 Plot Water Variables
-
-```{r plot-water-variables}
-# Plot Soil Moisture and Snow Water Equivalent
-plot(model_output$posix, model_output$SoilMoist,
-  type = "l",
-  col = "blue",
-  xlab = "Date",
-  ylab = "Soil Moisture (kg m-2)",
-  main = paste("Soil Moisture Over Time — PEcAn", runid)
-)
-lines(model_output$posix, model_output$SWE, col = "lightblue")
-legend("topright", legend = c("Soil Moisture", "Snow Water Equivalent"), col = c("blue", "lightblue"), lty = 1)
-```
-
-## 17.4 Plot LAI and Biomass
-
-```{r plot-lai-biomass}
-# Plot Leaf Area Index (LAI) and Above Ground Wood
-plot(model_output$posix, model_output$LAI,
-  type = "l",
-  col = "darkgreen",
-  xlab = "Date",
-  ylab = "LAI (m2 m-2)",
-  main = paste("Leaf Area Index Over Time — PEcAn", runid)
-)
-lines(model_output$posix, model_output$AbvGrndWood, col = "brown")
-legend("topright", legend = c("LAI", "Above Ground Wood"), col = c("darkgreen", "brown"), lty = 1)
-```
-
-# 18. Conclusion
-
-This notebook demonstrated how to set up, run, and analyze a PEcAn ecosystem model workflow programmatically. You can now modify parameters, try different models, or extend the analysis as needed.
-
-Try editing the `pecan.xml` file. Give it a new name and update the **settings_path** variable at the beginning of this Demo to point to the new file. See how the changes affect the model output!
-
-# 19. Clean Up Workflow Output (Optional)
-
-If you want to remove all files and directories created by this workflow and start fresh, you can run the following code. This will delete the entire output directory specified in your settings. **Use with caution!**
-
-```{r cleanup}
-# WARNING: This will permanently delete all workflow output files!
-# Uncomment the line below to enable cleanup.
-# fs::dir_delete(settings$outdir)
-```
-
-
-# 20. Session Information
-
-Print R session information for reproducibility.
-
-```{r session-info}
-sessionInfo()
-```
+##
 

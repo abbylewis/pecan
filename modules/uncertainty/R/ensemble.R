@@ -594,4 +594,3 @@ input.ens.gen <- function(settings, ensemble_size, input, method = "sampling", p
   
   return(samples)
 }
-

@@ -27,7 +27,7 @@
 #' `forceRun` decide if we want to proceed the Bayesian MCMC sampling without observations;
 #' `run_parallel` decide if we want to run the SDA under parallel mode for the `future_map` function;
 #' `MCMC.args` include lists for controling the MCMC sampling process (iteration, nchains, burnin, and nthin.).
-#' `local.execution` decide if we want to execute everything locally (not submitting jobs to the HPC). Default is TRUE.
+#' `local.execution` decide if we want to execute everything locally (not submitting jobs to the HPC).
 #' @param ...       Additional arguments, currently ignored
 #' 
 #' @return NONE
@@ -43,7 +43,7 @@ sda.enkf.multisite <- function(settings,
                                ensemble.samples = NULL,
                                control=list(TimeseriesPlot = FALSE,
                                             OutlierDetection=FALSE,
-                                            parallel_qsub = TRUE,
+                                            parallel_qsub = FALSE,
                                             send_email = NULL,
                                             keepNC = TRUE,
                                             forceRun = TRUE,
@@ -51,6 +51,12 @@ sda.enkf.multisite <- function(settings,
                                             MCMC.args = NULL,
                                             local.execution = TRUE),
                                ...) {
+  # make sure we only specify one method for the model execution.
+  if (control$parallel_qsub & control$local.execution) {
+    PEcAn.logger::logger.info("Please make sure you have only one of the following control options turning on.")
+    PEcAn.logger::logger.info("parallel_qsub or local.execution.")
+    return(0)
+  }
   #add if/else for when restart points to folder instead if T/F set restart as T
   if(is.list(restart)){
     old.dir <- restart$filepath
@@ -104,14 +110,9 @@ sda.enkf.multisite <- function(settings,
     conf.settings<-settings
     site.ids <- conf.settings %>% purrr::map(~.x[['run']] ) %>% purrr::map('site') %>% purrr::map('id') %>% base::unlist() %>% base::as.character()
     # a matrix ready to be sent to spDistsN1 in sp package - first col is the long second is the lat and row names are the site ids
-    site.locs <- conf.settings %>% purrr::map(~.x[['run']] ) %>% 
-      purrr::map('site') %>% purrr::map(function(s){
-        temp <- as.numeric(c(s$lon, s$lat))
-        names(temp) <- c("Lon", "Lat")
-        temp
-      }) %>% 
-      dplyr::bind_rows() %>% 
-      as.data.frame() %>%
+    site.locs <- conf.settings$run %>% purrr::map('site') %>% purrr::map_dfr(~c(.x[['lon']],.x[['lat']]) %>% as.numeric)%>% 
+      t %>%
+      `colnames<-`(c("Lon","Lat")) %>%
       `rownames<-`(site.ids)
     #Finding the distance between the sites
     distances <- sp::spDists(site.locs, longlat = TRUE)
@@ -338,6 +339,7 @@ sda.enkf.multisite <- function(settings,
   for(t in 1:nt){
       obs.t <- as.character(lubridate::date(obs.times[t]))
       obs.year <- lubridate::year(obs.t)
+      PEcAn.logger::logger.info(paste("Processing date:", obs.t))
       ###-------------------------------------------------------------------------###
       ###  Taking care of Forecast. Splitting /  Writting / running / reading back###
       ###-------------------------------------------------------------------------###-----  
@@ -381,20 +383,34 @@ sda.enkf.multisite <- function(settings,
           return(0)
         }
         # writing configs for each settings
-        out.configs <-furrr::future_pmap(list(as.list(conf.settings), restart.list), function(settings, restart.arg) {
-            PEcAn.uncertainty::write.ensemble.configs(
-              input_design = input_design,
-              ensemble.size = nens,
-              defaults = defaults,
-              ensemble.samples = ensemble.samples,
-              settings = settings,
-              model = settings$model$type,
-              write.to.db = settings$database$bety$write,
-              restart = restart.arg,
-              rename = TRUE
-            )
-          }) %>%
-          stats::setNames(site.ids)
+        # here we use the foreach instead of furrr
+        # because for some reason, the furrr has problem returning the sample paths.
+        PEcAn.logger::logger.info("Writting configs!")
+        cl <- parallel::makeCluster(parallel::detectCores())
+        doSNOW::registerDoSNOW(cl)
+        out.configs <- foreach::foreach(temp.settings = as.list(conf.settings), 
+                                        restart.arg = restart.list,
+                                        .packages = c("Kendall", 
+                                                      "purrr", 
+                                                      "PEcAn.uncertainty", 
+                                                      paste0("PEcAn.", model), 
+                                                      "PEcAnAssimSequential")) %dopar% {
+                                                        temp <- PEcAn.uncertainty::write.ensemble.configs(
+                                                          input_design = input_design,
+                                                          ensemble.size = nens,
+                                                          defaults = temp.settings$pfts,
+                                                          ensemble.samples = ensemble.samples,
+                                                          settings = temp.settings,
+                                                          model = temp.settings$model$type,
+                                                          write.to.db = temp.settings$database$bety$write,
+                                                          restart = restart.arg,
+                                                          # samples=inputs,
+                                                          rename = TRUE
+                                                        )
+                                                        return(temp)
+                                                      } %>% stats::setNames(site.ids)
+        parallel::stopCluster(cl)
+        foreach::registerDoSEQ()
         # update the file paths of different inputs when t = 1.
         if (t == 1) {
           inputs <- out.configs %>% purrr::map(~.x$samples)
@@ -484,7 +500,7 @@ sda.enkf.multisite <- function(settings,
         if (is.null(control$MCMC.args)) {
           MCMC.args <- list(niter = 1e5,
                             nthin = 10,
-                            nchain = 3,
+                            nchain = 1,
                             nburnin = 5e4)
         } else {
           MCMC.args <- control$MCMC.args

@@ -12,7 +12,7 @@ sda.enkf.multisite(
   restart = NULL,
   pre_enkf_params = NULL,
   ensemble.samples = NULL,
-  control = list(TimeseriesPlot = FALSE, OutlierDetection = FALSE, parallel_qsub = TRUE,
+  control = list(TimeseriesPlot = FALSE, OutlierDetection = FALSE, parallel_qsub = FALSE,
     send_email = NULL, keepNC = TRUE, forceRun = TRUE, run_parallel = TRUE, MCMC.args =
     NULL, local.execution = TRUE),
   ...
@@ -42,7 +42,7 @@ sda.enkf.multisite(
 `forceRun` decide if we want to proceed the Bayesian MCMC sampling without observations;
 `run_parallel` decide if we want to run the SDA under parallel mode for the `future_map` function;
 `MCMC.args` include lists for controling the MCMC sampling process (iteration, nchains, burnin, and nthin.).
-`local.execution` decide if we want to execute everything locally (not submitting jobs to the HPC). Default is TRUE.}
+`local.execution` decide if we want to execute everything locally (not submitting jobs to the HPC).}
 
 \item{...}{Additional arguments, currently ignored}
 }

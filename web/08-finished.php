@@ -42,14 +42,14 @@ $stmt->closeCursor();
 $start = substr($workflow['start_date'], 0, 4);
 $end = substr($workflow['end_date'], 0, 4);
 $folder = $workflow['folder'];
-$notes = htmlspecialchars($workflow['notes']);
+$notes = htmlspecialchars($workflow['notes'] ?? '');
 if ($workflow['value'] != '') {
   $params = json_decode($workflow['value'], true);
 } else {
   $params = array();
 }
 if (isset($params['hostname'])) {
-    $hostname = "&hostname=${params['hostname']}";
+    $hostname = "&hostname={$params['hostname']}";
 }
 
 # check to make sure all is ok
@@ -104,7 +104,7 @@ if (is_dir("$folder/pft")) {
       continue;
     }
     $pfts[$pft] = array();
-    foreach(recursive_scandir("$folder/pft/${pft}", "") as $file) {
+    foreach(recursive_scandir("$folder/pft/{$pft}", "") as $file) {
       if (is_dir("$folder/pft/$pft/$file")) {
         continue;
       }
@@ -145,7 +145,7 @@ if (is_dir("$folder/run")) {
       $outfile[$runid][] = $file;
       if (preg_match('/^\d\d\d\d.nc$/', $file)) {
         $year = substr($file, 0, 4);
-        $vars = explode("\n", file_get_contents("${folder}/out/${runid}/${file}.var"));
+        $vars = explode("\n", file_get_contents("{$folder}/out/{$runid}/{$file}.var"));
         $outplot[$runid][$year] = array_filter($vars);
         sort($outplot[$runid][$year]);
       }
@@ -253,7 +253,7 @@ foreach ($status as $line) {
       foreach($y as $s) {
         $kv = explode(" ", $s, 2);
         if ($kv[1] == '') $kv[1] = $kv[0];
-        print "  outplot['$key']['$x']['{$kv[0]}'] = '${kv[1]}';\n";
+        print "  outplot['$key']['$x']['{$kv[0]}'] = '{$kv[1]}';\n";
       }
     }
   }
@@ -546,11 +546,11 @@ foreach ($status as $line) {
     <div class="spacer"></div>
 <?php whoami(); ?>
 <p>
-  <a href="https://pecanproject.github.io/pecan-documentation/master/" target="_blank">Documentation</a>
+  <a href="https://pecanproject.github.io/documentation/develop/" target="_blank">Documentation</a>
   <br>
-  <a href="https://join.slack.com/t/pecanproject/shared_invite/enQtMzkyODUyMjQyNTgzLWEzOTM1ZjhmYWUxNzYwYzkxMWVlODAyZWQwYjliYzA0MDA0MjE4YmMyOTFhMjYyMjYzN2FjODE4N2Y4YWFhZmQ" target="_blank">Chat Room</a>
+  <a href="https://join.slack.com/t/pecanproject/shared_invite/enQtMzkyODUyMjQyNTgzLWEzOTM1ZjhmYWUxNzYwYzkxMWVlODAyZWQwYjliYzA0MDA0MjE4YmMyOTFhMjYyMjYzN2FjODE4N2Y4YWFhZmQ" target="_blank">Slack Channel</a>
   <br>
-  <a href="http://pecanproject.github.io/Report_an_issue.html" target="_blank">Bug Report</a>
+  <a href="https://github.com/PecanProject/pecan/issues/new/choose" target="_blank">Bug Report</a>
 </p>
   </div>
   <div id="output">
@@ -571,24 +571,19 @@ foreach ($status as $line) {
 foreach ($status as $line) {
   $data = explode("\t", $line);
   echo "    <tr>\n";
-  if ($data[0] == "BrownDog") {
-    echo "      <td><a href=\"http://browndog.ncsa.illinois.edu\">";
-    echo "${data[0]} <img src=\"images/browndog-small-transparent.gif\" alt=\"BrownDog\" width=\"16px\"></a></td>\n";
-  } else {
-    echo "      <td>${data[0]}</td>\n";
-  }
+  echo "      <td>{$data[0]}</td>\n";
   if (count($data) >= 2) {
-    echo "      <td>${data[1]}</td>\n";
+    echo "      <td>{$data[1]}</td>\n";
   } else {
     echo "      <td></td>\n";
   }
   if (count($data) >= 3) {
-    echo "      <td>${data[2]}</td>\n";
+    echo "      <td>{$data[2]}</td>\n";
   } else {
     echo "      <td></td>\n";
   }
   if (count($data) >= 4) {
-    echo "      <td>${data[3]}</td>\n";
+    echo "      <td>{$data[3]}</td>\n";
   } else {
     echo "      <td>RUNNING</td>\n";
   }

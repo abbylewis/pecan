@@ -31,6 +31,10 @@ options(error = quote({
 # ----------------------------------------------------------------------
 # PEcAn Workflow
 # ----------------------------------------------------------------------
+
+# Report package versions for provenance
+PEcAn.all::pecan_version()
+
 # Open and read in settings file for PEcAn run.
 settings <- PEcAn.settings::read.settings(args$settings)
 
@@ -129,6 +133,19 @@ if (PEcAn.utils::status.check("MODEL") == 0) {
   PEcAn.workflow::runModule_start_model_runs(settings, stop.on.error = stop_on_error)
   PEcAn.utils::status.end()
 }
+
+# Save text summaries of the variables in each *.nc output?
+# Valid write modes are
+# - "paired": save `*.nc.var` beside each `*.nc`
+# - "collected": save one `nc_vars.txt` in the outdir,
+#    containing all vars that appear in any nc in the directory
+if (!is.null(settings$nc_varfile_mode)) {
+  PEcAn.utils::nc_write_varfiles(
+    nc_dir = settings$outdir,
+    write_mode = nc_varfile_mode
+  )
+}
+
 
 # Get results of model runs
 if (PEcAn.utils::status.check("OUTPUT") == 0) {

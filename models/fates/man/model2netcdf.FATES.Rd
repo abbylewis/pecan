@@ -4,19 +4,38 @@
 \alias{model2netcdf.FATES}
 \title{Code to convert FATES netcdf output into into CF standard}
 \usage{
-model2netcdf.FATES(outdir)
+model2netcdf.FATES(
+  outdir,
+  sitelat,
+  sitelon,
+  start_date,
+  end_date,
+  vars_names,
+  pfts
+)
 }
 \arguments{
-\item{outdir}{Location of FATES model output}
+\item{outdir}{Location of FATES model output (e.g. a path to a single ensemble output)}
+
+\item{sitelat}{Latitude of the site}
+
+\item{sitelon}{Longitude of the site}
+
+\item{start_date}{Start time of the simulation, not string}
+
+\item{end_date}{End time of the simulation, not string}
+
+\item{vars_names}{Names of Selected variables in PEcAn format, (e.g. c("",""))}
+
+\item{pfts}{a named vector of PFT numbers where the names are PFT names}
 }
 \description{
 Code to convert FATES netcdf output into into CF standard
 }
 \examples{
- 
 \dontrun{
 example.output <- system.file("case.clm2.h0.2004-01-01-00000.nc",package="PEcAn.FATES")
-model2netcdf.FATES(outdir="~/")
+model2netcdf.FATES(outdir="~/",sitelat, sitelon, start_date, end_date, vars_names, pfts)
 }
 
 }

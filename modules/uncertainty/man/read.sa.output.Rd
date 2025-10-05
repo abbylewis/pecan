@@ -2,7 +2,7 @@
 % Please edit documentation in R/sensitivity.R
 \name{read.sa.output}
 \alias{read.sa.output}
-\title{Read Sensitivity Analysis output}
+\title{Reads output of sensitivity analysis runs}
 \usage{
 read.sa.output(
   traits,
@@ -49,6 +49,4 @@ Reads output of sensitivity analysis runs
 }
 \author{
 Ryan Kelly, David LeBauer, Rob Kooper, Mike Dietze, Istem Fer
-
-Ryan Kelly, David LeBauer, Rob Kooper, Mike Dietze
 }

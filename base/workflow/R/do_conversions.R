@@ -30,6 +30,12 @@ do_conversions <- function(settings, overwrite.met = FALSE, overwrite.fia = FALS
     
     input.tag <- names(settings$run$input)[i]
     PEcAn.logger::logger.info("PROCESSING: ",input.tag)
+
+    # Check for existing file paths , skips if the file exists
+    if (!is.null(input$path) && is.null(input$force)) {
+      PEcAn.logger::logger.info("Skipping input with existing path:", input.tag)
+      next
+    }
     
     
     ic.flag <- fia.flag <- FALSE
@@ -73,10 +79,32 @@ do_conversions <- function(settings, overwrite.met = FALSE, overwrite.fia = FALS
       ## which is done locally in rundir and then rsync'ed to remote
       ## rather than having a model-format soils file that is processed remotely
     }
+
+    # Phenology data extraction
+    if(input.tag == "leaf_phenology" && is.null(input$path)){
+      # Use settings$run$site if available, otherwise query site
+      site <- if(!is.null(settings$run$site$lat) && !is.null(settings$run$site$lon)) {
+        settings$run$site
+      } else {
+        PEcAn.DB::query.site(site.id = settings$run$site$site.id, con = NULL)
+      }
+      
+      settings$run$inputs[[i]]$path <- 
+        PEcAn.data.remote::extract_phenology_MODIS(
+          site_info = site,
+          start_date = settings$run$start.date,
+          end_date = settings$run$end.date,
+          outdir= dbfiles,
+          run_parallel = TRUE,
+          ncores = NULL
+        )
+      needsave <- TRUE
+    }
+
     # met conversion
     
     if (input.tag == "met") {
-      name <- ifelse(is.null(settings$browndog), "MET Process", "BrownDog")
+      name <- "MET Process"
       if ( (PEcAn.utils::status.check(name) == 0)) { ## previously is.null(input$path) && 
         PEcAn.logger::logger.info("calling met.process: ",settings$run$inputs[[i]][['path']])
         settings$run$inputs[[i]] <- 
@@ -89,7 +117,6 @@ do_conversions <- function(settings, overwrite.met = FALSE, overwrite.fia = FALS
             host       = settings$host,
             dbparms    = settings$database$bety, 
             dir        = dbfiles,
-            browndog   = settings$browndog,
             spin       = settings$spin,
             overwrite  = overwrite.met)
         PEcAn.logger::logger.debug("updated met path: ",settings$run$inputs[[i]][['path']])

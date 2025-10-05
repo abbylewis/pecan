@@ -1,11 +1,3 @@
-#-------------------------------------------------------------------------------
-# Copyright (c) 2016 NCSA.
-# All rights reserved. This program and the accompanying materials
-# are made available under the terms of the 
-# University of Illinois/NCSA Open Source License
-# which accompanies this distribution, and is available at
-# http://opensource.ncsa.illinois.edu/license.html
-#-------------------------------------------------------------------------------
 library(lubridate)
 
 ##-------------------------------------------------------------------------------------------------#
@@ -333,14 +325,6 @@ model2netcdf.dvmdostem <- function(outdir, runstart, runend, pecan_requested_var
     }
 
     ncout <- ncdf4::nc_create(file.path(outdir, paste0(as.character(lubridate::year(all_yrs[i])), ".nc")), newvars)
-    # extract variable and long names to VAR file for PEcAn visibility
-    # THIS NEEDS TO BE KEPT AND USED FOR PROPER PLOTTING
-    write.table(sapply(ncout$var, function(x) { x$longname }),
-                file = file.path(outdir,paste0(as.character(lubridate::year(all_yrs[i])), ".nc.var")),
-                col.names = FALSE,
-                row.names = TRUE,
-                quote = FALSE)
-
     ncdf4::nc_close(ncout)
   }
 

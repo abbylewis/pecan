@@ -3,7 +3,7 @@ library("PEcAn.all")
 library("RCurl")
 
 #' Post a settings file for running a Meta-Analysis
-#' @param req Send pecan.xml in bodyas xml filetype
+#' @param req Send pecan.xml in body as xml filetype
 #' @return A list of post.distns.MA.R
 #' @author Nihar Sanda
 #* @post /run
@@ -51,13 +51,7 @@ submitWorkflow <- function(req, res){
      filepath <- paste0(settings$pfts$pft$outdir, "/post.distns.Rdata")
      e <- new.env(parent = emptyenv())
      load(filepath, envir = e)
-     objs <- ls(envir = e, all.names = TRUE)
-     for(obj in objs) {
-       data <- get(obj, envir =e)
-     }
-     #csv_file <- paste0(settings$pfts$pft$outdir, '/post.distns.csv')
-     #plumber::include_file(csv_file, res)
-     return(list(status = "Meta Analysis ran successfully", data=data))
+     return(list(status = "Meta Analysis ran successfully", data = as.list(e))
     }
   }
   else{

@@ -12,9 +12,9 @@ sda.enkf.multisite(
   restart = NULL,
   pre_enkf_params = NULL,
   ensemble.samples = NULL,
-  control = list(trace = TRUE, TimeseriesPlot = FALSE, debug = FALSE, pause = FALSE,
-    Profiling = FALSE, OutlierDetection = FALSE, parallel_qsub = TRUE, send_email = NULL,
-    keepNC = TRUE, forceRun = TRUE, run_parallel = TRUE, MCMC.args = NULL),
+  control = list(TimeseriesPlot = FALSE, OutlierDetection = FALSE, parallel_qsub = TRUE,
+    send_email = NULL, keepNC = TRUE, forceRun = TRUE, run_parallel = TRUE, MCMC.args =
+    NULL, local.execution = TRUE),
   ...
 )
 }
@@ -34,18 +34,15 @@ sda.enkf.multisite(
 \item{ensemble.samples}{list of ensemble parameters across PFTs. Default is NULL.}
 
 \item{control}{List of flags controlling the behavior of the SDA. 
-`trace` for reporting back the SDA outcomes; 
 `TimeseriesPlot` for post analysis examination; 
-`debug` decide if we want to pause the code and examining the variables inside the function;
-`pause` decide if we want to pause the SDA workflow at current time point t;
-`Profiling` decide if we want to export the temporal SDA outputs in CSV file;
 `OutlierDetection` decide if we want to execute the outlier detection each time after the model forecasting;
 `parallel_qsub` decide if we want to execute the `qsub` job submission under parallel mode;
 `send_email` contains lists for sending email to report the SDA progress;
 `keepNC` decide if we want to keep the NetCDF files inside the out directory;
 `forceRun` decide if we want to proceed the Bayesian MCMC sampling without observations;
 `run_parallel` decide if we want to run the SDA under parallel mode for the `future_map` function;
-`MCMC.args` include lists for controling the MCMC sampling process (iteration, nchains, burnin, and nthin.).}
+`MCMC.args` include lists for controling the MCMC sampling process (iteration, nchains, burnin, and nthin.).
+`local.execution` decide if we want to execute everything locally (not submitting jobs to the HPC). Default is TRUE.}
 
 \item{...}{Additional arguments, currently ignored}
 }

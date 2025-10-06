@@ -108,7 +108,7 @@ sda.enkf.multisite <- function(settings,
   #Here I'm trying to make a temp config list name and put it into map to iterate
   if(multi.site.flag){
     conf.settings<-settings
-    site.ids <- conf.settings %>% purrr::map(~.x[['run']] ) %>% purrr::map('site') %>% purrr::map('id') %>% base::unlist() %>% base::as.character()
+    site.ids <- conf.settings$run %>% purrr::map('site') %>% purrr::map('id') %>% base::unlist() %>% base::as.character()
     # a matrix ready to be sent to spDistsN1 in sp package - first col is the long second is the lat and row names are the site ids
     site.locs <- conf.settings$run %>% purrr::map('site') %>% purrr::map_dfr(~c(.x[['lon']],.x[['lat']]) %>% as.numeric)%>% 
       t %>%
@@ -254,6 +254,11 @@ sda.enkf.multisite <- function(settings,
       #out.configs object required to build X and restart.list object required for build X
       #TODO: there should be an easier way to do this than to rerun write.ensemble.configs
       restart.list <- vector("list", length(conf.settings))
+      # make sure we have the input_design variable before running the write configuration function.
+      if (!exists("input_design")) {
+        PEcAn.logger::logger.info("The input_design is not found for write configuration function call.")
+        return(0)
+      }
       out.configs <- conf.settings %>%
         `class<-`(c("list")) %>%
         furrr::future_map2(restart.list, function(settings, restart.arg) {
@@ -378,10 +383,6 @@ sda.enkf.multisite <- function(settings,
         #for restart when t=1 do not need to do model runs and X should already exist in environment by this point
         X <- X
       } else {
-        if (!exists("input_design")) {
-          PEcAn.logger::logger.info("The input_design is not found for write configuration function call.")
-          return(0)
-        }
         # writing configs for each settings
         # here we use the foreach instead of furrr
         # because for some reason, the furrr has problem returning the sample paths.

@@ -45,7 +45,12 @@ status <- suppressWarnings(
         attr("status")
 )
 
-if(status == 1){
+if (is.null(status)) {
+    PEcAn.logger::logger.error(
+        "SIPNET command failed to execute. ",
+        "The binary may be incompatible with your system or have missing dependencies."
+    )
+} else if(status == 1){
     # 1 is expected for `sipnet -h`
     PEcAn.logger::logger.info("SIPNET has been installed!")
 } else {

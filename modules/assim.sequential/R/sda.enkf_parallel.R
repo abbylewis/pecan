@@ -193,35 +193,10 @@ sda.enkf_local <- function(settings,
   }
   #reformatting params
   new.params <- sda_matchparam(settings, ensemble.samples, site.ids, nens)
-  #sample met ensemble members
-  #sample all inputs specified in the settings$ensemble
-  #now looking into the xml
-  samp <- conf.settings$ensemble$samplingspace
-  #finding who has a parent
-  parents <- lapply(samp,'[[', 'parent')
-  #order parents based on the need of who has to be first
-  order <- names(samp)[lapply(parents, function(tr) which(names(samp) %in% tr)) %>% unlist()] 
-  #new ordered sampling space
-  samp.ordered <- samp[c(order, names(samp)[!(names(samp) %in% order)])]
-  #performing the sampling
-  inputs <- vector("list", length(conf.settings))
-  # For the tags specified in the xml I do the sampling
-  for (s in seq_along(conf.settings)){
-    if (is.null(inputs[[s]])) {
-      inputs[[s]] <- list() 
-    }
-    for (i in seq_along(samp.ordered)){
-      #call the function responsible for generating the ensemble
-      inputs[[s]][[names(samp.ordered)[i]]] <- PEcAn.uncertainty::input.ens.gen(settings=conf.settings[[s]],
-                                                                                input=names(samp.ordered)[i],
-                                                                                method=samp.ordered[[i]]$method,
-                                                                                parent_ids=NULL)
-    }
-  }
   # get the joint input design.
-  input_design <- generate_joint_ensemble_design(settings = settings[[1]], 
-                                                 ensemble_samples = ensemble.samples, 
-                                                 ensemble_size = nens)[[1]]
+  input_design <- PEcAn.uncertainty::generate_joint_ensemble_design(settings = settings[[1]], 
+                                                                    ensemble_samples = ensemble.samples, 
+                                                                    ensemble_size = nens)[[1]]
   ###------------------------------------------------------------------------------------------------###
   ### loop over time                                                                                 ###
   ###------------------------------------------------------------------------------------------------###
@@ -296,6 +271,8 @@ sda.enkf_local <- function(settings,
     # because for some reason, the furrr has problem returning the sample paths.
     cl <- parallel::makeCluster(parallel::detectCores())
     doSNOW::registerDoSNOW(cl)
+    temp.settings <- NULL
+    restart.arg <- NULL
     out.configs <- foreach::foreach(temp.settings = as.list(conf.settings), 
                                     restart.arg = restart.list,
                                     .packages = c("Kendall", 

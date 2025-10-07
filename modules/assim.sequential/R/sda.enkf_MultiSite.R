@@ -333,9 +333,9 @@ sda.enkf.multisite <- function(settings,
     new.params <- sda_matchparam(settings, ensemble.samples, site.ids, nens)
     # if it's not a restart run, we will generate the joint input design.
     # get the joint input design.
-    input_design <- generate_joint_ensemble_design(settings = settings[[1]], 
-                                                   ensemble_samples = ensemble.samples, 
-                                                   ensemble_size = nens)[[1]]
+    input_design <- PEcAn.uncertainty::generate_joint_ensemble_design(settings = settings[[1]], 
+                                                                      ensemble_samples = ensemble.samples, 
+                                                                      ensemble_size = nens)[[1]]
   }
   
   ###------------------------------------------------------------------------------------------------###
@@ -389,6 +389,8 @@ sda.enkf.multisite <- function(settings,
         PEcAn.logger::logger.info("Writting configs!")
         cl <- parallel::makeCluster(parallel::detectCores())
         doSNOW::registerDoSNOW(cl)
+        temp.settings <- NULL
+        restart.arg <- NULL
         out.configs <- foreach::foreach(temp.settings = as.list(conf.settings), 
                                         restart.arg = restart.list,
                                         .packages = c("Kendall", 

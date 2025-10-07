@@ -68,7 +68,7 @@ generate_joint_ensemble_design <- function(settings,
   samples <- new.env()
   # if we don't have the parameters from the outside. 
   if (is.null(ensemble_samples)) {
-    if (ile.exists(samples.file)) {
+    if (file.exists(samples.file)) {
       load(samples.file, envir = samples)
     } else {
       PEcAn.logger::logger.error(samples.file, "not found, this file is required")

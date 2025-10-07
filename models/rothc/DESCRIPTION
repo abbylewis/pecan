@@ -11,10 +11,12 @@ Description: This module provides functions to link the Rothamstead soil carbon 
   is included in the package. TODO: get copyright notice and license requirements met.
 Depends: R (>= 4.1)
 Imports:
+    dplyr,
     lubridate (>= 1.6.0),
     ncdf4,
     PEcAn.logger,
     PEcAn.utils (>= 1.4.8),
+    rlang,
     stats,
     utils
 Suggests:

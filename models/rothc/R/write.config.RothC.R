@@ -1,10 +1,8 @@
-##' Writes a MODEL config file.
+##' Writes a RothC config file.
 ##'
 ##' Requires a pft xml object, a list of trait values for a single model run,
 ##' and the name of the file to create
 ##'
-##' @name write.config.MODEL
-##' @title Write MODEL configuration files
 ##' @param defaults list of defaults to process
 ##' @param trait.values vector of samples for a given trait
 ##' @param settings list of settings from pecan settings file
@@ -12,16 +10,7 @@
 ##' @return configuration file for MODEL for given run
 ##' @export
 ##' @author Rob Kooper
-write.config.MODEL <- function(defaults, trait.values, settings, run.id) {
-  PEcAn.logger::logger.severe("NOT IMPLEMENTED")
-  # Please follow the PEcAn style guide:
-  # https://pecanproject.github.io/pecan-documentation/develop/coding-style.html
-  # Note that `library()` calls should _never_ appear here; instead, put
-  # packages dependencies in the DESCRIPTION file, under "Imports:".
-  # Calls to dependent packages should use a double colon, e.g.
-  #    `packageName::functionName()`.
-  # Also, `require()` should be used only when a package dependency is truly
-  # optional. In this case, put the package name under "Suggests:" in DESCRIPTION.
+write.config.RothC <- function(defaults, trait.values, settings, run.id) {
 
   # find out where to write run/ouput
   rundir <- file.path(settings$host$rundir, run.id)
@@ -32,7 +21,7 @@ write.config.MODEL <- function(defaults, trait.values, settings, run.id) {
   if (!is.null(settings$model$jobtemplate) && file.exists(settings$model$jobtemplate)) {
     jobsh <- readLines(con = settings$model$jobtemplate, n = -1)
   } else {
-    jobsh <- readLines(con = system.file("template.job", package = "PEcAn.MODEL"), n = -1)
+    jobsh <- readLines(con = system.file("template.job", package = "PEcAn.RothC"), n = -1)
   }
 
   # create host specific setttings
@@ -106,7 +95,55 @@ write.config.MODEL <- function(defaults, trait.values, settings, run.id) {
   config.text <- gsub("@ENSNAME@", run.id, config.text)
   config.text <- gsub("@OUTFILE@", paste0("out", run.id), config.text)
 
-  #-----------------------------------------------------------------------
-  config.file.name <- paste0("CONFIG.", run.id, ".txt")
-  writeLines(config.text, con = paste(outdir, config.file.name, sep = ""))
+# TODO make these editable -- hard-coding for MVP
+# OPT_RMMOIST: soil water parameterization.
+#   "1: Standard RothC soil water parameters"
+#   "2: Van Genuchten soil properties and soil is allowed to be drier (ie hygroscopic / capillary water, -1000bar)"
+#   "3: Van Genuchten soil properties, but uses the Standard RothC soil water function"
+config.text <- gsub("@OPT_RMMOIST@", "1", config.text)
+# Bare SMD: wilting point configuration
+#   "1: Standard RothC bareSMD"
+#   "2: bareSMD is set to wilting point -15bar (could be better for dry soils)"
+config.text <- gsub("@OPT_SDDBARE@", "1", config.text)
+
+# Soil parameters -- TODO read from run$inputs$soil_physics
+# clay_pct, depth_cm, iom_tC_ha, nsteps, silt_pct, bulkdens_g_m3, org_C_pct, min_RM_moist
+config.text <- gsub("@SOIL_PARAMS@", "23.4  23.0   3.0041      840    58.6      1.27  0.94   0.2", config.text)
+
+# Climate data + management inputs
+# TODO all managements hardcoded for MVP
+met_path <- inputs$met$path %||% settings$run$inputs$met$path
+met_in <- read.table(met_path, header = FALSE)
+zros <- rep(0, nrow(met_in))
+inputs <- data.frame(
+  C_inp_tC_ha = zros,
+  FYM_tC_ha =  zros,
+  PC =  zros,
+  PL_DPM_f =  zros,
+  PL_RPM_f =  zros,
+  OA_DPM_f =  zros,
+  OA_RPM_f =  zros,
+  OA_BIO_f =  zros,
+  OA_HUM_f =  zros
+)
+
+input_rows <- met_in |>
+  bind_cols(inputs) |>
+  dplyr::select(all_of(
+    "year", "month",
+    "modern_pct",
+    "Tmp_C", "Rain_mm", "Evap_mm",
+    "C_inp_tC_ha", "FYM_tC_ha", "PC",
+    "PL_DPM_f", "PL_RPM_f",
+    "OA_DPM_f", "OA_RPM_f", "OA_BIO_f", "OA_HUM_f"
+  )) |>
+  # Kinda ugly: Convert to one string to cram it into the template via gsub
+  format() |>
+  apply(1, paste, collapse = " ") |>
+  paste(collapse = "\n")
+
+  config.text <- gsub("@CLIM_DATA@", input_rows, config.text)
+
+  config.file.name <- "RothC_input.dat"
+  writeLines(config.text, con = file.path(outdir, config.file.name))
 } # write.config.MODEL

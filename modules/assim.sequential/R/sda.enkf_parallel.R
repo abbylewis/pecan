@@ -18,6 +18,8 @@
 #' `keepNC` decide if we want to keep the NetCDF files inside the out directory;
 #' `forceRun` decide if we want to proceed the Bayesian MCMC sampling without observations;
 #' `MCMC.args` include lists for controling the MCMC sampling process (iteration, nchains, burnin, and nthin.).
+#' #' `merge_nc` determine if we want to merge all netCDF files across sites and ensembles.
+#' If it's set as `TRUE`, we will then combine all netCDF files into the `merged_nc` folder within the `outdir`.
 #' 
 #' @return NONE
 #' @export
@@ -34,7 +36,8 @@ sda.enkf_local <- function(settings,
                                         send_email = NULL,
                                         keepNC = TRUE,
                                         forceRun = TRUE,
-                                        MCMC.args = NULL)) {
+                                        MCMC.args = NULL,
+                                        merge_nc = TRUE)) {
   # initialize parallel.
   if (future::supportsMulticore()) {
     future::plan(future::multicore)
@@ -440,6 +443,20 @@ sda.enkf_local <- function(settings,
   names(analysis.all) <- as.character(lubridate::date(obs.times))
   names(forecast.all) <- as.character(lubridate::date(obs.times))
   save(list = c("analysis.all", "forecast.all"), file = file.path(settings$outdir, "sda.all.forecast.analysis.Rdata"))
+  # merge NC files.
+  if (control$merge_nc) {
+    nc.folder <- file.path(settings$outdir, "merged_nc")
+    if (file.exists(nc.folder)) unlink(nc.folder)
+    dir.create(nc.folder)
+    temp <- PEcAn.utils::nc_merge_all_sites_by_year(model.outdir = outdir, 
+                                                    nc.outdir = folder, 
+                                                    ens.num = nens, 
+                                                    site.ids = as.numeric(site.ids), 
+                                                    start.date = obs.times[1], 
+                                                    end.date = obs.times[length(obs.times)], 
+                                                    time.step = paste(1, settings$state.data.assimilation$forecast.time.step), 
+                                                    cores = parallel::detectCores() - 1)
+  }
   gc()
 }
 

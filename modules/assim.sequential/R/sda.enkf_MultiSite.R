@@ -27,6 +27,8 @@
 #' `forceRun` decide if we want to proceed the Bayesian MCMC sampling without observations;
 #' `run_parallel` decide if we want to run the SDA under parallel mode for the `future_map` function;
 #' `MCMC.args` include lists for controling the MCMC sampling process (iteration, nchains, burnin, and nthin.).
+#' `merge_nc` determine if we want to merge all netCDF files across sites and ensembles.
+#' If it's set as `TRUE`, we will then combine all netCDF files into the `merged_nc` folder within the `outdir`.
 #' `execution` decide the way we want to execute model 
 #' including `local` ,where we execute the model locally;
 #' `qsub`, where we use the traditional `start_model_runs` function for submission;
@@ -51,6 +53,7 @@ sda.enkf.multisite <- function(settings,
                                             forceRun = TRUE,
                                             run_parallel = TRUE,
                                             MCMC.args = NULL,
+                                            merge_nc = TRUE,
                                             execution = "local"),
                                ...) {
   # make sure we only specify one method for the model execution.
@@ -391,7 +394,7 @@ sda.enkf.multisite <- function(settings,
         # here we use the foreach instead of furrr
         # because for some reason, the furrr has problem returning the sample paths.
         PEcAn.logger::logger.info("Writting configs!")
-        cl <- parallel::makeCluster(parallel::detectCores())
+        cl <- parallel::makeCluster(parallel::detectCores() - 1)
         doSNOW::registerDoSNOW(cl)
         temp.settings <- NULL
         restart.arg <- NULL
@@ -718,4 +721,18 @@ sda.enkf.multisite <- function(settings,
     }
       gc()
   } ### end loop over time
+  # merge NC files.
+  if (control$merge_nc) {
+    nc.folder <- file.path(settings$outdir, "merged_nc")
+    if (file.exists(nc.folder)) unlink(nc.folder)
+    dir.create(nc.folder)
+    temp <- PEcAn.utils::nc_merge_all_sites_by_year(model.outdir = outdir, 
+                                                    nc.outdir = folder, 
+                                                    ens.num = nens, 
+                                                    site.ids = as.numeric(site.ids), 
+                                                    start.date = obs.times[1], 
+                                                    end.date = obs.times[length(obs.times)], 
+                                                    time.step = paste(1, settings$state.data.assimilation$forecast.time.step), 
+                                                    cores = parallel::detectCores() - 1)
+  }
 } # sda.enkf

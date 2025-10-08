@@ -165,7 +165,7 @@ sda.enkf.multisite <- function(settings,
   }
   
   # Build site coords once (used by covariate extraction)
-  site_coords <- purrr::map_df(settings$run, ~ tibble::tibble(
+  site_coords <- purrr::map_df(settings$run, ~ dplyr::tibble(
     site = as.character(.x$site$id),
     lon  = suppressWarnings(as.numeric(.x$site$lon)),
     lat  = suppressWarnings(as.numeric(.x$site$lat))

@@ -71,7 +71,7 @@ generate_covariates_df <- function(site_coords,
       vals <- vals[, setdiff(names(vals), "ID"), drop = FALSE]
     }
     
-    out <- tibble::as_tibble(vals)
+    out <- dplyr::as_tibble(vals)
     if (nrow(out) != nrow(site_coords)) {
       stop("Row mismatch for year ", year, ": expected ", nrow(site_coords),
            " but got ", nrow(out), ". Check CRS/coordinates or raster extent.")

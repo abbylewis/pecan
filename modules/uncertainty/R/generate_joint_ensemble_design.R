@@ -6,6 +6,11 @@
 #' @param settings A PEcAn settings object containing ensemble configuration
 #' @param ensemble_size Integer specifying the number of ensemble members
 #' @param ensemble_samples list of ensemble parameters across PFTs. The default is NULL.
+#' Since the `input_design` will only be generated once for the entire model run,
+#' the only situation, where we might want to recycle the existing `ensemble_samples`,
+#' is when we split and submit the larger SDA runs (e.g., 8,000 sites) into 
+#' smaller SDA experiments (e.g., 100 sites per job), where we want to keep using 
+#' the same parameters rather than creating new parameters for each job.
 #' @param sobol for activating sobol
 #' @return  A list containing ensemble samples and indices
 #'

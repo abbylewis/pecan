@@ -27,7 +27,10 @@
 #' `forceRun` decide if we want to proceed the Bayesian MCMC sampling without observations;
 #' `run_parallel` decide if we want to run the SDA under parallel mode for the `future_map` function;
 #' `MCMC.args` include lists for controling the MCMC sampling process (iteration, nchains, burnin, and nthin.).
-#' `local.execution` decide if we want to execute everything locally (not submitting jobs to the HPC).
+#' `execution` decide the way we want to execute model 
+#' including `local` ,where we execute the model locally;
+#' `qsub`, where we use the traditional `start_model_runs` function for submission;
+#' `qsub_parallel`, where we first combine jobs and submit them into the SCC.
 #' @param ...       Additional arguments, currently ignored
 #' 
 #' @return NONE
@@ -43,13 +46,12 @@ sda.enkf.multisite <- function(settings,
                                ensemble.samples = NULL,
                                control=list(TimeseriesPlot = FALSE,
                                             OutlierDetection=FALSE,
-                                            parallel_qsub = FALSE,
                                             send_email = NULL,
                                             keepNC = TRUE,
                                             forceRun = TRUE,
                                             run_parallel = TRUE,
                                             MCMC.args = NULL,
-                                            local.execution = TRUE),
+                                            execution = "local"),
                                ...) {
   # make sure we only specify one method for the model execution.
   if (control$parallel_qsub & control$local.execution) {
@@ -99,7 +101,9 @@ sda.enkf.multisite <- function(settings,
   restart.list <- NULL
   #create SDA folder to store output
   if(!dir.exists(settings$outdir)) dir.create(settings$outdir, showWarnings = FALSE)
-  # Creating matrices that describe the bounds of the state variables
+  ##### Creating matrices that describe the bounds of the state variables
+  ##### interval is remade every time depending on the data at time t
+  ##### state.interval stays constant and converts new.analysis to be within the correct bounds
   interval    <- NULL
   state.interval <- cbind(as.numeric(lapply(settings$state.data.assimilation$state.variables,'[[','min_value')),
                           as.numeric(lapply(settings$state.data.assimilation$state.variables,'[[','max_value')))
@@ -436,20 +440,20 @@ sda.enkf.multisite <- function(settings,
         # start model runs.
         PEcAn.logger::logger.info("Running models!")
         # if we want to submit jobs through the combined job file.
-        if(control$parallel_qsub){
+        if(control$execution == "qsub_parallel"){
           if (is.null(control$jobs.per.file)) {
             PEcAn.remote::qsub_parallel(settings, prefix = paste0(obs.year, ".nc"))
           } else {
             PEcAn.remote::qsub_parallel(settings, files=PEcAn.remote::merge_job_files(settings, control$jobs.per.file), prefix = paste0(obs.year, ".nc"))
           }
-        } else if (control$local.execution) {
+        } else if (control$execution == "local") {
           # if we want to execute jobs locally.
           job.files <- file.path(runs.tmp, "job.sh")
           temp <- job.files %>% furrr::future_map(function(f){
             cmd <- paste0("cd ", dirname(f), ";./job.sh")
             system(cmd, intern = F, ignore.stdout = T, ignore.stderr = T)
           }, .progress = F)
-        } else {
+        } else if (control$execution == "qsub") {
           # if we want to submit jobs through the regular job submission function.
           PEcAn.workflow::start_model_runs(settings, write=settings$database$bety$write)
         }

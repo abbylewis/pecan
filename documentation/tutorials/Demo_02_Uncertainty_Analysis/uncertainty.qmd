@@ -53,7 +53,7 @@ A valid `pecan.xml` configuration file. Start with the example at `pecan/documen
 
 Run the chunks in order. Start with the provided settings; once the demo works, modify PFTs, dates, or ensemble size and re‑run the workflow to see how outputs change.
 
-# 3. Install SIPNET v1.3.0
+# 2. Install SIPNET v1.3.0
 
 If you haven't already installed the SIPNET binary, you can do so by running the following code. This will download the SIPNET binary to `demo_outdir/sipnet` and make it executable.
 
@@ -70,7 +70,7 @@ source(
 
 > Note: You can find the most recent version of the SIPNET binary at: [SIPNET GitHub Releases](https://github.com/PecanProject/sipnet/releases), but this notebook is designed to work with SIPNET v1.3.0.
 
-# 4. Load PEcAn Packages
+# 3. Load PEcAn Packages
 
 First, we need to load the PEcAn R packages. These packages provide all the functions we'll use to run the workflow.
 
@@ -79,7 +79,7 @@ First, we need to load the PEcAn R packages. These packages provide all the func
 library("PEcAn.all")
 ```
 
-# 5. Load PEcAn Settings File
+# 4. Load PEcAn Settings File
 
 Use the XML settings file (`pecan.xml`) exactly as in Demo 1 (Section 5). See Demo 1 for a more detailed walkthrough of fields and schema; below we focus on settings relevant to this notebook.
 
@@ -91,7 +91,7 @@ This is how PEcAn loads the settings file:
 settings_path <- here::here("documentation/tutorials/Demo_02_Uncertainty_Analysis/pecan.xml")
 ```
 
-# 6. Prepare and Validate Settings
+# 5. Prepare and Validate Settings
 
 Read and prepare settings (see Demo 1 Section 6 for details on what these functions do):
 
@@ -103,7 +103,7 @@ settings <- PEcAn.settings::read.settings(settings_path)
 settings <- PEcAn.settings::prepare.settings(settings)
 ```
 
-# 7. Explore the Settings Object
+# 6. Explore the Settings Object
 
 Once the settings have been read and prepared, it is useful to inspect the structure of the `settings` object. This object is an R list containing all parameters and configurations for the PEcAn workflow.
 
@@ -132,7 +132,7 @@ settings$info <- list(
 
 Editing the more interesting settings to change the PFT (`settings$pfts`) or extend the run (`settings$run$end.date`) is an optional exercise for the user. For example, you could change the pft or the end date, but this requires additional parameter files and meteorological inputs. This includes files containing parameters for that PFT (`settings$pfts$pft$posterior.files`), or a climate file (`settings$run$met$path$path1`) that extends to the desired simulation period.
 
-# 8. Create Output Directory
+# 7. Create Output Directory
 
 Before running the workflow, we need to ensure that the output directory specified in the settings exists. This directory will store all the model outputs, configuration files, and results from the simulation.
 
@@ -142,7 +142,7 @@ Before running the workflow, we need to ensure that the output directory specifi
 dir.create(settings$outdir, recursive = TRUE, showWarnings = FALSE)
 ```
 
-# 9. Write Model Configuration Files
+# 8. Write Model Configuration Files
 
 This step generates the model-specific configuration files that will be used to run the ecosystem model. The process involves:
 
@@ -154,7 +154,7 @@ settings$database <- NULL # Disable database operations for this demo
 settings <- PEcAn.workflow::runModule.run.write.configs(settings)
 ```
 
-# 10. Run Model Simulations and Fetch Results
+# 9. Run Model Simulations and Fetch Results
 
 This section executes the actual model simulations and retrieves the results. The process is managed by PEcAn's workflow system, which handles the execution of your chosen ecosystem model.
 
@@ -164,7 +164,7 @@ This section executes the actual model simulations and retrieves the results. Th
 PEcAn.workflow::runModule_start_model_runs(settings)
 ```
 
-# 11. Ensemble and Sensitivity Analysis
+# 10. Ensemble and Sensitivity Analysis
 
 This section executes ensemble and sensitivity analyses to comprehensively assess model uncertainty and parameter importance.
 
@@ -225,11 +225,11 @@ demo_outdir/
 
 
 
-# 12. Understanding PEcAn Uncertainty Analysis Outputs
+# 11. Understanding PEcAn Uncertainty Analysis Outputs
 
 After running ensemble and sensitivity analyses, PEcAn generates several important outputs that help you understand model uncertainty and parameter sensitivity.
 
-## 12.1 Ensemble Analysis Outputs
+## 11.1 Ensemble Analysis Outputs
 
 The ensemble analysis produces:
 
@@ -237,14 +237,14 @@ The ensemble analysis produces:
 - **`ensemble.analysis.[RunID].[Variable].[StartYear].[EndYear].pdf`**: Histogram and boxplot of ensemble predictions
 - **`ensemble.ts.[RunID].[Variable].[StartYear].[EndYear].pdf`**: Time-series plot showing ensemble mean, median, and 95% confidence intervals
 
-## 12.2 Sensitivity Analysis Outputs
+## 11.2 Sensitivity Analysis Outputs
 
 The sensitivity analysis generates:
 
 - **`sensitivity.analysis.[RunID].[Variable].[StartYear].[EndYear].pdf`**: Raw data points from univariate analyses with spline fits
 - **`sensitivity.output.[RunID].[Variable].[StartYear].[EndYear].Rdata`**: Model outputs corresponding to parameter variations
 
-## 12.3 Uncertainty Analysis Outputs
+## 11.3 Uncertainty Analysis Outputs
 
 The uncertainty analysis produces:
 
@@ -253,7 +253,7 @@ The uncertainty analysis produces:
   - Elasticity (normalized sensitivity) 
   - Partial standard deviation of each parameter
 
-## 12.4 Interpreting the Results
+## 11.4 Interpreting the Results
 
 **Variance Decomposition Analysis:**
 
@@ -268,11 +268,11 @@ The uncertainty analysis produces:
   - Parameters with high uncertainty: consider revising priors.
   - Multi-modal or otherwise unexpected parameter distributions: check that parameter was specified correctly.
   
-# 13. Visualize Uncertainty Analysis Results
+# 12. Visualize Uncertainty Analysis Results
 
 This section loads the results from the uncertainty analyses and generates plots directly in the notebook. This provides an immediate view of the ensemble time series, sensitivity plots, and variance decomposition.
 
-## 13.1 Ensemble Analysis Visualization
+## 12.1 Ensemble Analysis Visualization
 
 Here we visualize the results of the ensemble analysis. It shows the overall distribution of the model output and how the output and its uncertainty change over time.
 
@@ -333,7 +333,7 @@ if (!is.null(ens_ts_data)) {
 }
 ```
 
-## 13.2 Sensitivity and Variance Decomposition Visualization
+## 12.2 Sensitivity and Variance Decomposition Visualization
 
 This block visualizes the results of the sensitivity analysis. The plots show how sensitive the model output is to changes in each parameter and which parameters contribute most to the overall uncertainty.
 
@@ -375,7 +375,7 @@ if (file.exists(sens_file)) {
 ```
 
 
-# 14. Customizing Ensemble Analysis Parameters (Optional)
+# 13. Customizing Ensemble Analysis Parameters (Optional)
 
 ## (Optional) Use this section only if you want to override the default ensemble analysis parameters. Skip if defaults are sufficient.
 > **Important:** If you modify the ensemble analysis parameters in this section, you must re-run sections 8, 9, and 10 to regenerate the model output with the new ensemble configuration.
@@ -392,7 +392,7 @@ settings$ensemble$samplingspace$parameters$method <- "halton"
 ```
 
 
-# 15. Customizing Sensitivity Analysis Parameters (Optional)
+# 14. Customizing Sensitivity Analysis Parameters (Optional)
 
 ## (Optional) Use this section only if you want to override the default sensitivity analysis parameters. Skip if defaults are sufficient.
 > **Important:** If you modify the sensitivity analysis parameters in this section, you must re-run sections 8, 9, and 10 to regenerate the model output with the new sensitivity analysis configuration.
@@ -407,7 +407,7 @@ settings$sensitivity.analysis$variable <- "NEE"
 
 
 
-# 16. Extract Model Results and Prepare for Analysis
+# 15. Extract Model Results and Prepare for Analysis
 
 After the model simulation completes, we need to extract the results and prepare them for analysis. This involves:
 
@@ -435,7 +435,7 @@ model_output <- PEcAn.utils::read.output(
 available_vars <- names(model_output)[!names(model_output) %in% c("posix", "time_bounds")]
 ```
 
-# 17. Display Available Model Variables
+# 16. Display Available Model Variables
 
 This section shows all the variables that are available in the model output. These variables represent different ecosystem processes and states that the model has simulated.
 
@@ -458,11 +458,11 @@ vars_df$Description[is.na(vars_df$Description)] <- "(No description available)"
 knitr::kable(vars_df, caption = "Model Output Variables and Descriptions")
 ```
 
-# 18. Visualize Model Results
+# 17. Visualize Model Results
 
 This section provides examples of how to create time series plots of different model variables. The examples cover various ecosystem processes including carbon fluxes, carbon pools, water variables, and structural variables like Leaf Area Index (LAI).
 
-## 18.1 Plot Carbon Fluxes
+## 17.1 Plot Carbon Fluxes
 
 ```{r plot-carbon-fluxes}
 # Plot Gross Primary Productivity (GPP) and Net Primary Productivity (NPP)
@@ -477,7 +477,7 @@ lines(model_output$posix, model_output$NPP, col = "blue")
 legend("topright", legend = c("GPP", "NPP"), col = c("green", "blue"), lty = 1)
 ```
 
-## 18.2 Plot Carbon Pools
+## 17.2 Plot Carbon Pools
 
 ```{r plot-carbon-pools}
 # Plot Total Live Biomass and Total Soil Carbon
@@ -492,7 +492,7 @@ lines(model_output$posix, model_output$TotSoilCarb, col = "brown")
 legend("topright", legend = c("Total Live Biomass", "Total Soil Carbon"), col = c("darkgreen", "brown"), lty = 1)
 ```
 
-## 18.3 Plot Water Variables
+## 17.3 Plot Water Variables
 
 ```{r plot-water-variables}
 # Plot Soil Moisture and Snow Water Equivalent
@@ -507,7 +507,7 @@ lines(model_output$posix, model_output$SWE, col = "lightblue")
 legend("topright", legend = c("Soil Moisture", "Snow Water Equivalent"), col = c("blue", "lightblue"), lty = 1)
 ```
 
-## 18.4 Plot LAI and Biomass
+## 17.4 Plot LAI and Biomass
 
 ```{r plot-lai-biomass}
 # Plot Leaf Area Index (LAI) and Above Ground Wood
@@ -522,13 +522,13 @@ lines(model_output$posix, model_output$AbvGrndWood, col = "brown")
 legend("topright", legend = c("LAI", "Above Ground Wood"), col = c("darkgreen", "brown"), lty = 1)
 ```
 
-# 19. Conclusion
+# 18. Conclusion
 
 This notebook demonstrated how to set up, run, and analyze a PEcAn ecosystem model workflow programmatically. You can now modify parameters, try different models, or extend the analysis as needed.
 
 Try editing the `pecan.xml` file. Give it a new name and update the **settings_path** variable at the beginning of this Demo to point to the new file. See how the changes affect the model output!
 
-# 20. Clean Up Workflow Output (Optional)
+# 19. Clean Up Workflow Output (Optional)
 
 If you want to remove all files and directories created by this workflow and start fresh, you can run the following code. This will delete the entire output directory specified in your settings. **Use with caution!**
 
@@ -539,7 +539,7 @@ If you want to remove all files and directories created by this workflow and sta
 ```
 
 
-# 21. Session Information
+# 20. Session Information
 
 
 ### PEcAn package versions.

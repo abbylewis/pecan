@@ -211,6 +211,7 @@ write.config.SIPNET <- function(defaults, trait.values, settings, run.id, inputs
       SLA <- PEcAn.utils::ud_convert(leafC / param[id, 2], "kg", "g")
     }
     
+    # Maximum photosynthesis
     # SIPNET: aMax [nmol CO2 / g   leaf / sec]
     # PEcAn:  Amax [umol CO2 / m^2 leaf / sec]
     id <- which(param[, 1] == "aMax")

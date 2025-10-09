@@ -80,7 +80,7 @@ jobs:
       build-context: docker/depends
       dockerfile: docker/depends/Dockerfile
       r-version: ${{ needs.rversion.outputs.R_VERSION }}
-      platforms: "linux/amd64"
+      platforms: ${{ needs.rversion.outputs.ARCHS }}
     secrets: inherit
 
   # ----------------------------------------------------------------------
@@ -95,7 +95,7 @@ jobs:
       dockerfile: docker/base/Dockerfile
       r-version: ${{ needs.rversion.outputs.R_VERSION }}
       parent-image: "depends"
-      platforms: "linux/amd64"
+      platforms: ${{ needs.rversion.outputs.ARCHS }}
     secrets: inherit
 
 # ----------------------------------------------------------------------
@@ -110,6 +110,7 @@ jobs:
       dockerfile: docker/models/Dockerfile
       r-version: ${{ needs.rversion.outputs.R_VERSION }}
       parent-image: "base"
+      platforms: ${{ needs.rversion.outputs.ARCHS }}
     secrets: inherit
 
 # ----------------------------------------------------------------------
@@ -131,37 +132,31 @@ jobs:
           - name: basgra
             CONTEXT: models/basgra
             DOCKERFILE: models/basgra/Dockerfile
-            PLATFORM: "linux/amd64"
             MODEL: basgra
             VERSION: BASGRA_N_v1
           - name: biocro
             CONTEXT: models/biocro
             DOCKERFILE: models/biocro/Dockerfile
-            PLATFORM: "linux/amd64"
             MODEL: biocro
             VERSION: "0.95"
           # - name: ed2_2.2.0
           #   CONTEXT: models/ed
           #   DOCKERFILE: models/ed/Dockerfile
-          #   PLATFORM: "linux/amd64"
           #   MODEL: ed2
           #   VERSION: "2.2.0"
           - name: ed2_git
             CONTEXT: models/ed
             DOCKERFILE: models/ed/Dockerfile
-            PLATFORM: "linux/amd64"
             MODEL: ed2
             VERSION: "git"
           - name: maespa
             CONTEXT: models/maespa
             DOCKERFILE: models/maespa/Dockerfile
-            PLATFORM: "linux/amd64"
             MODEL: maespa
             VERSION: "git"
           - name: sipnet
             CONTEXT: models/sipnet
             DOCKERFILE: models/sipnet/Dockerfile
-            PLATFORM: "linux/amd64"
             MODEL: sipnet
             VERSION: "git"
     uses: ./.github/workflows/docker-build-image.yml
@@ -172,7 +167,7 @@ jobs:
       r-version: ${{ needs.rversion.outputs.R_VERSION }}
       parent-image: "models"
       model-version: ${{ matrix.VERSION }}
-      platforms: ${{ matrix.PLATFORM }}
+      platforms: ${{ needs.rversion.outputs.ARCHS }}
     secrets: inherit
 
   # ----------------------------------------------------------------------
@@ -191,15 +186,12 @@ jobs:
           - name: docs
             CONTEXT: .
             DOCKERFILE: docker/docs/Dockerfile
-            PLATFORM: "linux/amd64"
           - name: executor
             CONTEXT: docker/executor
             DOCKERFILE: docker/executor/Dockerfile
-            PLATFORM: "linux/amd64"
           - name: api
             CONTEXT: apps/api
             DOCKERFILE: apps/api/Dockerfile
-            PLATFORM: "linux/amd64"
     uses: ./.github/workflows/docker-build-image.yml
     with:
       image-name: ${{ matrix.name }}
@@ -207,7 +199,7 @@ jobs:
       dockerfile: ${{ matrix.DOCKERFILE }}
       r-version: ${{ needs.rversion.outputs.R_VERSION }}
       parent-image: "base"
-      platforms: ${{ matrix.PLATFORM }}
+      platforms: ${{ needs.rversion.outputs.ARCHS }}
     secrets: inherit
 
   # ----------------------------------------------------------------------

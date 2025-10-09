@@ -62,11 +62,20 @@ jobs:
       - id: default
         if: github.event_name != 'schedule'
         run: echo "R_VERSION=${{ github.event.inputs.r_version || env.DEFAULT_R_VERSION }}" >> "$GITHUB_OUTPUT"
+      - id: platform
+        # upstream rocker/tidyverse image is only on ARM for R 4.5.* (so far)
+        shell: bash
+        run: |
+          if [[ "${{ join(steps.*.outputs.R_VERSION, '') }}" == "4.5" ]]; then
+            echo "PLATFORMS=linux/amd64,linux/arm64" >> "$GITHUB_OUTPUT"
+          else
+            echo "PLATFORMS=linux/amd64" >> "$GITHUB_OUTPUT"
+          fi
     outputs:
       # Note: "steps.*" seems to mean "all step ids", not "all steps"
       # If seeing weird results here, check that all steps above have an id set.
       R_VERSION: ${{ join(steps.*.outputs.R_VERSION, '') }}
-      ARCHS: ${{ join(steps.*.outputs.ARCHS, '') }}
+      PLATFORMS: ${{ join(steps.platform.outputs.PLATFORMS, '') }}
 
   # ----------------------------------------------------------------------
   # depends image has all the dependencies installed
@@ -81,7 +90,7 @@ jobs:
       build-context: docker/depends
       dockerfile: docker/depends/Dockerfile
       r-version: ${{ needs.rversion.outputs.R_VERSION }}
-      platforms: ${{ needs.rversion.outputs.ARCHS }}
+      platforms: ${{ needs.rversion.outputs.PLATFORMS }}
     secrets: inherit
 
   # ----------------------------------------------------------------------
@@ -96,7 +105,7 @@ jobs:
       dockerfile: docker/base/Dockerfile
       r-version: ${{ needs.rversion.outputs.R_VERSION }}
       parent-image: "depends"
-      platforms: ${{ needs.rversion.outputs.ARCHS }}
+      platforms: ${{ needs.rversion.outputs.PLATFORMS }}
     secrets: inherit
 
 # ----------------------------------------------------------------------
@@ -111,7 +120,7 @@ jobs:
       dockerfile: docker/models/Dockerfile
       r-version: ${{ needs.rversion.outputs.R_VERSION }}
       parent-image: "base"
-      platforms: ${{ needs.rversion.outputs.ARCHS }}
+      platforms: ${{ needs.rversion.outputs.PLATFORMS }}
     secrets: inherit
 
 # ----------------------------------------------------------------------
@@ -168,7 +177,7 @@ jobs:
       r-version: ${{ needs.rversion.outputs.R_VERSION }}
       parent-image: "models"
       model-version: ${{ matrix.VERSION }}
-      platforms: ${{ needs.rversion.outputs.ARCHS }}
+      platforms: ${{ needs.rversion.outputs.PLATFORMS }}
     secrets: inherit
 
   # ----------------------------------------------------------------------
@@ -200,7 +209,7 @@ jobs:
       dockerfile: ${{ matrix.DOCKERFILE }}
       r-version: ${{ needs.rversion.outputs.R_VERSION }}
       parent-image: "base"
-      platforms: ${{ needs.rversion.outputs.ARCHS }}
+      platforms: ${{ needs.rversion.outputs.PLATFORMS }}
     secrets: inherit
 
   # ----------------------------------------------------------------------

@@ -10,7 +10,6 @@
 \alias{debias_obs_vec_for_time}
 \alias{debias_build_comp_df}
 \alias{debias_rmse_by_var}
-\alias{sda_apply_debias_step}
 \title{Map observation names -> state names}
 \format{
 An object of class \code{character} of length 4.
@@ -57,36 +56,15 @@ debias_obs_vec_for_time(
 debias_build_comp_df(site_index, col_vars, pre_mean, post_mean, obs_vec)
 
 debias_rmse_by_var(comp_df)
-
-sda_apply_debias_step(
-  t,
-  obs.t,
-  X,
-  raw_prev,
-  raw_mean_t,
-  site_index,
-  col_vars,
-  obs.times,
-  obs.mean,
-  covariates_df,
-  py,
-  train_buf,
-  name_map = debias_name_map,
-  drop_incomplete_covariates = TRUE,
-  enforce_consistent_obs = TRUE,
-  require_obs_at_t_for_predict = FALSE,
-  state.interval = state.interval,
-  clip_lower_bound = 0.01
-)
 }
 \arguments{
-\item{covariates_df}{Long data frame with columns `site`, `year`, and feature columns.}
+\item{covariates_df}{See `debias_get_covariates_for_date()`.}
 
 \item{year}{Integer year to check (extracted via `lubridate::year()` elsewhere).}
 
 \item{candidate_sites}{Character vector of site ids to intersect with.}
 
-\item{obs.mean}{Observation structure (time → site → named numeric vector).}
+\item{obs.mean}{Observation structure (list by time → list by site → named numeric).}
 
 \item{t_idx}{Time index (1-based) to pull observations from `obs.mean`.}
 
@@ -94,13 +72,15 @@ sda_apply_debias_step(
 
 \item{obs_date}{Date for which to fetch covariates (year is used).}
 
-\item{site_index}{Vector of site ids per column of `X`.}
+\item{site_index}{Site id per column of `X`.}
 
-\item{drop_incomplete_covariates, }{enforce_consistent_obs See above.}
+\item{drop_incomplete_covariates}{Logical. If `TRUE`, drop sites with any missing
+covariate this year; if `FALSE`, keep all sites present in `covariates_df` for that year.}
 
-\item{enforce_consistent_obs}{Logical; if `TRUE`, drop sites inconsistent up to relevant `t_idx`.}
+\item{enforce_consistent_obs}{Logical. If `TRUE`, drop sites that became inconsistent
+in observations up to `t_idx`. Requires `obs.mean` and `t_idx`.}
 
-\item{col_vars}{Vector of variable names per column of `X` (state-space names).}
+\item{col_vars}{Variable name per column of `X`.}
 
 \item{pre_mean}{Vector of pre-debias column means at time `t`.}
 
@@ -110,35 +90,7 @@ sda_apply_debias_step(
 
 \item{comp_df}{Output of `debias_build_comp_df()`.}
 
-\item{t}{Integer current time index (t > 1 required to train from t–1).}
-
-\item{obs.t}{Character or time label for logging (e.g., ISO date string for `t`).}
-
-\item{X}{Numeric matrix of the **current** ensemble at time `t` (members × columns).}
-
-\item{raw_prev}{Numeric vector of the **raw** column mean at `t-1`.}
-
-\item{raw_mean_t}{Numeric vector of the **raw** column mean at `t`.}
-
-\item{obs.times}{Datetime vector indexed by `t` (length ≥ `t`) for covariate year lookup.}
-
-\item{py}{Python bridge object exposing:
-- `train_full_model(name, X, y)`,
-- `predict_residual(name, X)`,
-- `get_model_weights(name)`,
-- `has_model(name)` (logical).}
-
-\item{train_buf}{R environment used to accumulate training rows per variable across steps.}
-
-\item{require_obs_at_t_for_predict}{Logical; if `TRUE`, only predict residuals for columns with}
-
-\item{state.interval}{Matrix/data.frame of per-variable bounds; either rownames = variable with columns `min`,`max`,
-or a data frame with a `variable` column plus `min`/`max`. Used to clip post-debias values.}
-
-\item{clip_lower_bound}{Numeric; minimum floor applied to lower bounds (default 0.01).
-**observations present at t** (useful for constrained comparisons).}
-
-\item{drop_incomplete_covariates}{Logical; if `TRUE`, drop sites with missing covariates (per year).}
+\item{drop_incomplete_covariates, }{enforce_consistent_obs See above.}
 }
 \value{
 Character vector of sites that have no missing covariates in `year`.
@@ -159,20 +111,6 @@ Data frame with columns: `site`, `var`, `pre`, `post`, `obs`
   sorted by (`var`, `site`).
 
 Data frame with columns: `var`, `rmse_pre`, `rmse_post`.
-
-A list with:
-\describe{
-  \item{X}{The **mean-shifted** ensemble matrix at time `t` (same dims as input `X`).}
-  \item{weights_entry}{Optional named list of learner weights by variable (if provided by `py`).}
-  \item{weights_df_rows}{A tidy data frame of weights emitted this step (time, var, learner, weight).}
-  \item{diag}{A list with:
-    \itemize{
-      \item `comp`: per-column comparison table (`pre`, `post`, `obs`) for diagnostics.
-      \item `rmse`: per-variable metrics (RMSE/MAE/bias/R²) **pre vs post**.
-    }
-  }
-  \item{rmse_rows}{A tidy slice of metrics with the `time` column attached for easy logging.}
-}
 }
 \description{
 This mapping is applied whenever observations are merged into the state layout.
@@ -199,14 +137,6 @@ remapped through `name_map`.
 
 Computes RMSE for each state variable, separately for the pre- and post-debias
 column means against observations. NAs are ignored per variable.
-
-At time `t`, this function:
-1. Builds a training set from **t–1**: residuals `y = obs_prev - raw_prev` and features
-   `[covariates_prev, raw_prev]` for each variable.
-2. Trains/updates the Python-side learner (`py$train_full_model`).
-3. Predicts residuals at **t** using `[covariates_t, raw_mean_t]`.
-4. Mean-shifts the ensemble `X` by adding predicted residuals to `raw_mean_t`.
-5. Computes per-variable metrics (RMSE, MAE, bias, R²) pre vs post.
 }
 \details{
 This function only inspects **presence/absence** of variables, not their values.

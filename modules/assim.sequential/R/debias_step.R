@@ -1,3 +1,6 @@
+# at the very top of that file
+#' @importFrom tibble tibble as_tibble as_tibble_row
+NULL
 #' Debias preprocessing utilities (internal)
 #'
 #' A small, **pure** helper module that prepares inputs for the residual
@@ -447,14 +450,16 @@ debias_rmse_by_var <- function(comp_df) {
 #'   \item{rmse_rows}{A tidy slice of metrics with the `time` column attached for easy logging.}
 #' }
 #'
-#' @notes
+#' @note
 #' - If covariates are missing (no feature columns) for either `t-1` or `t`, the function
 #'   returns `X` unchanged and emits NA metrics (shape-preserving behavior).
 #' - Predicted residuals that are non-finite are coerced to 0 to avoid contaminating `X`.
 #' - The **mean-shift** keeps the ensemble spread intact: we subtract the raw mean and
 #'   add the corrected mean (`raw_mean_t + predicted_residual`).
 #'
-#' @rdname debias_helpers
+#' @title Apply residual debiasing for a single SDA time step
+#' @name sda_apply_debias_step
+#' @rdname sda_apply_debias_step
 #' @keywords internal
 sda_apply_debias_step <- function(
     t, obs.t, X, raw_prev, raw_mean_t,

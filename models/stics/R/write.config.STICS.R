@@ -936,7 +936,7 @@ write.config.STICS <- function(defaults, trait.values, settings, run.id) {
 pecan2stics <- function(trait.values){
   
   # TODO :match all stics and pecan names
-  vartable <- tibble::tribble(
+  vartable <- dplyr::tribble(
     ~sticsname, ~pecanname, ~sticsunits, ~pecanunits, ~sticsfile, 
     # Plant and soil related parameters
     "abscission", "fracLeafFall",	NA, NA, "plt.xml", 

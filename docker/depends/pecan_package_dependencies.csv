@@ -180,7 +180,6 @@
 "magrittr","*","base/db","Imports",FALSE
 "magrittr","*","base/utils","Imports",FALSE
 "magrittr","*","models/ed","Imports",FALSE
-"magrittr","*","modules/assim.sequential","Imports",FALSE
 "magrittr","*","modules/benchmark","Imports",FALSE
 "magrittr","*","modules/data.land","Imports",FALSE
 "magrittr","*","modules/data.remote","Imports",FALSE

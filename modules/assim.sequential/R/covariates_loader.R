@@ -78,7 +78,7 @@ generate_covariates_df <- function(site_coords,
     }
     
     dplyr::mutate(out, site = site_coords$site, year = as.integer(year)) |>
-      dplyr::select(site, year, dplyr::everything())
+      dplyr::select("site", "year", dplyr::everything())
   }
   
   purrr::map2_dfr(tif_files, years, extract_year)

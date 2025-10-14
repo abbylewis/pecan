@@ -40,7 +40,7 @@
       # Dev fallbacks (if running from source)
       if (!length(roots)) {
         ns_path <- tryCatch(getNamespaceInfo(pkg, "path"), error = function(e) NA_character_)
-        roots <- unique(na.omit(c(
+        roots <- unique(stats::na.omit(c(
           file.path(ns_path, "python"),
           file.path(ns_path, "python_models"),
           normalizePath(file.path("inst", "python"), mustWork = FALSE),

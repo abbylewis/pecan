@@ -22,9 +22,9 @@
 #' If it's set as `TRUE`, we will then combine all netCDF files into the `merged_nc` folder within the `outdir`.
 #' @param cov_dir Directory containing yearly covariate stacks named like "covariates_YYYY.tiff".
 #' @param debias_start_year Integer year (e.g., 2015). If `NULL`, debiasing is OFF.
-#' @param debias_drop_incomplete_covariates Logical; drop sites with any NA covariates
-#' @param debias_enforce_consistent_obs Logical; drop sites that lost any previously
-#' @param debias_require_obs_at_t_for_predict Logical; only make residual predictions
+#' @param debias_drop_incomplete_covariates Logical; drop sites with any NA covariates.
+#' @param debias_enforce_consistent_obs Logical; drop sites that lost any previously.
+#' @param debias_require_obs_at_t_for_predict Logical; only make residual predictions.
 #' 
 #' @return NONE
 #' @export
@@ -613,10 +613,29 @@ sda.enkf_local <- function(settings,
 #' `MCMC.args` include lists for controling the MCMC sampling process (iteration, nchains, burnin, and nthin.).
 #' @param block.index list of site ids for each block, default is NULL. This is used when the localization turns on.
 #' Please keep using the default value because the localization feature is still in development.
+#' @param cov_dir Directory containing yearly covariate stacks named like "covariates_YYYY.tiff".
+#' @param debias_start_year Integer year (e.g., 2015). If `NULL`, debiasing is OFF.
+#' @param debias_drop_incomplete_covariates Logical; drop sites with any NA covariates.
+#' @param debias_enforce_consistent_obs Logical; drop sites that lost any previously.
+#' @param debias_require_obs_at_t_for_predict Logical; only make residual predictions.
+#' 
 #' @author Dongchen Zhang
 #' @return NONE
 #' @export
-qsub_sda <- function(settings, obs.mean, obs.cov, Q, pre_enkf_params, ensemble.samples, outdir, control, block.index = NULL) {
+qsub_sda <- function(settings, 
+                     obs.mean, 
+                     obs.cov, 
+                     Q, 
+                     pre_enkf_params, 
+                     ensemble.samples, 
+                     outdir, 
+                     control, 
+                     block.index = NULL,
+                     cov_dir = NULL, 
+                     debias_start_year = NULL,
+                     debias_drop_incomplete_covariates = TRUE,
+                     debias_enforce_consistent_obs = TRUE,
+                     debias_require_obs_at_t_for_predict = FALSE) {
   # read from settings.
   L <- length(settings)
   # grab info from settings.
@@ -696,6 +715,11 @@ qsub_sda <- function(settings, obs.mean, obs.cov, Q, pre_enkf_params, ensemble.s
                                              outdir = folder.path, # outdir
                                              cores = cores,
                                              control = control,
+                                             cov_dir = cov_dir, 
+                                             debias_start_year = debias_start_year,
+                                             debias_drop_incomplete_covariates = debias_drop_incomplete_covariates,
+                                             debias_enforce_consistent_obs = debias_enforce_consistent_obs,
+                                             debias_require_obs_at_t_for_predict = debias_require_obs_at_t_for_predict,
                                              site.ids = block.site.inds)
                              saveRDS(configs, file = file.path(folder.path, "configs.rds"))
                              # create job file.
@@ -743,7 +767,12 @@ qsub_sda_batch <- function(folder.path) {
                  configs$pre_enkf_params,
                  configs$ensemble.samples,
                  configs$outdir,
-                 configs$control)
+                 configs$control,
+                 cov_dir, 
+                 debias_start_year,
+                 debias_drop_incomplete_covariates,
+                 debias_enforce_consistent_obs,
+                 debias_require_obs_at_t_for_predict)
 }
 
 ##' This function can help to assemble sda outputs (analysis and forecasts) from each job execution.

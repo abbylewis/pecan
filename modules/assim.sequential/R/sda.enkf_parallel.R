@@ -460,7 +460,12 @@ sda.enkf_local <- function(settings,
       if (!is.null(out$feature_rows) && nrow(out$feature_rows)) {
         FEATURE_IMP_DF <- rbind(FEATURE_IMP_DF, out$feature_rows)
       }
-      
+      # Mapping analysis vectors to be in bounds of state variables
+      for(i in 1:ncol(X)){
+        int.save <- state.interval[which(colnames(X)[i]==var.names),]
+        X[X[,i] < int.save[1],i] <- int.save[1]
+        X[X[,i] > int.save[2],i] <- int.save[2]
+      }
       FORECAST[[obs.t]] <- X
     }
     raw_prev <- raw_mean_t # record the pre-debias forecasts.

@@ -44,8 +44,8 @@ settings$ensemble$size <- 20
 settings <- PEcAn.settings::prepare.settings(settings)
 
 # load observations.
-load("/projectnb/dietzelab/dongchen/anchorSites/NA_runs/SDA_8k_site/observation/Rdata/obs_agb_ic_mean.Rdata")
-load("/projectnb/dietzelab/dongchen/anchorSites/NA_runs/SDA_8k_site/observation/Rdata/obs_agb_ic_cov.Rdata")
+load("/projectnb/dietzelab/dongchen/anchorSites/NA_runs/SDA_8k_site/observation/Rdata/obs.mean.Rdata")
+load("/projectnb/dietzelab/dongchen/anchorSites/NA_runs/SDA_8k_site/observation/Rdata/obs.cov.Rdata")
 
 # replace zero observations and variances with small numbers.
 for (i in 1:length(obs.mean)) {

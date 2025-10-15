@@ -773,11 +773,11 @@ qsub_sda_batch <- function(folder.path) {
                  configs$ensemble.samples,
                  configs$outdir,
                  configs$control,
-                 cov_dir, 
-                 debias_start_year,
-                 debias_drop_incomplete_covariates,
-                 debias_enforce_consistent_obs,
-                 debias_require_obs_at_t_for_predict)
+                 configs$cov_dir, 
+                 configs$debias_start_year,
+                 configs$debias_drop_incomplete_covariates,
+                 configs$debias_enforce_consistent_obs,
+                 configs$debias_require_obs_at_t_for_predict)
 }
 
 ##' This function can help to assemble sda outputs (analysis and forecasts) from each job execution.

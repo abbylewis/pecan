@@ -35,9 +35,9 @@
 #' `qsub_parallel`, where we first combine jobs and submit them into the SCC.
 #' @param cov_dir Directory containing yearly covariate stacks named like "covariates_YYYY.tiff".
 #' @param debias_start_year Integer year (e.g., 2015). If `NULL`, debiasing is OFF.
-#' @param debias_drop_incomplete_covariates Logical; drop sites with any NA covariates
-#' @param debias_enforce_consistent_obs Logical; drop sites that lost any previously
-#' @param debias_require_obs_at_t_for_predict Logical; only make residual predictions
+#' @param debias_drop_incomplete_covariates Logical; drop sites with any NA covariates.
+#' @param debias_enforce_consistent_obs Logical; drop sites that lost any previously.
+#' @param debias_require_obs_at_t_for_predict Logical; only make residual predictions.
 #' @param ...       Additional arguments, currently ignored
 #' 
 #' @return NONE

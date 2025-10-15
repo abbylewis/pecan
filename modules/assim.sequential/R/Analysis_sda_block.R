@@ -21,11 +21,12 @@ analysis_sda_block <- function (settings, block.list.all, X, obs.mean, obs.cov, 
   # grab cores from settings.
   cores <- as.numeric(settings$state.data.assimilation$batch.settings$general.job$cores)
   # if we didn't assign number of CPUs in the settings.
-  if (is.null(cores)) {
-    cores <- parallel::detectCores() - 1
-    # if we only have one CPU.
-    if (cores < 1) cores <- 1
+  if (length(cores) == 0 | is.null(cores)) {
+    cores <- parallel::detectCores()
   }
+  cores <- cores - 1
+  # if we only have one CPU.
+  if (cores < 1) cores <- 1
   #convert from vector values to block lists.
   if ("try-error" %in% class(try(block.results <- build.block.xy(settings = settings, 
                                                                  block.list.all = block.list.all, 
@@ -570,7 +571,8 @@ update_q <- function (block.list.all, t, nt, aqq.Init = NULL, bqq.Init = NULL, M
   #if it's an update.
   if (is.null(MCMC_dat)) {
     #loop over blocks
-    if (t == 1) {
+    #if t=1 or if it's a fresh run.
+    if (t == 1 | is.null(block.list.all[[t-1]])) {
       for (i in seq_along(block.list)) {
         nvar <- length(block.list[[i]]$data$muf)
         nobs <- length(block.list[[i]]$data$y.censored)

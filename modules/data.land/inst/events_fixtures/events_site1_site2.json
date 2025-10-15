@@ -1,5 +1,6 @@
 [
   {
+    "pecan_events_version": "0.1.0",
     "site_id": "S1",
     "pft": "PFT",
     "events": [
@@ -19,6 +20,7 @@
     ]
   },
   {
+    "pecan_events_version": "0.1.0",
     "site_id": "S2",
     "pft": "PFT",
     "events": [

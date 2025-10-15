@@ -43,9 +43,12 @@
 #' @importFrom rlang %||%
 #' @export
 write.events.SIPNET <- function(events_json, outdir) {
+    # Validate input JSON against PEcAn events schema
+    PEcAn.data.land::validate_events_json(events_json)
+
     # TODO add overwrite argument
     x <- jsonlite::fromJSON(events_json, simplifyVector = FALSE)
-    # allow a single site events.json that does not have a site_id 
+    # allow a single site events.json that does not have a site_id
     site_objs <- if (!is.null(x$site_id)) list(x) else x
     files_written <- vector()
 

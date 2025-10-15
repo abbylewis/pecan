@@ -15,28 +15,28 @@
   </pft>
  </pfts> 
  <ensemble>
-   <size>10</size>
+   <size>50</size>
    <variable>NPP</variable>
    <samplingspace>
-   <parameters>
-    <method>uniform</method>
-   </parameters>
+    <parameters>
+     <method>halton</method>
+    </parameters>
    </samplingspace>
-  <start.year>2004</start.year>
-  <end.year>2004</end.year>
+   <start.year>2004</start.year>
+   <end.year>2004</end.year>
   </ensemble>
   <sensitivity.analysis>
-  <quantiles>
-   <sigma>-1</sigma>
-   <sigma>1</sigma>
-  </quantiles>
-  <variable>NPP</variable>
-  <start.year>2004</start.year>
-  <end.year>2004</end.year>
- </sensitivity.analysis>
+   <quantiles>
+    <sigma>-1</sigma>
+    <sigma>1</sigma>
+   </quantiles>
+   <variable>NPP</variable>
+   <start.year>2004</start.year>
+   <end.year>2004</end.year>
+  </sensitivity.analysis>
  <model>
   <type>SIPNET</type>
-  <revision>git</revision>
+  <revision>1.3.0</revision>
   <delete.raw>FALSE</delete.raw>
   <binary>demo_outdir/sipnet</binary>
  </model>
@@ -61,7 +61,7 @@
   <start.date>2004/01/01</start.date>
   <end.date>2004/12/31</end.date>
  </run>
-  <host>
+ <host>
   <name>localhost</name>
  </host>
 </pecan>

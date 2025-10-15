@@ -50,11 +50,11 @@ If it's set as `TRUE`, we will then combine all netCDF files into the `merged_nc
 
 \item{debias_start_year}{Integer year (e.g., 2015). If `NULL`, debiasing is OFF.}
 
-\item{debias_drop_incomplete_covariates}{Logical; drop sites with any NA covariates}
+\item{debias_drop_incomplete_covariates}{Logical; drop sites with any NA covariates.}
 
-\item{debias_enforce_consistent_obs}{Logical; drop sites that lost any previously}
+\item{debias_enforce_consistent_obs}{Logical; drop sites that lost any previously.}
 
-\item{debias_require_obs_at_t_for_predict}{Logical; only make residual predictions}
+\item{debias_require_obs_at_t_for_predict}{Logical; only make residual predictions.}
 }
 \value{
 NONE

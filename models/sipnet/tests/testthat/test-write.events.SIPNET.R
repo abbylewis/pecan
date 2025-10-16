@@ -3,16 +3,10 @@ context("write.events.SIPNET")
 # Helper to remove excess whitespace
 norm <- function(x) gsub("\\s+", " ", trimws(x))
 
-# Helper to locate fixtures from PEcAn.data.land, with source fallback
-fixture_path <- function(name) {
-    p <- system.file(file.path("events_fixtures", name), package = "PEcAn.data.land")
-    if (!is.null(p) && nzchar(p)) return(p)
-    # Fallback to source path in monorepo when PEcAn.data.land isn't installed
-    testthat::test_path(file.path("../../../../modules/data.land/inst/events_fixtures", name))
-}
-
 testthat::test_that("write.events.SIPNET produces expected lines", {
-    ev_json1 <- fixture_path("events_site1.json")
+    ev_json1 <- system.file(file.path("events_fixtures", "events_site1.json"),
+        package = "PEcAn.data.land"
+    )
     outdir <- withr::local_tempdir()
     files <- write.events.SIPNET(ev_json1, outdir)
     expect_length(files, 1)
@@ -30,7 +24,9 @@ testthat::test_that("write.events.SIPNET produces expected lines", {
 })
 
 testthat::test_that("write.events.SIPNET handles multi-site events.json (one file per site)", {
-    ev_json2 <- fixture_path("events_site1_site2.json")
+    ev_json2 <- system.file(file.path("events_fixtures", "events_site1_site2.json"),
+        package = "PEcAn.data.land"
+    )
     outdir <- withr::local_tempdir()
     files <- write.events.SIPNET(ev_json2, outdir)
     testthat::expect_length(files, 2)

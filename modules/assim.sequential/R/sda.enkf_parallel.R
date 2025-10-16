@@ -205,6 +205,35 @@ sda.enkf_local <- function(settings,
   if (is.null(ensemble.samples)) {
     load(file.path(settings$outdir, "samples.Rdata"))
   }
+  # Build site coords once (used by covariate extraction)
+  site_coords <- purrr::map_df(settings$run, ~ tibble::tibble(
+    site = as.character(.x$site$id),
+    lon  = suppressWarnings(as.numeric(.x$site$lon)),
+    lat  = suppressWarnings(as.numeric(.x$site$lat))
+  ))
+  # Memoized cache: one data.frame per year
+  cov_cache <- new.env(parent = emptyenv())
+  .load_cov_year <- function(year) {
+    key <- as.character(year)
+    if (exists(key, cov_cache, inherits = FALSE)) return(get(key, cov_cache))
+    if (is.null(cov_dir)) {
+      stop("Debiasing requires covariates, but `cov_dir` is NULL. Set `cov_dir` or disable debiasing.")
+    }
+    # Reuse the existing extractor; filter to one year
+    df_all <- generate_covariates_df(
+      site_coords = site_coords,
+      cov_dir     = cov_dir,
+      crs         = "EPSG:4326",
+      file_prefix = "covariates_"
+    )
+    df_year <- df_all[df_all$year == as.integer(year), , drop = FALSE]
+    assign(key, df_year, cov_cache)
+    df_year
+  }
+  .cov_df_for_years <- function(years) {
+    yrs <- unique(as.integer(years))
+    dplyr::bind_rows(lapply(yrs, .load_cov_year))
+  }
   #reformatting params
   new.params <- sda_matchparam(settings, ensemble.samples, site.ids, nens)
   # get the joint input design.

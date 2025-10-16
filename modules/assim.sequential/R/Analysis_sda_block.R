@@ -572,7 +572,7 @@ update_q <- function (block.list.all, t, nt, aqq.Init = NULL, bqq.Init = NULL, M
   if (is.null(MCMC_dat)) {
     #loop over blocks
     #if t=1 or if it's a fresh run.
-    if (t == 1 | is.null(block.list.all[[t-1]])) {
+    if (t == 1) {
       for (i in seq_along(block.list)) {
         nvar <- length(block.list[[i]]$data$muf)
         nobs <- length(block.list[[i]]$data$y.censored)

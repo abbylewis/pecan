@@ -79,7 +79,7 @@ get_machine_host <- function(host, con) {
     machine.host, "'"
   ), con)
 
-  return(list(machine.host, machine))
+  list(machine.host = machine.host, machine = machine)
 }
 
 check_and_handle_existing_files <- function(existing.dbfile, host, con, existing.input, start_date, end_date) {

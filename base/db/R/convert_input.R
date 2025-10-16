@@ -580,7 +580,6 @@ convert_input <-
     # if we got here, nothing left to do
     PEcAn.logger::logger.warn("Input was not added to the database")
     return(NULL)
-    ```
 } # convert_input
 
 

@@ -76,6 +76,9 @@ run.sensitivity.analysis <- function(settings,
   if (is.null(pfts)) {
     #extract just pft names
     pfts <- purrr::map_chr(settings$pfts, "name")
+    if (!is.null(settings$run$site$site.pft)) {
+      pfts <- pfts[pfts %in% settings$run$site$site.pft]
+    }
   } else {
     # validate pfts argument
     if (!is.character(pfts)) {

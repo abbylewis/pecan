@@ -343,7 +343,8 @@ write.sa.configs <- function(defaults, quantile.samples, settings, model,
               run.type = "SA",
               index = round(quantile, 3),
               trait = trait,
-              pft.name = names(trait.samples)[i]
+              pft.name = names(trait.samples)[i],
+              site.id = settings$run$site$id
             )
           }
           runs[[pftname]][quantile.str, trait] <- run.id

@@ -162,6 +162,7 @@ write.sa.configs <- function(defaults, quantile.samples, settings, model,
   names(median.samples) <- names(quantile.samples)
 
   if (!is.null(con)) {
+    # Note: ignores any existing run or ensemble ids in settings
     ensemble.id <- PEcAn.DB::db.query(paste0(
       "INSERT INTO ensembles (runtype, workflow_id) ",
       "VALUES ('sensitivity analysis', ", format(workflow.id, scientific = FALSE), ") ",
@@ -206,8 +207,11 @@ write.sa.configs <- function(defaults, quantile.samples, settings, model,
       }
     }
   } else {
-    run.id <- PEcAn.utils::get.run.id("SA", "median")
-    ensemble.id <- NA
+    run.id <- PEcAn.utils::get.run.id("SA", "median", site.id = settings$run$site$id)
+    # Use SA ensemble id if provided, or an arbitrary unique value if not
+    # Note: Since write.sa.configs is called separately for each site,
+    # a multisite run with no ID provided gives each site its own ensemble id!
+    ensemble.id <- settings$sensitivity.analysis$ensemble.id %||% rlang::hash(settings)
   }
   medianrun <- run.id
 

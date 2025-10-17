@@ -278,14 +278,12 @@ write.ensemble.configs <- function(input_design, ensemble.size, defaults, ensemb
 
   
   # Get the workflow id
-  if (!is.null(settings$workflow$id)) {
-    workflow.id <- settings$workflow$id
-  } else {
-    workflow.id <- -1
-  }
+  workflow.id <- settings$workflow$id %||% -1
+
   #------------------------------------------------- if this is a new fresh run------------------  
   if (is.null(restart)){
     # create an ensemble id
+    # Note: this ignores any existing settings$ensemble$id
     if (!is.null(con) && write.to.db) {
       # write ensemble first
       ensemble.id <- PEcAn.DB::db.query(paste0(
@@ -299,7 +297,10 @@ write.ensemble.configs <- function(input_design, ensemble.size, defaults, ensemb
           "values (", pft$posteriorid, ", ", ensemble.id, ")"), con = con)
       }
     } else {
-      ensemble.id <- NA
+      # Use existing id if provided, or an arbitrary unique value if not
+      # Note: Since write.ensemble.configs is called separately for each site,
+      # a multisite run with no ID provided gives each site its own ensemble id!
+      ensemble.id <- settings$ensemble$id %||% rlang::hash(settings)
     }
     #-------------------------generating met/param/soil/veg/... for all ensembles----
     if (!is.null(con)){

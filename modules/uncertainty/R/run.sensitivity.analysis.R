@@ -104,18 +104,12 @@ run.sensitivity.analysis <- function(settings,
 
     # Can specify ensemble ids manually. If not, look in settings.
     # If none there, will use the most recent, which was loaded with samples.Rdata
-    if (!is.null(ensemble.id)) {
-      fname <- sensitivity.filename(settings, "sensitivity.samples", "Rdata",
-                                    ensemble.id = ensemble.id,
-                                    all.var.yr = TRUE)
-    } else if (!is.null(settings$sensitivity.analysis$ensemble.id)) {
-      ensemble.id <- settings$sensitivity.analysis$ensemble.id
-      fname <- sensitivity.filename(settings, "sensitivity.samples", "Rdata",
-                                    ensemble.id = ensemble.id,
-                                    all.var.yr = TRUE)
-    } else {
-      ensemble.id <- NULL
-    }
+    ensemble.id <- ensemble.id %||%
+      settings$sensitivity.analysis$ensemble.id %||%
+      rlang::hash(settings)
+    fname <- sensitivity.filename(settings, "sensitivity.samples", "Rdata",
+                                  ensemble.id = ensemble.id,
+                                  all.var.yr = TRUE)
     if (file.exists(fname)) {
       load(fname, envir = samples)
     }

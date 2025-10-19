@@ -146,7 +146,7 @@ logger.message <- function(level, msg, ..., wrap = TRUE) {
       paste(c(msg, args), collapse = " "),
       "latin-ascii"
     )
-    if (nchar(long.msg) > 20 && wrap) {
+    if (wrap) {
       new.msg <- paste("\n", strwrap(long.msg, width = .utils.logger$width,
                                      indent = 2, exdent = 2), collapse = " ")
     } else {

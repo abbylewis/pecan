@@ -119,7 +119,7 @@ sda_bias_correction <- function (site.locs, t, pre.X, X, obs.mean, state.interva
     # correct the current forecasts.
     for (i in seq_along(inds)) {
       if (is.na(res.current[i])) next
-      X[,inds[i]] <- X[,inds[i]] - res.current[i]
+      X[,inds[i]] <- X[,inds[i]] - res[i]
     }
   }
   # map forecasts towards the prescribed variable boundaries.

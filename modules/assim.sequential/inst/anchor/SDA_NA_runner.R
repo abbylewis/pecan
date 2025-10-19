@@ -29,8 +29,11 @@ setwd("/projectnb/dietzelab/dongchen/anchorSites/NA_runs/SDA_8k_site/")
 settings_dir <- "/projectnb/dietzelab/dongchen/anchorSites/NA_runs/SDA_8k_site/pecan.xml"
 settings <- PEcAn.settings::read.settings(settings_dir)
 
+# update settings with the actual PFTs.
+settings <- PEcAn.settings::prepare.settings(settings)
+
 # setup the batch job settings.
-general.job <- list(cores = 28, folder.num = 30)
+general.job <- list(cores = 28, folder.num = 35)
 batch.settings = structure(list(
   general.job = general.job,
   qsub.cmd = "qsub -l h_rt=24:00:00 -l mem_per_core=4G -l buyin -pe omp @CORES@ -V -N @NAME@ -o @STDOUT@ -e @STDERR@ -S /bin/bash"
@@ -38,10 +41,7 @@ batch.settings = structure(list(
 settings$state.data.assimilation$batch.settings <- batch.settings
 
 # alter the ensemble size.
-settings$ensemble$size <- 20
-
-# update settings with the actual PFTs.
-settings <- PEcAn.settings::prepare.settings(settings)
+settings$ensemble$size <- 100
 
 # load observations.
 load("/projectnb/dietzelab/dongchen/anchorSites/NA_runs/SDA_8k_site/observation/Rdata/obs.mean.Rdata")
@@ -83,10 +83,7 @@ PEcAnAssimSequential::qsub_sda(settings = settings,
                                               send_email = NULL,
                                               keepNC = FALSE,
                                               forceRun = TRUE,
-                                              MCMC.args = NULL),
+                                              MCMC.args = NULL,
+                                              merge_nc = TRUE),
                                block.index = NULL,
-                               cov_dir = "/projectnb/dietzelab/dongchen/anchorSites/NA_runs/covariates_lc_ts/covariates_nolatlon/", 
-                               debias_start_year = 2013,
-                               debias_drop_incomplete_covariates = TRUE,
-                               debias_enforce_consistent_obs = TRUE,
-                               debias_require_obs_at_t_for_predict = FALSE)
+                               debias = list(cov.dir = "/projectnb/dietzelab/dongchen/anchorSites/NA_runs/covariates_lc_ts/covariates_nolatlon/", start.year = 2014))

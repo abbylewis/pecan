@@ -44,8 +44,8 @@ settings$state.data.assimilation$batch.settings <- batch.settings
 settings$ensemble$size <- 100
 
 # load observations.
-load("/projectnb/dietzelab/dongchen/anchorSites/NA_runs/SDA_8k_site/observation/Rdata/obs.mean.Rdata")
-load("/projectnb/dietzelab/dongchen/anchorSites/NA_runs/SDA_8k_site/observation/Rdata/obs.cov.Rdata")
+load("/projectnb/dietzelab/dongchen/anchorSites/NA_runs/SDA_8k_site/observation/Rdata/obs_agb_ic_mean.Rdata")
+load("/projectnb/dietzelab/dongchen/anchorSites/NA_runs/SDA_8k_site/observation/Rdata/obs_agb_ic_cov.Rdata")
 
 # replace zero observations and variances with small numbers.
 for (i in 1:length(obs.mean)) {
@@ -87,3 +87,48 @@ PEcAnAssimSequential::qsub_sda(settings = settings,
                                               merge_nc = TRUE),
                                block.index = NULL,
                                debias = list(cov.dir = "/projectnb/dietzelab/dongchen/anchorSites/NA_runs/covariates_lc_ts/covariates_nolatlon/", start.year = 2014))
+                               # cov_dir = "/projectnb/dietzelab/dongchen/anchorSites/NA_runs/covariates_lc_ts/covariates_nolatlon/", 
+                               # debias_start_year = 2013,
+                               # debias_drop_incomplete_covariates = TRUE,
+                               # debias_enforce_consistent_obs = TRUE,
+                               # debias_require_obs_at_t_for_predict = FALSE)
+
+# debug mode.
+# folder.path <- "/projectnb/dietzelab/dongchen/anchorSites/NA_runs/SDA_8k_site/batch/Job_1"
+# configs <- readRDS(file.path(folder.path, "configs.rds"))
+# settings <- PEcAn.settings::read.settings(configs$setting)
+# settings$ensemble$size = 10
+# obs.mean <- configs$obs.mean
+# obs.cov <- configs$obs.cov
+# Q <- configs$Q
+# pre_enkf_params <- configs$pre_enkf_params
+# ensemble.samples <- configs$ensemble.samples
+# outdir <- configs$outdir
+# control <- configs$control
+# debias <- list(cov.dir = "/projectnb/dietzelab/dongchen/anchorSites/NA_runs/covariates_lc_ts/covariates_nolatlon/", start.year = 2014)
+# sda_matchparam = PEcAnAssimSequential:::sda_matchparam
+# build_X = PEcAnAssimSequential:::build_X
+# analysis_sda_block = PEcAnAssimSequential:::analysis_sda_block
+# sda_bias_correction <- PEcAnAssimSequential:::sda_bias_correction
+# .get_debias_mod <- PEcAnAssimSequential:::.get_debias_mod
+
+
+# debug debias module.
+# covariates_df = covariates_df_tt                # << use the per-step covariates
+# drop_incomplete_covariates = debias_drop_incomplete_covariates
+# enforce_consistent_obs     = debias_enforce_consistent_obs
+# require_obs_at_t_for_predict = debias_require_obs_at_t_for_predict
+# clip_lower_bound = 0.01
+# sda.enkf_local(setting, 
+#                configs$obs.mean, 
+#                configs$obs.cov, 
+#                configs$Q, 
+#                configs$pre_enkf_params,
+#                configs$ensemble.samples,
+#                configs$outdir,
+#                configs$control,
+#                configs$cov_dir, 
+#                configs$debias_start_year,
+#                configs$debias_drop_incomplete_covariates,
+#                configs$debias_enforce_consistent_obs,
+#                configs$debias_require_obs_at_t_for_predict)

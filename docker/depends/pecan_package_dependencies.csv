@@ -136,7 +136,6 @@
 "jsonlite","*","modules/data.atmosphere","Imports",FALSE
 "jsonlite","*","modules/data.land","Suggests",FALSE
 "jsonlite","*","modules/data.remote","Suggests",FALSE
-"jsonvalidate","*","models/sipnet","Suggests",FALSE
 "jsonvalidate","*","modules/data.land","Suggests",FALSE
 "keras3",">= 1.0.0","modules/assim.sequential","Suggests",FALSE
 "knitr","*","base/visualization","Suggests",FALSE

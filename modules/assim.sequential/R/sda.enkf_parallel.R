@@ -497,6 +497,9 @@ sda.enkf_local <- function(settings,
         X[X[,i] < int.save[1],i] <- int.save[1]
         X[X[,i] > int.save[2],i] <- int.save[2]
       }
+      # convert from forecast list to data frame.
+      X <- X %>% as.data.frame() %>%
+        `attr<-`('Site',c(rep(site.ids, each=length(var.names))))
       FORECAST[[obs.t]] <- X
     }
     raw_prev <- raw_mean_t # record the pre-debias forecasts.

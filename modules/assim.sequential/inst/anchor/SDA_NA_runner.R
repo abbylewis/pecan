@@ -86,12 +86,12 @@ PEcAnAssimSequential::qsub_sda(settings = settings,
                                               MCMC.args = NULL,
                                               merge_nc = TRUE),
                                block.index = NULL,
-                               debias = list(cov.dir = "/projectnb/dietzelab/dongchen/anchorSites/NA_runs/covariates_lc_ts/covariates_nolatlon/", start.year = 2014))
-                               # cov_dir = "/projectnb/dietzelab/dongchen/anchorSites/NA_runs/covariates_lc_ts/covariates_nolatlon/", 
-                               # debias_start_year = 2013,
-                               # debias_drop_incomplete_covariates = TRUE,
-                               # debias_enforce_consistent_obs = TRUE,
-                               # debias_require_obs_at_t_for_predict = FALSE)
+                               # debias = list(cov.dir = "/projectnb/dietzelab/dongchen/anchorSites/NA_runs/covariates_lc_ts/covariates_nolatlon/", start.year = 2014))
+                               cov_dir = "/projectnb/dietzelab/dongchen/anchorSites/NA_runs/covariates_lc_ts/covariates_nolatlon/",
+                               debias_start_year = 2013,
+                               debias_drop_incomplete_covariates = TRUE,
+                               debias_enforce_consistent_obs = FALSE,
+                               debias_require_obs_at_t_for_predict = FALSE)
 
 # debug mode.
 # folder.path <- "/projectnb/dietzelab/dongchen/anchorSites/NA_runs/SDA_8k_site/batch/Job_1"

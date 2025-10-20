@@ -12,7 +12,8 @@ validate_events_json(events_json, verbose = TRUE)
 \item{verbose}{logical. When `TRUE`, include detailed AJV messages on error.}
 }
 \value{
-Logical TRUE if valid (or validator unavailable), FALSE if invalid.
+Logical TRUE if valid, FALSE if invalid.
+NA if validator unavailable.
 }
 \description{
 Validates a PEcAn events JSON file (single-site object or an array of site

@@ -16,7 +16,9 @@ For more information about this file see also [Keep a Changelog](http://keepacha
 - Added `AmeriFlux_met_ensemble()` function with ERA5 fallback for AmeriFlux meteorological data processing and ensemble generation
 - Added `all_site_nc_merge_by_year()` and `single_site_nc_merge()` functions to merge netCDF files across ensembles and sites from pecan model netCDF outputs.
 - Added parallel mode for the entire SDA workflow.
-- `write.events.SIPNET()` to generate SIPNET `events.in` files from a `events.json` file.
+- Define, add support for, and parse events schema
+  - Events schema and validate_events() function to PEcAn.data.land (#3623, #3521)
+  - Add `write.events.SIPNET()` to generate SIPNET `events.in` files from a `events.json` file.
 - Included all relevant carbon pools (`ROOT_BIOMASS`, `AG_BIOMASS`, `SOIL_STOCK`, `LIT_BIOMASS`) in BADM-based IC extraction; excluded non-pool variables like `SOIL_CHEM`.
 - Added explicit support for `LIT_BIOMASS` to fully utilize **BADM** biomass capabilities.
 - Added `test-IC_BADM_Utilities.R` to validate BADM initial condition extraction and processing

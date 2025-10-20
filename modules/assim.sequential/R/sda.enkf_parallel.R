@@ -368,8 +368,8 @@ sda.enkf_local <- function(settings,
       `colnames<-`(c(rep(var.names, length(X)))) %>%
       `attr<-`('Site',c(rep(site.ids, each=length(var.names))))
     # start debiasing.
-    debias.out <- NULL
     if (!is.null(debias$start.year)) {
+      debias.out <- NULL
       if (obs.year >= debias$start.year) {
         PEcAn.logger::logger.info("Start debiasing!")
         debias.out <- sda_bias_correction(site.locs, 

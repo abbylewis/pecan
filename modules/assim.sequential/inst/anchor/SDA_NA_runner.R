@@ -33,7 +33,7 @@ settings <- PEcAn.settings::read.settings(settings_dir)
 settings <- PEcAn.settings::prepare.settings(settings)
 
 # setup the batch job settings.
-general.job <- list(cores = 28, folder.num = 35)
+general.job <- list(cores = 28, folder.num = 30)
 batch.settings = structure(list(
   general.job = general.job,
   qsub.cmd = "qsub -l h_rt=24:00:00 -l mem_per_core=4G -l buyin -pe omp @CORES@ -V -N @NAME@ -o @STDOUT@ -e @STDERR@ -S /bin/bash"
@@ -41,7 +41,7 @@ batch.settings = structure(list(
 settings$state.data.assimilation$batch.settings <- batch.settings
 
 # alter the ensemble size.
-settings$ensemble$size <- 100
+settings$ensemble$size <- 25
 
 # load observations.
 load("/projectnb/dietzelab/dongchen/anchorSites/NA_runs/SDA_8k_site/observation/Rdata/obs_agb_ic_mean.Rdata")
@@ -86,7 +86,8 @@ PEcAnAssimSequential::qsub_sda(settings = settings,
                                               MCMC.args = NULL,
                                               merge_nc = TRUE),
                                block.index = NULL,
-                               debias = list(cov.dir = "/projectnb/dietzelab/dongchen/anchorSites/NA_runs/covariates_lc_ts/covariates_nolatlon/", start.year = 2014))
+                               # debias = list(cov.dir = "/projectnb/dietzelab/dongchen/anchorSites/NA_runs/covariates_lc_ts/covariates_nolatlon/", start.year = 2014))
+                               debias = list(cov.dir = NULL, start.year = NULL))
 
 # export sda output.
 PEcAnAssimSequential::sda_assemble("/projectnb/dietzelab/dongchen/anchorSites/NA_runs/SDA_8k_site/batch", 

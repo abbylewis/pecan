@@ -337,6 +337,8 @@ sda.enkf.multisite <- function(settings,
   ###------------------------------------------------------------------------------------------------###
   ### loop over time                                                                                 ###
   ###------------------------------------------------------------------------------------------------###
+  # initialize the lists of covariates for the debias feature.
+  pre.states <- vector("list", length = length(var.names)) %>% purrr::set_names(var.names)
   for(t in 1:nt){
     obs.t <- as.character(lubridate::date(obs.times[t]))
     obs.year <- lubridate::year(obs.t)
@@ -490,9 +492,11 @@ sda.enkf.multisite <- function(settings,
                                           t, pre.X, X, 
                                           obs.mean, 
                                           state.interval, 
-                                          debias$cov.dir, 
+                                          debias$cov.dir,
+                                          pre.states,
                                           .get_debias_mod)
         X <- debias.out$X
+        pre.states <- debias.out$pre.states
       }
     }
     FORECAST[[obs.t]] <- pre.X <- X

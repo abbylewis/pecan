@@ -62,7 +62,7 @@ ic_process <- function(settings, input, dir, overwrite = FALSE){
   }
 
   # setup site database number, lat, lon and name and copy for format.vars if new input
-  new.site <- data.frame(
+  new.site <- list(
     id = site$id,
     lat = latlon$lat,
     lon = latlon$lon,

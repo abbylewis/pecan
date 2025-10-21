@@ -144,7 +144,7 @@ met.process <- function(site, input_met, start_date, end_date, model,
   # setup site database number, lat, lon and name and copy for format.vars if new input
   # TODO why are this and the original site object passed around together?
   # Could we mutate `site` instead of assigning `new.site`?
-  new.site <- data.frame(
+  new.site <- list(
     id = site$id,
     lat = site$lat,
     lon = site$lon

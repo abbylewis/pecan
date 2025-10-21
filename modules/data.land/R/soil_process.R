@@ -36,9 +36,7 @@ soil_process <- function(settings, input, dbfiles, overwrite = FALSE,run.local=T
   } else {
     latlon <- PEcAn.DB::query.site(site$id, con = con)[c("lat", "lon")]
   }
-  new.site <- data.frame(id = site$id,
-                         lat = latlon$lat,
-                         lon = latlon$lon)
+  new.site <- list(id = site$id, lat = latlon$lat, lon = latlon$lon)
 
   if (is.numeric(new.site$id) && isTRUE(new.site$id > 1e9)) {
     # Assume this is a BETYdb id, condense for readability

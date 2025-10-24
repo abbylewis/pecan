@@ -44,7 +44,7 @@ Download NOAA GEFS Weather Data
 }
 \section{Information on Units}{
 
-Information on NOAA weather units can be found below. Note that the temperature is measured in degrees C, 
+Information on NOAA weather units can be found below. Note that the temperature is measured in degrees C,
 but is converted at the station and downloaded in Kelvin.
 }
 
@@ -82,9 +82,9 @@ June 6th, 2018 at 6:00 a.m. to June 24th, 2018 at 6:00 a.m.
 
 \examples{
 \dontrun{
- download.NOAA_GEFS(outfolder="~/Working/results", 
-    lat.in= 45.805925, 
-    lon.in = -90.07961, 
+ download.NOAA_GEFS(outfolder="~/Working/results",
+    lat.in= 45.805925,
+    lon.in = -90.07961,
     site_id = 676)
 }
 

@@ -7,7 +7,7 @@
 #' @param model_name_raw model name for directory creation
 #' @param end_hr end hr to determine how many hours to download
 #' @param output_directory output directory
-#' 
+#'
 #' @export
 #'
 #' @return NA
@@ -106,8 +106,7 @@ noaa_grid_download <- function(lat_list, lon_list, forecast_time, forecast_date,
       
       new_download <- TRUE
       
-      if(new_download){
-        
+      if (new_download) {
         print(paste("Downloading", forecast_date, cycle))
         
         if(cycle == "00"){
@@ -383,11 +382,13 @@ process_gridded_noaa_download <- function(lat_list,
     
     noaa_data$air_temperature$value <- noaa_data$air_temperature$value + 273.15
     
-    specific_humidity[which(!is.na(noaa_data$relative_humidity$value))] <- PEcAn.data.atmosphere::rh2qair(rh = noaa_data$relative_humidity$value[which(!is.na(noaa_data$relative_humidity$value))],
-                                                                                                          T = noaa_data$air_temperature$value[which(!is.na(noaa_data$relative_humidity$value))],
-                                                                                                          press = noaa_data$air_pressure$value[which(!is.na(noaa_data$relative_humidity$value))])
-    
-    
+    specific_humidity[which(!is.na(noaa_data$relative_humidity$value))] <- PEcAn.data.atmosphere::rh2qair(
+      rh = noaa_data$relative_humidity$value[which(!is.na(noaa_data$relative_humidity$value))],
+      T = noaa_data$air_temperature$value[which(!is.na(noaa_data$relative_humidity$value))],
+      press = noaa_data$air_pressure$value[which(!is.na(noaa_data$relative_humidity$value))]
+    )
+
+
     #Calculate wind speed from east and north components
     wind_speed <- sqrt(noaa_data$eastward_wind$value^2 + noaa_data$northward_wind$value^2)
     

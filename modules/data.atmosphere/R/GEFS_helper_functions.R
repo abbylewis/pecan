@@ -14,53 +14,6 @@
 #'
 
 noaa_grid_download <- function(lat_list, lon_list, forecast_time, forecast_date, model_name_raw, output_directory, end_hr) {
-  
-  
-  download_grid <- function(ens_index, location, directory, hours_char, cycle, base_filename1, vars,working_directory){
-    member_type <- if (ens_index == 1) { "gec" } else { "gep" } # "_c_ontrol", "_p_erturbed"
-    ens_idxname <- stringr::str_pad(ens_index - 1, width = 2, pad = "0")
-    base_filename2 <- paste0(member_type,ens_idxname,".t",cycle,"z.pgrb2a.0p50.f")
-    curr_hours <- hours_char
-
-    for(i in 1:length(curr_hours)){
-      file_name <- paste0(base_filename2, curr_hours[i])
-      
-      destfile <- paste0(working_directory,"/", file_name,".grib")
-      
-      if(file.exists(destfile)){
-        
-        fsz <- file.info(destfile)$size
-        gribf <- file(destfile, "rb")
-        fsz4 <- fsz-4
-        seek(gribf,where = fsz4,origin = "start")
-        last4 <- readBin(gribf,"raw",4)
-        if(as.integer(last4[1])==55 & as.integer(last4[2])==55 & as.integer(last4[3])==55 & as.integer(last4[4])==55) {
-          download_file <- FALSE
-        } else {
-          download_file <- TRUE
-        }
-        close(gribf)
-        
-      }else{
-        download_file <- TRUE
-      }
-      
-      if(download_file){
-        
-        out <- tryCatch(download_file_shim(paste0(base_filename1, file_name, vars, location, directory),
-                                             destfile = destfile, quiet = TRUE),
-                        error = function(e){
-                          warning(paste(e$message, "skipping", file_name),
-                                  call. = FALSE)
-                          return(NA)
-                        },
-                        finally = NULL)
-        
-        if(is.na(out)) next
-      }
-    }
-  }
-  
   model_dir <- file.path(output_directory, model_name_raw)
   
   #Availability: most recent 4 days
@@ -138,6 +91,70 @@ noaa_grid_download <- function(lat_list, lon_list, forecast_time, forecast_date,
   }
 }
 
+
+#' Download all requested timepoints of one GEFS ensemble member
+#'
+#' @param ens_index ensemble member as integer (1-31)
+#' @param location bounding box portion of query,
+#'  as a single URL-escaped string
+#' @param directory server path portion of query,
+#'  as a single URL-escaped string
+#'  (not to be confused with local output dir -- that's `working_directory`)
+#' @param hours_char timepoints to retrieve,
+#'  as zero-padded strings e.g. `c("000", "384", "840")`
+#' @param cycle forecast hour to use (0, 6, 12, or 18)
+#' @param base_filename1 URL onto which to append query string components
+#' @param vars variable listing component of query,
+#'  as a single URL-escaped string
+#' @param working_directory path on local disk to write output
+#'
+#' @return NA
+#'
+download_grid <- function(ens_index, location, directory, hours_char, cycle,
+                          base_filename1, vars, working_directory) {
+  member_type <- if (ens_index == 1) "gec" else "gep" # "_c_ontrol", "_p_erturbed"
+  ens_idxname <- stringr::str_pad(ens_index - 1, width = 2, pad = "0")
+  base_filename2 <- paste0(member_type, ens_idxname, ".t", cycle, "z.pgrb2a.0p50.f")
+  curr_hours <- hours_char
+
+  for (i in 1:length(curr_hours)) {
+    file_name <- paste0(base_filename2, curr_hours[i])
+    destfile <- paste0(working_directory, "/", file_name, ".grib")
+    if (file.exists(destfile)) {
+      fsz <- file.info(destfile)$size
+      gribf <- file(destfile, "rb")
+      fsz4 <- fsz - 4
+      seek(gribf, where = fsz4, origin = "start")
+      last4 <- readBin(gribf, "raw", 4)
+      if (as.integer(last4[1]) == 55 & as.integer(last4[2]) == 55
+            & as.integer(last4[3]) == 55 & as.integer(last4[4]) == 55) {
+        download_file <- FALSE
+      } else {
+        download_file <- TRUE
+      }
+      close(gribf)
+    } else {
+      download_file <- TRUE
+    }
+
+    if (download_file) {
+      out <- tryCatch(
+        download_file_shim(
+          paste0(base_filename1, file_name, vars, location, directory),
+          destfile = destfile,
+          quiet = TRUE
+        ),
+        error = function(e) {
+          warning(paste(e$message, "skipping", file_name),
+                  call. = FALSE)
+          return(NA)
+        },
+        finally = NULL
+      )
+      if (is.na(out)) next
+    }
+  }
+}
 
 
 #' Extract and temporally downscale points from downloaded grid files

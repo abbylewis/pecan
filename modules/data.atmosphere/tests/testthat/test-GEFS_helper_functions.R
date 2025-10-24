@@ -90,6 +90,10 @@ test_that("noaa_grid_download bounding box", {
 })
 
 
+# TODO now that `download_grid` is a separate function,
+# it would be cleaner to test skipping in download_grid directly
+# and focus for noaa_grid_download on whether it correctly constructs/passes
+# each chunk of the query string.
 test_that("noaa_grid_download skips on error", {
   local_edition(3)
   local_mocked_bindings(
@@ -112,6 +116,11 @@ test_that("noaa_grid_download skips on error", {
 })
 
 
+# test_that("download_grid", {
+#   TODO
+# })
+
+
 # test_that("process_gridded_noaa_download", {
 #   TODO
 # })
@@ -120,4 +129,3 @@ test_that("noaa_grid_download skips on error", {
 # test_that("write_noaa_gefs_netcdf", {
 #   TODO
 # })
-

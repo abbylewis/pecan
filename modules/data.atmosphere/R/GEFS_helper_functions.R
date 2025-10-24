@@ -102,7 +102,7 @@ noaa_grid_download <- function(lat_list, lon_list, forecast_time, forecast_date,
 #'  (not to be confused with local output dir -- that's `working_directory`)
 #' @param hours_char timepoints to retrieve,
 #'  as zero-padded strings e.g. `c("000", "384", "840")`
-#' @param cycle forecast hour to use (0, 6, 12, or 18)
+#' @param cycle forecast hour to use ("00", "06", "12", or "18")
 #' @param base_filename1 URL onto which to append query string components
 #' @param vars variable listing component of query,
 #'  as a single URL-escaped string
@@ -115,30 +115,24 @@ download_grid <- function(ens_index, location, directory, hours_char, cycle,
   member_type <- if (ens_index == 1) "gec" else "gep" # "_c_ontrol", "_p_erturbed"
   ens_idxname <- stringr::str_pad(ens_index - 1, width = 2, pad = "0")
   base_filename2 <- paste0(member_type, ens_idxname, ".t", cycle, "z.pgrb2a.0p50.f")
-  curr_hours <- hours_char
-
-  for (i in 1:length(curr_hours)) {
-    file_name <- paste0(base_filename2, curr_hours[i])
+  for (hr in hours_char) {
+    file_name <- paste0(base_filename2, hr)
     destfile <- paste0(working_directory, "/", file_name, ".grib")
+
+    download_file <- TRUE
     if (file.exists(destfile)) {
       fsz <- file.info(destfile)$size
       gribf <- file(destfile, "rb")
-      fsz4 <- fsz - 4
-      seek(gribf, where = fsz4, origin = "start")
+      seek(gribf, where = fsz - 4, origin = "start")
       last4 <- readBin(gribf, "raw", 4)
-      if (as.integer(last4[1]) == 55 & as.integer(last4[2]) == 55
-            & as.integer(last4[3]) == 55 & as.integer(last4[4]) == 55) {
-        download_file <- FALSE
-      } else {
-        download_file <- TRUE
-      }
       close(gribf)
-    } else {
-      download_file <- TRUE
+      if (all(as.integer(last4) == 55)) {
+        download_file <- FALSE
+      }
     }
 
     if (download_file) {
-      out <- tryCatch(
+      tryCatch(
         download_file_shim(
           paste0(base_filename1, file_name, vars, location, directory),
           destfile = destfile,
@@ -151,7 +145,6 @@ download_grid <- function(ens_index, location, directory, hours_char, cycle,
         },
         finally = NULL
       )
-      if (is.na(out)) next
     }
   }
 }

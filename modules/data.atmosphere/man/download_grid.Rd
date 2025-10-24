@@ -28,7 +28,7 @@ as a single URL-escaped string
 \item{hours_char}{timepoints to retrieve,
 as zero-padded strings e.g. `c("000", "384", "840")`}
 
-\item{cycle}{forecast hour to use (0, 6, 12, or 18)}
+\item{cycle}{forecast hour to use ("00", "06", "12", or "18")}
 
 \item{base_filename1}{URL onto which to append query string components}
 

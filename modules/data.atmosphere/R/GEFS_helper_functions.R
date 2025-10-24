@@ -108,24 +108,17 @@ noaa_grid_download <- function(lat_list, lon_list, forecast_time, forecast_date,
       
       if (new_download) {
         print(paste("Downloading", forecast_date, cycle))
-        
-        if(cycle == "00"){
-          hours <- c(seq(0, 240, 3),seq(246, 840, 6))
-        }else{
-          hours <- c(seq(0, 240, 3),seq(246, 384 , 6))
+
+        if (cycle == "00") { # 35 days of forecast
+          hours <- c(seq(0, 240, by = 3), seq(246, 840, by = 6))
+        } else { # 16 days of forecast
+          hours <- c(seq(0, 240, by = 3), seq(246, 384, by = 6))
         }
-        hours <- hours[hours<=end_hr]
-        hours_char <- hours
-        hours_char[which(hours < 100)] <- paste0("0",hours[which(hours < 100)])
-        hours_char[which(hours < 10)] <- paste0("0",hours_char[which(hours < 10)])
-        curr_year <- lubridate::year(forecast_date)
-        curr_month <- lubridate::month(forecast_date)
-        if(curr_month < 10) curr_month <- paste0("0",curr_month)
-        curr_day <- lubridate::day(forecast_date)
-        if(curr_day < 10) curr_day <- paste0("0",curr_day)
-        curr_date <- paste0(curr_year,curr_month,curr_day)
-        directory <- paste0("&dir=%2Fgefs.",curr_date,"%2F",cycle,"%2Fatmos%2Fpgrb2ap5")
-        
+        hours <- hours[hours <= end_hr]
+        hours_char <- sprintf("%03i", hours)
+        curr_date <- format(forecast_date, "%Y%m%d")
+        directory <- paste0("&dir=%2Fgefs.", curr_date, "%2F", cycle, "%2Fatmos%2Fpgrb2ap5")
+
         ens_index <- 1:31
         
         parallel::mclapply(X = ens_index,

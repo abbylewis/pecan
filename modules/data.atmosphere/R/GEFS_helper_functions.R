@@ -108,7 +108,7 @@ noaa_grid_download <- function(lat_list, lon_list, forecast_time, forecast_date,
 #'  as a single URL-escaped string
 #' @param working_directory path on local disk to write output
 #'
-#' @return NA
+#' @return NULL
 #'
 download_grid <- function(ens_index, location, directory, hours_char, cycle,
                           base_filename1, vars, working_directory) {

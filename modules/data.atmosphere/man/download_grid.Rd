@@ -37,9 +37,6 @@ as a single URL-escaped string}
 
 \item{working_directory}{path on local disk to write output}
 }
-\value{
-NA
-}
 \description{
 Download all requested timepoints of one GEFS ensemble member
 }

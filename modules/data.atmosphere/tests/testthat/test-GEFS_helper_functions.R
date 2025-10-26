@@ -61,7 +61,7 @@ test_that("noaa_grid_download bounding box", {
       lat_list = lats,
       lon_list = lons,
       forecast_time = 0,
-      forecast_date = "2025-10-22",
+      forecast_date = Sys.Date(),
       model_name_raw = "geftest_raw",
       output_directory = out,
       end_hr = 0
@@ -105,7 +105,7 @@ test_that("noaa_grid_download skips on error", {
     lat_list = 0,
     lon_list = 0,
     forecast_time = 0,
-    forecast_date = "2025-10-22",
+    forecast_date = Sys.Date(),
     model_name_raw = "geftest_raw",
     output_directory = out,
     end_hr = 3

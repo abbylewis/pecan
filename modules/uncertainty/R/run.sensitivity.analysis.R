@@ -105,8 +105,8 @@ run.sensitivity.analysis <- function(settings,
     samples <- new.env()
     load(fname, envir = samples)
 
-    # Can specify ensemble ids manually. If not, look in settings.
-    # If none there, will use the most recent, which was loaded with samples.Rdata
+    # Ensemble ID is expected to be specified in function args or settings.
+    # If none there, create one specific to this site.
     ensemble.id <- ensemble.id %||%
       settings$sensitivity.analysis$ensemble.id %||%
       rlang::hash(settings)

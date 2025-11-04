@@ -278,6 +278,8 @@ write.ensemble.configs <- function(input_design, ensemble.size, defaults, ensemb
 
   
   # Get the workflow id
+  # if workflow$id is null, set to -1
+  # to avoid collision w/ database ids
   workflow.id <- settings$workflow$id %||% -1
 
   #------------------------------------------------- if this is a new fresh run------------------  

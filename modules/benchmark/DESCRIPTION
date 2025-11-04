@@ -53,4 +53,4 @@ LazyLoad: yes
 LazyData: FALSE
 Encoding: UTF-8
 RoxygenNote: 7.3.2
-X-schema.org-keywords: benchmarking, ecological modeling, model evaluation, statistical metrics, model-data comparison, PEcAn
+X-schema.org-keywords: model-evaluation, model-data-comparison, PEcAn

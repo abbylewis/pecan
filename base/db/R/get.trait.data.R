@@ -43,18 +43,16 @@ get.trait.data <-
     PEcAn.logger::logger.severe('At least one pft in settings is missing its "outdir"')
   }
   
-  #check for flatfile path if present use it 
-  file_path <- input_file 
-  if(is.null(file_path)){
-    file.path <- pfts$file_path
-  }
-  use_flatfile <- !is.null(file_path) && file.exists(file_path)
-  
-  if (use_flatfile) {
+  #check for flatfile path, if present use it 
+  file_path <- input_file %||% pfts$file_path
+  if (!is.null(file_path) {
+    if (!file.exists(file_path) {
+      PEcAn.logger::logger.error("trait data file not found at specified path", sQuote(file_path))
+    }
     PEcAn.logger::logger.info("Using flat file for trait data instead of database")
   
     # Load flat file as data.frame
-    trait_data_flat <- read.csv(pfts$file_path, stringsAsFactors = FALSE)
+    trait_data_flat <- read.csv(file_path, stringsAsFactors = FALSE)
   
     # Build trait.names from flat file if not already provided
     if (is.null(trait.names)) {

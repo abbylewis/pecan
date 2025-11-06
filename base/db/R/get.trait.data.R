@@ -46,7 +46,7 @@ get.trait.data <-
   #check for flatfile path, if present use it 
   file_path <- input_file %||% pfts$file_path
   if (!is.null(file_path)) {
-    if (!file.exists(file_path) {
+    if (!file.exists(file_path)) {
       PEcAn.logger::logger.error("trait data file not found at specified path", sQuote(file_path))
     }
     PEcAn.logger::logger.info("Using flat file for trait data instead of database")

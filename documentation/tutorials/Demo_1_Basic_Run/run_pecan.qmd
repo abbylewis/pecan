@@ -1,6 +1,8 @@
 ---
 title: "Running Ecosystem Simulations Using PEcAn"
-author: "Aritra Dey"
+author: 
+  - "Aritra Dey"
+  - "David LeBauer"
 format:
   pdf:
     toc: true

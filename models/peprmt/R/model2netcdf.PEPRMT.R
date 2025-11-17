@@ -58,24 +58,28 @@ model2netcdf.PEPRMT <- function(outdir, sitelat, sitelon, start_date, end_date) 
                                       vals = 1:2, units="")
     
     ## Output names
-    # SOM_total
-    # SOM_labile
-    # GPP_mod (units)
-    # Plant_flux_net (units)
-    # Hydro_flux (units)
-    # CH4_mod (units)
+    # SOM_total (g C  m^-3)
+    # SOM_labile (g C  m^-3)
+    # GPP_mod (gC m-2 day-1)
+    # Reco_mod (gC m-2 day-1)
+    # NEE_mod (gC m-2 day-1)
+    # CH4_mod (gC m-2 day-1)
     
-    fluxes <- c("CH4_mod")
-    pools <- c("S1")
-    sub.PEPRMT.output <- sub.PEPRMT.output[c(fluxes_pools)]
+    fluxes <- c("CH4_mod", "GPP_mod", "Reco_mod", "NEE_mod")
+    pools <- c("S1", "S2")
+    sub.PEPRMT.output <- sub.PEPRMT.output[c(fluxes, pools)]
     
     ## Setup outputs for netCDF file in appropriate units
     output <- list()
     ## Fluxes
-    output[[1]] <- (sub.PEPRMT.output[, "CH4_mod"] * 0.001)  # CH4 emission in kgC/m2/s
+    output[[1]] <- (sub.PEPRMT.output[, "CH4_mod"] * 0.001)   # CH4 emission in kgC/m2/s
+    output[[2]] <- (sub.PEPRMT.output[, "GPP_mod"] * 0.001)   # GPP in kgC/m2/s
+    output[[3]] <- (sub.PEPRMT.output[, "Reco_mod"] * 0.001)  # Reco in kgC/m2/s
+    output[[4]] <- (sub.PEPRMT.output[, "NEE_mod"] * 0.001)   # NEE in kgC/m2/s
     
     ## Pools
-    output[[length(fluxes) + 1]]  <- (sub.PEPRMT.output[, fluxes[1]])  # Soil Carbon, kgC/m2
+    output[[5]]  <- (sub.PEPRMT.output[, fluxes[1]])  # Soil Carbon, kgC/m2
+    output[[6]]  <- (sub.PEPRMT.output[, fluxes[2]])  # Soil Carbon, kgC/m2
     
     ## time_bounds
     output[[length(fluxes) +
@@ -91,25 +95,15 @@ model2netcdf.PEPRMT <- function(outdir, sitelat, sitelon, start_date, end_date) 
     ## setup nc file
     # ******************** Declar netCDF variables ********************#
     nc_var <- list()
-    nc_var[[1]]  <- PEcAn.utils::to_ncvar("AutoResp", dims)
-    nc_var[[2]]  <- PEcAn.utils::to_ncvar("HeteroResp", dims)
-    nc_var[[3]]  <- PEcAn.utils::to_ncvar("GPP", dims)
+    nc_var[[1]]  <- PEcAn.utils::to_ncvar("CH4_flux", dims)
+    nc_var[[2]]  <- PEcAn.utils::to_ncvar("GPP", dims)
+    nc_var[[3]]  <- PEcAn.utils::to_ncvar("TotalResp", dims)
     nc_var[[4]]  <- PEcAn.utils::to_ncvar("NEE", dims)
-    nc_var[[5]]  <- PEcAn.utils::to_ncvar("NPP", dims)
-    nc_var[[6]]  <- PEcAn.utils::to_ncvar("leaf_litter_carbon_flux", dims) #was LeafLitter
-    nc_var[[7]]  <- PEcAn.utils::to_ncvar("WoodyLitter", dims) #need to resolve standard woody litter flux
-    nc_var[[8]]  <- PEcAn.utils::to_ncvar("subsurface_litter_carbon_flux", dims) #was RootLitter
-    nc_var[[9]]  <- PEcAn.utils::to_ncvar("leaf_carbon_content", dims) #was LeafBiomass
-    nc_var[[10]] <- PEcAn.utils::to_ncvar("wood_carbon_content", dims) #was WoodBiomass
-    nc_var[[11]] <- PEcAn.utils::to_ncvar("root_carbon_content", dims) #was RootBiomass
-    nc_var[[12]] <- PEcAn.utils::to_ncvar("litter_carbon_content", dims) #was LitterBiomass
-    nc_var[[13]] <- PEcAn.utils::to_ncvar("soil_carbon_content", dims) #was SoilC; SOM pool technically includes woody debris (can't be represented by our standard)
     
-    nc_var[[14]] <- PEcAn.utils::to_ncvar("TotalResp", dims)
-    nc_var[[15]] <- PEcAn.utils::to_ncvar("TotLivBiom", dims)
-    nc_var[[16]] <- PEcAn.utils::to_ncvar("TotSoilCarb", dims)
-    nc_var[[17]] <- PEcAn.utils::to_ncvar("LAI", dims)
-    nc_var[[18]] <- ncdf4::ncvar_def(name="time_bounds", units='', 
+    nc_var[[5]]  <- PEcAn.utils::to_ncvar("slow_soil_pool_carbon_content", dims)
+    nc_var[[6]]  <- PEcAn.utils::to_ncvar("fast_soil_pool_carbon_content", dims)
+    
+    nc_var[[7]] <- ncdf4::ncvar_def(name="time_bounds", units='', 
                                      longname = "history time interval endpoints", dim=list(time_interval,time = t), 
                                      prec = "double")
     

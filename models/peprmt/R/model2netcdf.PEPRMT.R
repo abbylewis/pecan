@@ -10,24 +10,21 @@
 ##' @param end_date End time of the simulation
 ##' @export
 ##' @author Abigail Lewis
+
+#For testing
+outdir <- "out"
+start_date <- "2019-01-01"
+sitelat <- 38.87692530035210
+sitelon <- -76.55584858577264
+
 model2netcdf.PEPRMT <- function(outdir, sitelat, sitelon, start_date, end_date) {
   runid <- basename(outdir)
-  PEPRMT.configs <- utils::read.table(file.path(gsub(pattern = "/out/",
-                                             replacement = "/run/", x = outdir),
-                                        paste0("CONFIG.", runid)),
-                              stringsAsFactors = FALSE)
   
   ### Read in model output in PEPRMT format
-  PEPRMT.output      <- utils::read.table(file.path(outdir, "out.txt"),
-                                  header = FALSE, sep = "")
+  PEPRMT.output      <- read.csv(file.path(outdir, "out.csv"))
   PEPRMT.output.dims <- dim(PEPRMT.output)
   
-  ### Determine number of years and output timestep
-  days       <- as.Date(start_date):as.Date(end_date)
-  year       <- strftime(as.Date(days, origin = "1970-01-01"), "%Y")
-  num.years  <- length(unique(year))
-  years      <- unique(year)
-  timestep.s <- 86400
+  years <- unique(PEPRMT.output$Year)
   
   ### Loop over years in PEPRMT output to create separate netCDF outputs
   for (y in years) {
@@ -37,7 +34,7 @@ model2netcdf.PEPRMT <- function(outdir, sitelat, sitelon, start_date, end_date) 
     print(paste("---- Processing year: ", y))  #turn on for debugging
     
     ## Subset data for processing
-    sub.PEPRMT.output <- subset(PEPRMT.output, year == y)
+    sub.PEPRMT.output <- subset(PEPRMT.output, Year == y)
     sub.PEPRMT.output.dims <- dim(sub.PEPRMT.output)
 
     # ******************** Declare netCDF variables ********************#
@@ -68,30 +65,22 @@ model2netcdf.PEPRMT <- function(outdir, sitelat, sitelon, start_date, end_date) 
     # Hydro_flux (units)
     # CH4_mod (units)
     
-    # names(sub.PEPRMT.output) <- c("SOM_total", "SOM_labile", "GPP_mod", 
-    #"Plant_flux_net", "Hydro_flux", "CH4_mod")
+    fluxes <- c("CH4_mod")
+    pools <- c("S1")
+    sub.PEPRMT.output <- sub.PEPRMT.output[c(fluxes_pools)]
     
     ## Setup outputs for netCDF file in appropriate units
     output <- list()
     ## Fluxes
-    output[[1]] <- (sub.PEPRMT.output[, 1] * 0.001)/timestep.s  # Autotrophic Respiration in kgC/m2/s
-    output[[2]] <- (sub.PEPRMT.output[, 21] + sub.PEPRMT.output[, 23]) * 0.001 / timestep.s  # Heterotrophic Resp kgC/m2/s
-    output[[3]] <- (sub.PEPRMT.output[, 31] * 0.001)/timestep.s  # GPP in kgC/m2/s    
-    output[[4]] <- (sub.PEPRMT.output[, 33] * 0.001)/timestep.s  # NEE in kgC/m2/s
-    output[[5]] <- (sub.PEPRMT.output[, 3] + sub.PEPRMT.output[, 5] + sub.PEPRMT.output[, 7]) * 0.001/timestep.s  # NPP kgC/m2/s
-    output[[6]] <- (sub.PEPRMT.output[, 9] * 0.001) / timestep.s  # Leaf Litter Flux, kgC/m2/s
-    output[[7]] <- (sub.PEPRMT.output[, 11] * 0.001) / timestep.s  # Woody Litter Flux, kgC/m2/s
-    output[[8]] <- (sub.PEPRMT.output[, 13] * 0.001) / timestep.s  # Root Litter Flux, kgC/m2/s
+    output[[1]] <- (sub.PEPRMT.output[, "CH4_mod"] * 0.001)  # CH4 emission in kgC/m2/s
     
     ## Pools
-    output[[9]]  <- (sub.PEPRMT.output[, 15] * 0.001)  # Leaf Carbon, kgC/m2
-    output[[10]] <- (sub.PEPRMT.output[, 17] * 0.001)  # Wood Carbon, kgC/m2
-    output[[11]] <- (sub.PEPRMT.output[, 19] * 0.001)  # Root Carbon, kgC/m2
-    output[[12]] <- (sub.PEPRMT.output[, 27] * 0.001)  # Litter Carbon, kgC/m2
-    output[[13]] <- (sub.PEPRMT.output[, 29] * 0.001)  # Soil Carbon, kgC/m2
+    output[[length(fluxes) + 1]]  <- (sub.PEPRMT.output[, fluxes[1]])  # Soil Carbon, kgC/m2
     
     ## time_bounds
-    output[[18]] <- c(rbind(bounds[,1], bounds[,2]))
+    output[[length(fluxes) +
+              length(pools) + 
+              1]] <- c(rbind(bounds[,1], bounds[,2]))
     
     ## missing value handling
     for (i in seq_along(output)) {

@@ -1,202 +1,114 @@
-#--------------------------------------------------------------------------------------------------#
-# Template for functions to prepare and write out files model-specific configuration files for MA
-#--------------------------------------------------------------------------------------------------#
-PREFIX_XML <- "<?xml version=\"1.0\"?>\n"
-
-convert.samples.PEPRMT <- function(trait.samples) {
-
-  DEFAULT.LEAF.C <- 0.48
-  ## convert SLA from PEcAn m2 / kg leaf to m2 / g C
-
-  if ("SLA" %in% names(trait.samples)) {
-    trait.samples[["SLA"]] <- trait.samples[["SLA"]]/DEFAULT.LEAF.C/1000
-  }
-
-  # t1 rate variable controlling decomposition from litter to soil organinc matter [day-1, ref T
-  # 10C]
-  if ("litter_decomposition_to_SOM" %in% names(trait.samples)) {
-    names(trait.samples)[which(names(trait.samples) == "litter_decomposition_to_SOM")] <- "t1"
-  }
-
-  # t2 proportion of GPP lost to autotrophic respiration
-  if ("autotrophic_respiration_fraction" %in% names(trait.samples)) {
-    names(trait.samples)[which(names(trait.samples) == "autotrophic_respiration_fraction")] <- "t2"
-  }
-
-  # t3 proportion of NPP allocated to foliage
-  if ("leaf_allocation_fraction" %in% names(trait.samples)) {
-    names(trait.samples)[which(names(trait.samples) == "leaf_allocation_fraction")] <- "t3"
-  }
-
-  # t4 proportion of NPP allocated to roots
-  if ("root_allocation_fraction" %in% names(trait.samples)) {
-    names(trait.samples)[which(names(trait.samples) == "root_allocation_fraction")] <- "t4"
-  }
-
-  # t5 proportion of foliage becoming litter every time step
-  if ("leaf_turnover_rate" %in% names(trait.samples)) {
-    trait.samples[["leaf_turnover_rate"]] <- trait.samples[["leaf_turnover_rate"]]/365
-    names(trait.samples)[which(names(trait.samples) == "leaf_turnover_rate")] <- "t5"
-  }
-
-  # t6 proportion of woody material becoming woody debris every time step
-  if ("wood_turnover_rate" %in% names(trait.samples)) {
-    trait.samples[["wood_turnover_rate"]] <- trait.samples[["wood_turnover_rate"]]/365
-    names(trait.samples)[which(names(trait.samples) == "wood_turnover_rate")] <- "t6"
-  }
-
-  # t7 proportion of fine roots becoming soil/woody debris every time step
-  if ("root_turnover_rate" %in% names(trait.samples)) {
-    trait.samples[["root_turnover_rate"]] <- trait.samples[["root_turnover_rate"]]/365
-    names(trait.samples)[which(names(trait.samples) == "root_turnover_rate")] <- "t7"
-  }
-
-  # t8 rate variable controlling respiration from litter [day-1, ref T 10C]
-  if ("litter_respiration_rate" %in% names(trait.samples)) {
-    names(trait.samples)[which(names(trait.samples) == "litter_respiration_rate")] <- "t8"
-  }
-
-  # t9 rate variable controlling respiration from soil organic matter and woody debris [day-1, ref
-  # T 10C]
-  if ("som_respiration_rate" %in% names(trait.samples)) {
-    names(trait.samples)[which(names(trait.samples) == "som_respiration_rate")] <- "t9"
-  }
-
-  return(trait.samples)
-} # convert.samples.PEPRMT
-
-
-#--------------------------------------------------------------------------------------------------#
-##' Writes a configuration files for your model
-#--------------------------------------------------------------------------------------------------#
-##' write Dalec Configuration files
+##' Writes a PEPRMT config file.
 ##'
-##' @title write.config.PEPRMT
-##' @param defaults ignored
+##' Requires a pft xml object, a list of trait values for a single PEPRMT run,
+##' and the name of the file to create
+##'
+##' @name write.config.PEPRMT
+##' @title Write PEPRMT configuration files
+##' @param defaults list of defaults to process
 ##' @param trait.values vector of samples for a given trait
-##' @param settings a PEcAn settings object
-##' @param run.id Unique identifier for the run,
-##'  used here to construct output directories and filenames.
-##' @return configuration files
-##' @export write.config.PEPRMT
+##' @param settings list of settings from pecan settings file
+##' @param run.id id of run
+##' @return configuration file for PEPRMT for given run
+##' @export
+##' @author Rob Kooper
+##-------------------------------------------------------------------------------------------------#
 write.config.PEPRMT <- function(defaults, trait.values, settings, run.id) {
-
-  ### CONVERT PARAMETERS
-  cmdFlags <- ""
-  for (group in names(trait.values)) {
-    if (group == "env") {
-
-      ## set defaults from config.header
-
-    } else {
-      if (!is.null(trait.values[[group]])) {
-        params <- convert.samples.PEPRMT(trait.values[[group]])
-        PEcAn.logger::logger.info(names(params))
-        for (i in seq_along(params)) {
-          cmdFlags <- paste0(cmdFlags, " -", names(params)[i], " ", params[[i]])
-        }
-      }
-    }
-  }
-
-  ### INITIAL CONDITIONS
-  IC.params <- list()
-
-  if(!is.null(settings$run$inputs$poolinitcond$path)) {
-    IC.path <- settings$run$inputs$poolinitcond$path
-    
-    #grab SLA from parameters and convert to PECAN standard
-    sla <- NULL
-    if("SLA" %in% names(params)){
-      sla <- PEcAn.utils::ud_convert(params[1,"SLA"], 'm2 g-1', 'm2 kg-1') #convert SLA to m2/kgC from m2/gC (revert convert.samples conversion to PEPRMT default; need standard for prepare.pools)
-    } else{
-      default.param <- utils::read.table(system.file("default_param.peprmt", package = "PEcAn.PEPRMT"), header = TRUE)
-      sla <- PEcAn.utils::ud_convert(default.param[which(default.param$cmdFlag == "SLA"),"val"], 'm2 g-1', 'm2 kg-1') #convert SLA to m2/kgC from m2/gC (PEPRMT default)
-    }
-
-    IC.pools <- PEcAn.data.land::prepare_pools(IC.path, constants = list(sla = sla))
-
-    if(!is.null(IC.pools)){
-      ###Write initial conditions from netcdf (Note: wherever valid input isn't available, PEPRMT default remains)
-
-      # cf0 initial canopy foliar carbon (g/m2)
-      if ("leaf" %in% names(IC.pools)) {
-        IC.params[["cf0"]] <- PEcAn.utils::ud_convert(IC.pools$leaf, 'kg m-2', 'g m-2') #from PEcAn standard kg C m-2
-      }
-
-      # cw0 initial pool of woody carbon (g/m2)
-      if ("wood" %in% names(IC.pools)) {
-        IC.params[["cw0"]] <- PEcAn.utils::ud_convert(IC.pools$wood, 'kg m-2', 'g m-2') #from PEcAn standard kg C m-2
-      }
-
-      # cr0 initial pool of fine root carbon (g/m2)
-      if ("fine.roots" %in% names(IC.pools)) {
-        IC.params[["cr0"]] <- PEcAn.utils::ud_convert(IC.pools$fine.roots, 'kg m-2', 'g m-2') #from PEcAn standard kg C m-2
-      }
-
-      ###non-living variables
-      # cl0 initial pool of litter carbon (g/m2)
-      if ("litter" %in% names(IC.pools)) {
-        IC.params[["cl0"]] <- PEcAn.utils::ud_convert(IC.pools$litter, 'kg m-2', 'g m-2') #from PEcAn standard kg C m-2
-      }
-
-      # cs0 initial pool of soil organic matter and woody debris carbon (g/m2)
-      if("soil" %in%  names(IC.pools)){
-        if("wood.debris" %in%  names(IC.pools)){
-          IC.params[["cs0"]] <- PEcAn.utils::ud_convert(IC.pools$soil + sum(IC.pools$wood.debris), 'kg m-2', 'g m-2') #from PEcAn standard kg C m-2
-        } else {
-          IC.params[["cs0"]] <- PEcAn.utils::ud_convert(IC.pools$soil, 'kg m-2', 'g m-2') #from PEcAn standard kg C m-2
-          PEcAn.logger::logger.warn("write.configs.PEPRMT IC: Loading soil carbon pool without woody debris.")
-        }
-      }
-
-      ###Write to command line file
-      for (i in seq_along(IC.params)) {
-        cmdFlags <- paste0(cmdFlags, " -", names(IC.params)[i], " ", IC.params[[i]])
-      }
-      PEcAn.logger::logger.info(paste("All command flags:",cmdFlags))
-
-    } else{
-      PEcAn.logger::logger.error("Bad initial conditions filepath; kept defaults")
-    }
-  }
-
-
+  PEcAn.logger::logger.severe("NOT IMPLEMENTED")
+  # Please follow the PEcAn style guide:
+  # https://pecanproject.github.io/pecan-documentation/develop/coding-style.html
+  # Note that `library()` calls should _never_ appear here; instead, put
+  # packages dependencies in the DESCRIPTION file, under "Imports:".
+  # Calls to dependent packages should use a double colon, e.g.
+  #    `packageName::functionName()`.
+  # Also, `require()` should be used only when a package dependency is truly
+  # optional. In this case, put the package name under "Suggests:" in DESCRIPTION. 
+  
   # find out where to write run/ouput
-  rundir <- file.path(settings$host$rundir, as.character(run.id))
-  outdir <- file.path(settings$host$outdir, as.character(run.id))
-  if (is.null(settings$host$qsub) && (settings$host$name == "localhost")) {
-    rundir <- file.path(settings$rundir, as.character(run.id))
-    outdir <- file.path(settings$modeloutdir, as.character(run.id))
+  rundir <- file.path(settings$host$rundir, run.id)
+  outdir <- file.path(settings$host$outdir, run.id)
+  
+  #-----------------------------------------------------------------------
+  # create launch script (which will create symlink)
+  if (!is.null(settings$model$jobtemplate) && file.exists(settings$model$jobtemplate)) {
+    jobsh <- readLines(con = settings$model$jobtemplate, n = -1)
+  } else {
+    jobsh <- readLines(con = system.file("template.job", package = "PEcAn.PEPRMT"), n = -1)
   }
-
-  ### WRITE PARAMETERS
-  config.file.name <- paste0("CONFIG.", run.id)
-  writeLines(cmdFlags, con = file.path(rundir, config.file.name))
-
-  ### WRITE JOB.SH
-  jobsh <- paste0("#!/bin/bash\n",
-                  settings$model$binary,
-                  " $(cat ", rundir, "/", config.file.name,
-                  ") < ", as.character(settings$run$inputs$met$path), " > ",
-                  outdir, "/out.txt\n",
-                  # 'echo ".libPaths(',"'~/R/library');",
-                  "echo \"",
-                  " library(PEcAn.PEPRMT); model2netcdf.PEPRMT(", "'",
-                  outdir, "',",
-                  settings$run$site$lat, ",",
-                  settings$run$site$lon, ", '",
-                  settings$run$start.date, "', '",
-                  settings$run$end.date, "') ",
-                  "\" | R --vanilla")
+  
+  # create host specific setttings
+  hostsetup <- ""
+  if (!is.null(settings$model$prerun)) {
+    hostsetup <- paste(hostsetup, sep = "\n", paste(settings$model$prerun, collapse = "\n"))
+  }
+  if (!is.null(settings$host$prerun)) {
+    hostsetup <- paste(hostsetup, sep = "\n", paste(settings$host$prerun, collapse = "\n"))
+  }
+  
+  hostteardown <- ""
+  if (!is.null(settings$model$postrun)) {
+    hostteardown <- paste(hostteardown, sep = "\n", paste(settings$model$postrun, collapse = "\n"))
+  }
+  if (!is.null(settings$host$postrun)) {
+    hostteardown <- paste(hostteardown, sep = "\n", paste(settings$host$postrun, collapse = "\n"))
+  }
+  
+  # create job.sh
+  jobsh <- gsub("@HOST_SETUP@", hostsetup, jobsh)
+  jobsh <- gsub("@HOST_TEARDOWN@", hostteardown, jobsh)
+  
+  jobsh <- gsub("@SITE_LAT@", settings$run$site$lat, jobsh)
+  jobsh <- gsub("@SITE_LON@", settings$run$site$lon, jobsh)
+  jobsh <- gsub("@SITE_MET@", settings$run$site$met, jobsh)
+  
+  jobsh <- gsub("@START_DATE@", settings$run$start.date, jobsh)
+  jobsh <- gsub("@END_DATE@", settings$run$end.date, jobsh)
+  
+  jobsh <- gsub("@OUTDIR@", outdir, jobsh)
+  jobsh <- gsub("@RUNDIR@", rundir, jobsh)
+  
+  jobsh <- gsub("@BINARY@", settings$model$binary, jobsh)
+  
   writeLines(jobsh, con = file.path(settings$rundir, run.id, "job.sh"))
   Sys.chmod(file.path(settings$rundir, run.id, "job.sh"))
-
-  ### Display info to the console.
-  print(run.id)
+  
+  #-----------------------------------------------------------------------
+  ### Edit a templated config file for runs
+  if (!is.null(settings$model$config) && file.exists(settings$model$config)) {
+    config.text <- readLines(con = settings$model$config, n = -1)
+  } else {
+    filename <- system.file(settings$model$config, package = "PEcAn.PEPRMT")
+    if (filename == "") {
+      if (!is.null(settings$model$revision)) {
+        filename <- system.file(paste0("config.", settings$model$revision), package = "PEcAn.PEPRMT")
+      } else {
+        model <- PEcAn.DB::db.query(paste("SELECT * FROM models WHERE id =", settings$model$id), params = settings$database$bety)
+        filename <- system.file(paste0("config.r", model$revision), package = "PEcAn.PEPRMT")
+      }
+    }
+    if (filename == "") {
+      PEcAn.logger::logger.severe("Could not find config template")
+    }
+    PEcAn.logger::logger.info("Using", filename, "as template")
+    config.text <- readLines(con = filename, n = -1)
+  }
+  
+  config.text <- gsub("@SITE_LAT@", settings$run$site$lat, config.text)
+  config.text <- gsub("@SITE_LON@", settings$run$site$lon, config.text)
+  config.text <- gsub("@SITE_MET@", settings$run$inputs$met$path, config.text)
+  config.text <- gsub("@MET_START@", settings$run$site$met.start, config.text)
+  config.text <- gsub("@MET_END@", settings$run$site$met.end, config.text)
+  config.text <- gsub("@START_MONTH@", format(settings$run$start.date, "%m"), config.text)
+  config.text <- gsub("@START_DAY@", format(settings$run$start.date, "%d"), config.text)
+  config.text <- gsub("@START_YEAR@", format(settings$run$start.date, "%Y"), config.text)
+  config.text <- gsub("@END_MONTH@", format(settings$run$end.date, "%m"), config.text)
+  config.text <- gsub("@END_DAY@", format(settings$run$end.date, "%d"), config.text)
+  config.text <- gsub("@END_YEAR@", format(settings$run$end.date, "%Y"), config.text)
+  config.text <- gsub("@OUTDIR@", settings$host$outdir, config.text)
+  config.text <- gsub("@ENSNAME@", run.id, config.text)
+  config.text <- gsub("@OUTFILE@", paste0("out", run.id), config.text)
+  
+  #-----------------------------------------------------------------------
+  config.file.name <- paste0("CONFIG.", run.id, ".txt")
+  writeLines(config.text, con = paste(outdir, config.file.name, sep = ""))
 } # write.config.PEPRMT
-# ==================================================================================================#
-
-remove.config.PEPRMT <- function(outdir, settings) {
-
-} # remove.config.PEPRMT

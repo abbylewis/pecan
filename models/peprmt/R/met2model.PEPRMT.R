@@ -88,13 +88,14 @@ met2model.PEPRMT <- function(in.path, in.prefix, outfolder, start_date, end_date
     sec <- PEcAn.utils::ud_convert(sec, unlist(strsplit(nc$dim$time$units, " "))[1], "seconds")
     timestep.s <- 86400  # seconds in a day
     dt <- PEcAn.utils::seconds_in_year(year) / length(sec)
-    tstep <- round(timestep.s / dt)
+    tstep <- round(timestep.s / dt) #4 per day
     dt    <- timestep.s / tstep  #dt is now an integer
 
     ## extract variables
     lat  <- ncdf4::ncvar_get(nc, "latitude")
     lon  <- ncdf4::ncvar_get(nc, "longitude")
     Tair <- ncdf4::ncvar_get(nc, "air_temperature")  ## in Kelvin
+    SW <- ncdf4::ncvar_get(nc, "surface_downwelling_shortwave_flux_in_air") #Shortwave
     ncdf4::nc_close(nc)
 
     ## build day of year
@@ -103,10 +104,13 @@ met2model.PEPRMT <- function(in.path, in.prefix, outfolder, start_date, end_date
 
     ## Aggregate variables up to daily
     TA_2         <- PEcAn.utils::ud_convert(tapply(Tair, doy, mean, na.rm = TRUE), "Kelvin", "Celsius")
+    #Consider using a different met source for PAR (since this only has SW)
+    PAR_2          <- tapply(2.114 * SW * dt, doy, sum, na.rm = TRUE) / (24*60*60) 
+    #https://rdrr.io/cran/LakeMetabolizer/man/sw.to.par.html
     Time_2          <- tapply(doy, doy, mean)
 
     ## build data matrix
-    tmp <- cbind(Time_2, TA_2)
+    tmp <- cbind(Time_2, PAR_2, TA_2)
 
     ##filter out days not included in start or end date
     if(year == start_year){
@@ -148,34 +152,35 @@ met2model.PEPRMT <- function(in.path, in.prefix, outfolder, start_date, end_date
   DOY_disc_2 = yday(Dates) #discontinuous day of year that starts over every year (1-365 or 366)
   
   WT_2 = NA
-  if(is.na(WT_2)) warning("Warning: missing water table depth. PEPRMT won't run.")
-  PAR_2 = NA
-  if(is.na(PAR_2)) warning("Warning: missing PAR. PEPRMT won't run.")
   LAI_2 = NA
   GI_2 = NA
-  if(is.na(GI_2) & is.na(LAI_2)) warning("Warning: missing greenness index and LAI both. PEPRMT won't run.")
   FPAR = NA
-  if(is.na(FPAR)) warning("Warning: missing FPAR. PEPRMT won't run.")
   LUE = NA
-  if(is.na(LUE)) warning("Warning: missing LUE. PEPRMT won't run.")
   wetland_age_2 = NA
-  if(is.na(wetland_age_2)) warning("Warning: missing wetland age. PEPRMT won't run.")
   Sal = NA
-  if(is.na(Sal)) warning("Warning: missing salinity. PEPRMT won't run.")
   NO3 = NA
-  if(is.na(NO3)) warning("Warning: missing NO3. PEPRMT won't run.")
   SOM_2 = NA
-  if(is.na(SOM_2)) warning("Warning: missing SOM. PEPRMT won't run.")
   site_2 = 1
-  if(is.na(site_2)) warning("Warning: missing site. Site set to 1.")
   
   #column order matters
-  final <- cbind(out, DOY_disc_2, Year_2, TA_2, WT_2, PAR_2, LAI_2, GI_2, FPAR, 
+  final <- cbind(out, DOY_disc_2, Year_2, TA_2, WT_2, LAI_2, GI_2, FPAR, 
                  LUE, wetland_age_2, Sal, NO3, SOM_2, site_2) %>%
     data.frame() %>%
     select(all_of(c("Time_2", "DOY_disc_2", "Year_2", "TA_2", "WT_2", 
                     "PAR_2", "LAI_2", "GI_2", "FPAR", 
                     "LUE", "wetland_age_2", "Sal", "NO3", "SOM_2", "site_2")))
+  
+  if(sum(is.na(final$WT_2))!=0) warning("Warning: missing water table depth. PEPRMT won't run.")
+  if(sum(is.na(final$GI_2))!=0 & 
+     sum(is.na(final$LAI_2))!=0) warning("Warning: missing greenness index and LAI both. PEPRMT won't run.")
+  if(sum(is.na(final$FPAR))!=0) warning("Warning: missing FPAR. PEPRMT won't run.")
+  if(sum(is.na(final$PAR))!=0) warning("Warning: missing PAR. PEPRMT won't run.")
+  if(sum(is.na(final$LUE))!=0) warning("Warning: missing LUE. PEPRMT won't run.")
+  if(sum(is.na(final$wetland_age_2))!=0) warning("Warning: missing wetland age. PEPRMT won't run.")
+  if(sum(is.na(final$Sal))!=0) warning("Warning: missing salinity. PEPRMT won't run.")
+  if(sum(is.na(final$NO3))!=0) warning("Warning: missing NO3. PEPRMT won't run.")
+  if(sum(is.na(final$SOM_2))!=0) warning("Warning: missing SOM. PEPRMT won't run.")
+  if(sum(is.na(final$site_2))!=0) warning("Warning: missing site. Site set to 1.")
   
   utils::write.table(final, out.file.full, quote = FALSE, sep = " ", row.names = FALSE, col.names = FALSE)
 

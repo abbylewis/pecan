@@ -18,7 +18,7 @@ run_PEPRMT <- function(target) {
   
   #Second run Reco Module
   #Add modeled GPP into data before running Reco module (16th column)
-  target[,16]<-target_results$GPP_mod
+  target$GPP_mod<-target_results$GPP_mod
   
   Reco_theta <- c(18.41329, 1487.65701, 11.65972, 61.29611 )
   Reco_mod_target <- PEPRMT_Reco_FINAL(Reco_theta,

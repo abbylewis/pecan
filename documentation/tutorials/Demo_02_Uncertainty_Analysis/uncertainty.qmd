@@ -175,24 +175,24 @@ We discussed the output directory in Demo 1 (Basic Run), but now we have three n
 
 ```
 demo_outdir/
-├── run/                   # Configuration & execution metadata
-│   ├── runs.txt           # List of run IDs (one per model realization)
-│   ├── <runid>/           # Files for each individual model invocation, in the form the model saw them
-│   └── config.*           # Generated model configs (e.g., SIPNET)
-├── out/                   # Model outputs by run ID
-│   └── <runid>/           # E.g., daily or sub-daily SIPNET output files + yearly netcdfs + log files from the run
-├── sensitivity.analysis/  # Sensitivity raw outputs &amp; figures
-│   ├── sensitivity.output.*.Rdata
-│   └── sensitivity.analysis.*.pdf
-├── ensemble.analysis/     # Ensemble summaries &amp; figures
-│   ├── ensemble.Rdata
-│   ├── ensemble.analysis.*.pdf
-│   └── ensemble.ts.*.pdf
-├── variance.decomposition/  # Created when variance decomposition runs
-│   └── variance.decomposition.*.pdf
-├── pft/                   # Parameter (prior/posterior) files per PFT
+├── run/                                    # Configuration & execution metadata
+│   ├── runs.txt                           # List of run IDs (SA and ensemble runs)
+│   ├── ENS-*-*/                          # Ensemble run directories (e.g., ENS-00001--1/)
+│   └── SA-*-*/                           # Sensitivity analysis run directories
+├── out/                                   # Raw model outputs by run ID
+│   └── <runid>/                          # E.g., daily or sub-daily SIPNET output files
+├── ensemble.analysis.*.pdf                # Ensemble analysis plots
+├── ensemble.output.*.Rdata               # Raw ensemble outputs
+├── ensemble.samples.*.Rdata              # Parameter samples used for ensemble
+├── ensemble.ts.*.Rdata                   # Time series data from ensemble
+├── samples.Rdata                         # Parameter samples for both SA and ensemble
+├── sensitivity.output.*.Rdata            # SA model outputs
+├── sensitivity.results.*.Rdata           # Processed SA results
+├── sensitivity.samples.*.Rdata           # SA parameter samples
+├── variance.decomposition.*.pdf          # Variance decomposition analysis
+├── pft/                                  # Parameter (prior/posterior) files per PFT
 │   └── temperate.coniferous/
-└── sipnet                 # SIPNET binary (downloaded earlier)
+└── sipnet                                # SIPNET binary (downloaded earlier)
 ```
 
 ### Model outputs and logs

@@ -30,12 +30,7 @@ section for the next release.
  - Support for inspecting and plotting NetCDF output variables within the notebook workflow.
 - added support for soil temperature, relative humidity, soil moisture, and PPFD downscaling to `met_temporal_downscale.Gaussian_ensemble`
 
-- New Quarto notebook tutorial for PEcAn uncertainty analysis (`documentation/tutorials/Demo_02_Uncertainty_Analysis/uncertainty.qmd`) (#3570)
-  - Complete workflow demonstration for ensemble and sensitivity analysis using PEcAn's programmatic interface
-  - Parameter customization sections for ensemble size, sampling methods, and sensitivity quantiles
-  - Comprehensive output interpretation guide explaining variance decomposition and parameter prioritization
-  - Model result visualization with run ID identification and ensemble analysis capabilities
-  - Session information for reproducibility and clear documentation of PEcAn's uncertainty analysis outputs
+- The PEcAn uncertainty analysis tutorial ("Demo 2") has been updated and reimplemented as a Quarto notebook at `documentation/tutorials/Demo_02_Uncertainty_Analysis/uncertainty.qmd`. (#3570)
 
 ### Fixed
 

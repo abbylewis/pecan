@@ -12,7 +12,8 @@
 #' the same parameters rather than creating new parameters for each job.
 #' @param sobol for activating sobol
 #' @return  A list containing ensemble samples and indices
-#'
+#'   If `sobol = TRUE`, the list will be a `sensitivity::soboljansen()` 
+#'   result and will contain the components documented therein.
 #' @export
 
 generate_joint_ensemble_design <- function(settings,
@@ -68,9 +69,5 @@ generate_joint_ensemble_design <- function(settings,
     sobol_obj <- sensitivity::soboljansen(model = NULL, X1 = X1, X2 = X2)
     return(sobol_obj)
   }
-  # This ensures that regardless of whether the sobol or non-sobol version is called 
-  # that the output is a list that includes the design as X. In the sobol version the 
-  # list includes additional info beyond just X that's required by the function that 
-  # does the sobol index calculations, but not required to do the runs themselves.
   return(list(X = design_matrix))
 }

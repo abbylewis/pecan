@@ -23,6 +23,8 @@ the same parameters rather than creating new parameters for each job.}
 }
 \value{
 A list containing ensemble samples and indices
+  If `sobol = TRUE`, the list will be a `sensitivity::soboljansen()` 
+  result and will contain the components documented therein.
 }
 \description{
 Generate joint ensemble design for parameter sampling

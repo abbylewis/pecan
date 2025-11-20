@@ -1,4 +1,4 @@
-name: Render Quarto NoteBooks
+name: Render Demo Notebooks
 
 on:
   push:

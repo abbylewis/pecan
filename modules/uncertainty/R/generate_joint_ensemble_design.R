@@ -5,7 +5,6 @@
 #'
 #' @param settings A PEcAn settings object containing ensemble configuration
 #' @param ensemble_size Integer specifying the number of ensemble members
-#' @param ensemble_samples list of ensemble parameters across PFTs. The default is NULL.
 #' Since the `input_design` will only be generated once for the entire model run,
 #' the only situation, where we might want to recycle the existing `ensemble_samples`,
 #' is when we split and submit the larger SDA runs (e.g., 8,000 sites) into 
@@ -18,7 +17,6 @@
 
 generate_joint_ensemble_design <- function(settings,
                                            ensemble_size,
-                                           ensemble_samples = NULL,
                                            sobol = FALSE) {
   if (sobol) {
     ensemble_size <- as.numeric(ensemble_size) * 2
@@ -57,35 +55,10 @@ generate_joint_ensemble_design <- function(settings,
     sampled_inputs[[input_tag]] <- input_result$ids
     design_list[[input_tag]] <- input_result$ids
   }
-  
-  # Sample parameters if we don't have it.
-  if (is.null(ensemble_samples)) {
-    PEcAn.uncertainty::get.parameter.samples(
-      settings,
-      ensemble.size = ensemble_size,
-      posterior.files,
-      ens.sample.method
-    )
-    samples.file <- file.path(settings$outdir, "samples.Rdata")
-  }
-  
-  # Load samples from file
-  samples <- new.env()
-  # if we don't have the parameters from the outside. 
-  if (is.null(ensemble_samples)) {
-    if (file.exists(samples.file)) {
-      load(samples.file, envir = samples)
-    } else {
-      PEcAn.logger::logger.error(samples.file, "not found, this file is required")
-    }
-  }
-  if (!is.null(samples$ensemble.samples) | !is.null(ensemble_samples)) {
-    # Just a placeholder: extract representative trait index per ensemble member
-    # You may want to flatten or select indices per trait
-    design_list[["param"]] <- seq_len(ensemble_size)
-  } else {
-    PEcAn.logger::logger.warn("ensemble.samples not found in samples.Rdata")
-  }
+  # Here we assumed the length of parameters is identical to the ensemble size.
+  # TODO: detect if they are identical. If not, we will need to resample the 
+  # parameters with replacement.
+  design_list[["param"]] <- seq_len(ensemble_size)
   design_matrix <- data.frame(design_list)
 
   if (sobol) {

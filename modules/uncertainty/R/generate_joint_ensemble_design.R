@@ -35,6 +35,7 @@ generate_joint_ensemble_design <- function(settings,
   ]
   samp.ordered <- samp[c(order, names(samp)[!(names(samp) %in% order)])]
 
+  # loop over inputs.
   for (i in seq_along(samp.ordered)) {
     input_tag <- names(samp.ordered)[i]
     parent_name <- samp.ordered[[i]]$parent
@@ -56,6 +57,14 @@ generate_joint_ensemble_design <- function(settings,
     sampled_inputs[[input_tag]] <- input_result$ids
     design_list[[input_tag]] <- input_result$ids
   }
+  # Sample parameters if we don't have it.
+  if (!file.exists(file.path(settings$outdir, "samples.Rdata"))) {
+    PEcAn.uncertainty::get.parameter.samples(
+      settings,
+      ensemble.size = ensemble_size,
+      posterior.files,
+      ens.sample.method)
+  }
   # Here we assumed the length of parameters is identical to the ensemble size.
   # TODO: detect if they are identical. If not, we will need to resample the 
   # parameters with replacement.
@@ -69,5 +78,9 @@ generate_joint_ensemble_design <- function(settings,
     sobol_obj <- sensitivity::soboljansen(model = NULL, X1 = X1, X2 = X2)
     return(sobol_obj)
   }
+  # This ensures that regardless of whether the sobol or non-sobol version is called 
+  # that the output is a list that includes the design as X. In the sobol version the 
+  # list includes additional info beyond just X that's required by the function that 
+  # does the sobol index calculations, but not required to do the runs themselves.
   return(list(X = design_matrix))
 }

@@ -1,13 +1,11 @@
-Portions of the code in this directory are part of the DART software and are
-copyright UCAR. They are provided as-is subject to the DART terms of use
-available at https://dart.ucar.edu.
-
+Files labeled as part of the DART software are copyright UCAR.
+They are provided as-is subject to the DART terms of use available at
+https://dart.ucar.edu.
 
 ---
 
-
-Other portions of the code in this directory were written by Toni Viskari for
-the PEcAn project and are provided under the BSD 3-clause license:
+Other code in this directory was written by Toni Viskari for
+the PEcAn project and is provided under the BSD 3-clause license:
 
 Copyright (c) 2012-2024 Pecan Project
 

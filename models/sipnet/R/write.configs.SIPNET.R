@@ -535,6 +535,14 @@ write.config.SIPNET <- function(defaults, trait.values, settings, run.id, inputs
       if ("volume_fraction_of_water_in_soil_at_saturation" %in% names(soil_IC_list$vals)) {
         #if depth is provided in the file
         if ("depth" %in% names(soil_IC_list$dims)) {
+          # reduce estimates to the pre-defined soil depth.
+          if (!is.null(settings$run$inputs$soil_physics$soil_depth)) {
+            inds.depth <- which(soil_IC_list$dims$depth <= as.numeric(settings$run$inputs$soil_physics$soil_depth))
+            soil_IC_list$dims$depth <- soil_IC_list$dims$depth[inds.depth]
+            for (soil.val in names(soil_IC_list$vals)) {
+              soil_IC_list$vals[[soil.val]] <- soil_IC_list$vals[[soil.val]][inds.depth]
+            }
+          }
           # Calculate the thickness of soil layers based on the assumption that the depth values are at bottoms and the first layer top is at 0
           thickness<-c(soil_IC_list$dims$depth[1],diff(soil_IC_list$dims$depth))
           thickness<-PEcAn.utils::ud_convert(thickness, "m", "cm")

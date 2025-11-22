@@ -92,7 +92,7 @@ The number of runs in the ensemble is set to **50** in this demo, but a larger e
 
 **Output variable**
 
-The output variable for the ensemble analysis is set to **NPP** (Net Primary Productivity). You can change this to other variables like NEE (Net Ecosystem Exchange), LAI (Leaf Area Index), ET (Evapotranspiration), etc.
+The output variable for the ensemble analysis is set to **NPP** (Net Primary Productivity). You can change this to other variables like NEE (Net Ecosystem Exchange), LAI (Leaf Area Index), ET (Evapotranspiration), etc. You can also specify multiple variables by providing a vector of variable names (e.g., `c("NPP", "NEE", "LAI")`) to analyze uncertainty across several ecosystem processes simultaneously.
 
 **Sampling method**
 
@@ -365,8 +365,11 @@ if (file.exists(sens_file)) {
 # Set the number of ensemble members (model runs)
 settings$ensemble$size <- 50
 
-# Specify the variable to be analyzed in the ensemble
+# Specify the variable(s) to be analyzed in the ensemble
+# Single variable:
 settings$ensemble$variable <- "NEE"
+# Multiple variables (uncomment to use):
+# settings$ensemble$variable <- c("NEE", "NPP", "LAI")
 
 # Choose the method for sampling the parameter space (options: "uniform", "lhc", "halton", "sobol", "torus")
 settings$ensemble$samplingspace$parameters$method <- "halton"

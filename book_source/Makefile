@@ -33,8 +33,5 @@ CLEAN_DIRS = _book extfiles
 clean:
 	rm -rf $(CLEAN_DIRS)
 
-deploy: build
-	./deploy.sh
-
 pdf: bkdcheck
 	Rscript -e 'options(bookdown.render.file_scope=FALSE); bookdown::render_book("index.Rmd", "bookdown::pdf_book")'

@@ -40,24 +40,53 @@ jobs:
             }
           '"
 
-      - name: Render Quarto notebooks to HTML
+      - name: Install TinyTeX and render Quarto notebooks to PDF
         run: |
           docker run --rm -v ${{ github.workspace }}:/work pecan-base-ci:latest bash -c "
-            quarto render /work/documentation/tutorials/Demo_1_Basic_Run/run_pecan.qmd --to html &&
-            quarto render /work/documentation/tutorials/Demo_02_Uncertainty_Analysis/uncertainty.qmd --to html
+            quarto install tinytex --no-prompt &&
+            quarto render /work/documentation/tutorials/Demo_1_Basic_Run/run_pecan.qmd --to pdf &&
+            quarto render /work/documentation/tutorials/Demo_02_Uncertainty_Analysis/uncertainty.qmd --to pdf
           "
 
-      - name: Prepare HTML artifacts
+      - name: Check if documentation repo exists
+        id: doc_exists
         run: |
-          mkdir quarto_html_build
-          cp documentation/tutorials/Demo_1_Basic_Run/run_pecan.html quarto_html_build/
-          cp -r documentation/tutorials/Demo_1_Basic_Run/run_pecan_files quarto_html_build/
-          cp documentation/tutorials/Demo_02_Uncertainty_Analysis/uncertainty.html quarto_html_build/
-          cp -r documentation/tutorials/Demo_02_Uncertainty_Analysis/uncertainty_files quarto_html_build/
+          if git ls-remote https://github.com/${{ github.repository_owner }}/pecan-documentation.git > /dev/null 2>&1; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
 
-      - name: Upload rendered HTML as artifacts
-        uses: actions/upload-artifact@v4
+      - name: Checkout documentation repo
+        if: ${{ github.event_name == 'push' && steps.doc_exists.outputs.exists == 'true' }}
+        uses: actions/checkout@v4
         with:
-          name: quarto-html
-          path: quarto_html_build/
-          retention-days: 90
+          repository: ${{ github.repository_owner }}/pecan-documentation
+          path: pecan-documentation
+          token: ${{ secrets.GH_PAT }}
+
+      - name: Deploy PDFs to documentation repo
+        if: ${{ github.event_name == 'push' && steps.doc_exists.outputs.exists == 'true' }}
+        run: |
+          git config --global user.email "pecanproj@gmail.com"
+          git config --global user.name "GitHub Documentation Robot"
+          
+          # Determine version/branch
+          export VERSION=$(echo $GITHUB_REF | sed 's,.*/,,' )
+          if [ "$VERSION" = "main" ]; then
+            export VERSION=latest
+          fi
+          
+          # Create target directory
+          TARGET_DIR="pecan-documentation/${VERSION}/documentation/tutorials"
+          mkdir -p $TARGET_DIR
+          
+          # Copy PDFs
+          cp documentation/tutorials/Demo_1_Basic_Run/run_pecan.pdf $TARGET_DIR/
+          cp documentation/tutorials/Demo_02_Uncertainty_Analysis/uncertainty.pdf $TARGET_DIR/
+          
+          # Commit and push
+          cd pecan-documentation
+          git add --all *
+          git commit -m "Update Quarto PDFs from pecan revision ${GITHUB_SHA}" || true
+          git push -q origin main

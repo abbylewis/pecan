@@ -34,18 +34,18 @@ generate_joint_ensemble_design <- function(settings,
       unlist()
   ]
   samp.ordered <- samp[c(order, names(samp)[!(names(samp) %in% order)])]
-  
+
   # loop over inputs.
   for (i in seq_along(samp.ordered)) {
     input_tag <- names(samp.ordered)[i]
     parent_name <- samp.ordered[[i]]$parent
-    
+
     parent_ids <- if (!is.null(parent_name)) {
       sampled_inputs[[parent_name]]
     } else {
       NULL
     }
-    
+
     input_result <- PEcAn.uncertainty::input.ens.gen(
       settings = settings,
       ensemble_size = ensemble_size,
@@ -53,7 +53,7 @@ generate_joint_ensemble_design <- function(settings,
       method = samp.ordered[[i]]$method,
       parent_ids = parent_ids
     )
-    
+
     sampled_inputs[[input_tag]] <- input_result$ids
     design_list[[input_tag]] <- input_result$ids
   }
@@ -70,7 +70,7 @@ generate_joint_ensemble_design <- function(settings,
   # parameters with replacement.
   design_list[["param"]] <- seq_len(ensemble_size)
   design_matrix <- data.frame(design_list)
-  
+
   if (sobol) {
     half <- floor(ensemble_size / 2)
     X1 <- design_matrix[1:half, ]

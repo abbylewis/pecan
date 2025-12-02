@@ -317,22 +317,40 @@ sda.enkf.multisite <- function(settings,
   # weight matrix
   wt.mat <- matrix(NA, nrow = nens, ncol = nt)
   # Reading param samples------------------------------- 
-  #create params object using samples generated from TRAITS functions
+  # create params object using samples generated from TRAITS functions
   if(restart_flag){
     new.params <- new.params
   } else {
-    if(!file.exists(file.path(settings$outdir, "samples.Rdata"))) PEcAn.logger::logger.severe("samples.Rdata cannot be found. Make sure you generate samples by running the get.parameter.samples function before running SDA.")
-    #Generate parameter needs to be run before this to generate the samples. This is hopefully done in the main workflow.
-    if(is.null(ensemble.samples)){
+    gen.samples <- FALSE
+    if (is.null(ensemble.samples)) {
+      if (file.exists(file.path(settings$outdir, "samples.Rdata"))) {
+        load(file.path(settings$outdir, "samples.Rdata"))
+      } else {
+        gen.samples <- TRUE
+      }
+    }
+    # get the joint input design.
+    # here we are looping over sites
+    # to make sure we are grabbing the complete input lists.
+    for (i in seq_along(settings)) {
+      # get the input names that are registered for sampling.
+      names.sampler <- names(settings$ensemble$samplingspace)
+      # get the input names for the current site.
+      names.site.input <- names(settings[[i]]$run$inputs)
+      # remove parameters field from the list.
+      names.sampler <- names.sampler[-which(names.sampler == "parameters")]
+      # find a site that has all registered inputs except for the parameter field.
+      if (all(names.sampler %in% names.site.input)) {
+        input_design <- PEcAn.uncertainty::generate_joint_ensemble_design(settings = settings[[i]],
+                                                                          ensemble_size = nens)[[1]]
+        break
+      }
+    }
+    # if we generated new samples file within the `generate_joint_ensemble_design` function.
+    if (gen.samples) {
       load(file.path(settings$outdir, "samples.Rdata"))
     }
-    #reformatting params
     new.params <- sda_matchparam(settings, ensemble.samples, site.ids, nens)
-    # if it's not a restart run, we will generate the joint input design.
-    # get the joint input design.
-    input_design <- PEcAn.uncertainty::generate_joint_ensemble_design(settings = settings[[1]], 
-                                                                      ensemble_samples = ensemble.samples, 
-                                                                      ensemble_size = nens)[[1]]
   }
   ###------------------------------------------------------------------------------------------------###
   ### loop over time                                                                                 ###

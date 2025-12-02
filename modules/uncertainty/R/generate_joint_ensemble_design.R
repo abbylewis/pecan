@@ -5,6 +5,7 @@
 #'
 #' @param settings A PEcAn settings object containing ensemble configuration
 #' @param ensemble_size Integer specifying the number of ensemble members
+#' @param gen.samples Logical: logical variable determine if we want to generate the samples.
 #' Since the `input_design` will only be generated once for the entire model run,
 #' the only situation, where we might want to recycle the existing `ensemble_samples`,
 #' is when we split and submit the larger SDA runs (e.g., 8,000 sites) into 
@@ -18,6 +19,7 @@
 
 generate_joint_ensemble_design <- function(settings,
                                            ensemble_size,
+                                           gen.samples = FALSE,
                                            sobol = FALSE) {
   if (sobol) {
     ensemble_size <- as.numeric(ensemble_size) * 2
@@ -58,7 +60,7 @@ generate_joint_ensemble_design <- function(settings,
     design_list[[input_tag]] <- input_result$ids
   }
   # Sample parameters if we don't have it.
-  if (!file.exists(file.path(settings$outdir, "samples.Rdata"))) {
+  if (gen.samples) {
     PEcAn.uncertainty::get.parameter.samples(
       settings,
       ensemble.size = ensemble_size,

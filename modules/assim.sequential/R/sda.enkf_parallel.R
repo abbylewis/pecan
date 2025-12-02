@@ -194,12 +194,15 @@ sda.enkf_local <- function(settings,
   ### set up for data assimilation                                      ###
   ###-------------------------------------------------------------------###----
   # Reading param samples------------------------------- 
-  #create params object using samples generated from TRAITS functions
+  # create params object using samples generated from TRAITS functions
+  gen.samples <- FALSE
   if (is.null(ensemble.samples)) {
-    load(file.path(settings$outdir, "samples.Rdata"))
+    if (file.exists(file.path(settings$outdir, "samples.Rdata"))) {
+      load(file.path(settings$outdir, "samples.Rdata"))
+    } else {
+      gen.samples <- TRUE
+    }
   }
-  #reformatting params
-  new.params <- sda_matchparam(settings, ensemble.samples, site.ids, nens)
   # get the joint input design.
   for (i in seq_along(settings)) {
     # get the input names that are registered for sampling.
@@ -210,12 +213,17 @@ sda.enkf_local <- function(settings,
     names.sampler <- names.sampler[-which(names.sampler == "parameters")]
     # find a site that has all registered inputs except for the parameter field.
     if (all(names.sampler %in% names.site.input)) {
-      input_design <- PEcAn.uncertainty::generate_joint_ensemble_design(settings = settings[[i]], 
-                                                                        ensemble_samples = ensemble.samples, 
+      input_design <- PEcAn.uncertainty::generate_joint_ensemble_design(settings = settings[[i]],
                                                                         ensemble_size = nens)[[1]]
       break
     }
   }
+  # reformatting params.
+  # if we generated new samples file within the `generate_joint_ensemble_design` function.
+  if (gen.samples) {
+    load(file.path(settings$outdir, "samples.Rdata"))
+  }
+  new.params <- sda_matchparam(settings, ensemble.samples, site.ids, nens)
   ###------------------------------------------------------------------------------------------------###
   ### loop over time                                                                                 ###
   ###------------------------------------------------------------------------------------------------###

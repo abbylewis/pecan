@@ -7,20 +7,12 @@ Creates a joint ensemble design that maintains parameter correlations across
 all sites in a multi-site run. This function generates sample indices that
 are shared across sites to ensure consistent parameter sampling.}
 \usage{
-generate_joint_ensemble_design(
-  settings,
-  ensemble_size,
-  generate_samples = TRUE,
-  sobol = FALSE
-)
+generate_joint_ensemble_design(settings, ensemble_size, sobol = FALSE)
 }
 \arguments{
 \item{settings}{A PEcAn settings object containing ensemble configuration}
 
-\item{ensemble_size}{Integer specifying the number of ensemble members}
-
-\item{generate_samples}{Logical: logical variable determine if we want to generate the samples.
-Default is TRUE.
+\item{ensemble_size}{Integer specifying the number of ensemble members
 Since the `input_design` will only be generated once for the entire model run,
 the only situation, where we might want to recycle the existing `ensemble_samples`,
 is when we split and submit the larger SDA runs (e.g., 8,000 sites) into 

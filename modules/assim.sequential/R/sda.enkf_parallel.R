@@ -195,12 +195,12 @@ sda.enkf_local <- function(settings,
   ###-------------------------------------------------------------------###----
   # Reading param samples------------------------------- 
   # create params object using samples generated from TRAITS functions
-  gen.samples <- FALSE
+  generate_samples <- FALSE
   if (is.null(ensemble.samples)) {
     if (file.exists(file.path(settings$outdir, "samples.Rdata"))) {
       load(file.path(settings$outdir, "samples.Rdata"))
     } else {
-      gen.samples <- TRUE
+      generate_samples <- TRUE
     }
   }
   # get the joint input design.
@@ -220,7 +220,7 @@ sda.enkf_local <- function(settings,
   }
   # reformatting params.
   # if we generated new samples file within the `generate_joint_ensemble_design` function.
-  if (gen.samples) {
+  if (generate_samples) {
     load(file.path(settings$outdir, "samples.Rdata"))
   }
   new.params <- sda_matchparam(settings, ensemble.samples, site.ids, nens)

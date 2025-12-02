@@ -10,7 +10,7 @@ are shared across sites to ensure consistent parameter sampling.}
 generate_joint_ensemble_design(
   settings,
   ensemble_size,
-  gen.samples = FALSE,
+  generate_samples = TRUE,
   sobol = FALSE
 )
 }
@@ -19,7 +19,8 @@ generate_joint_ensemble_design(
 
 \item{ensemble_size}{Integer specifying the number of ensemble members}
 
-\item{gen.samples}{Logical: logical variable determine if we want to generate the samples.
+\item{generate_samples}{Logical: logical variable determine if we want to generate the samples.
+Default is TRUE.
 Since the `input_design` will only be generated once for the entire model run,
 the only situation, where we might want to recycle the existing `ensemble_samples`,
 is when we split and submit the larger SDA runs (e.g., 8,000 sites) into 

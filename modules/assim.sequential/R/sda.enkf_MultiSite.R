@@ -321,12 +321,12 @@ sda.enkf.multisite <- function(settings,
   if(restart_flag){
     new.params <- new.params
   } else {
-    gen.samples <- FALSE
+    generate_samples <- FALSE
     if (is.null(ensemble.samples)) {
       if (file.exists(file.path(settings$outdir, "samples.Rdata"))) {
         load(file.path(settings$outdir, "samples.Rdata"))
       } else {
-        gen.samples <- TRUE
+        generate_samples <- TRUE
       }
     }
     # get the joint input design.
@@ -347,7 +347,7 @@ sda.enkf.multisite <- function(settings,
       }
     }
     # if we generated new samples file within the `generate_joint_ensemble_design` function.
-    if (gen.samples) {
+    if (generate_samples) {
       load(file.path(settings$outdir, "samples.Rdata"))
     }
     new.params <- sda_matchparam(settings, ensemble.samples, site.ids, nens)

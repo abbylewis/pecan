@@ -35,7 +35,7 @@ jobs:
         id: lychee
         uses: lycheeverse/lychee-action@v2
         with:
-          args: --config .github/lychee.toml './**/*.md' './**/*.html' './**/*.Rd' './**/*.Rmd' './**/*.R' 'README.md'
+          args: --config .github/lychee.toml './**/*.md' './**/*.html' './**/*.Rd' './**/*.Rmd' './**/*.R' './**/*.qmd'
           fail: false
       
       # Search for existing open issue to avoid creating duplicates

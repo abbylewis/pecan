@@ -9,7 +9,7 @@
 ##' @param run.id id of run
 ##' @return configuration file for MODEL for given run
 ##' @export
-##' @author Rob Kooper
+##' @author Chris Black
 write.config.RothC <- function(defaults, trait.values, settings, run.id) {
 
   # find out where to write run/ouput

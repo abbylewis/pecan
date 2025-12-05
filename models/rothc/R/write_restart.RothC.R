@@ -1,6 +1,6 @@
 #' @title Write restart template for SDA
 #'
-#' @author Alexey Shiklomanov
+#' @author Chris Black
 #'
 #' @param outdir       outout directory
 #' @param runid        run id

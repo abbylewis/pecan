@@ -1,6 +1,6 @@
 #' @title Read restart template for SDA
 #'
-#' @author Alexey Shiklomanov
+#' @author Chris Black
 #'
 #' @param outdir      Output directory
 #' @param runid       Run ID

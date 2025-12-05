@@ -55,6 +55,7 @@
 "dplyr","*","models/biocro","Imports",FALSE
 "dplyr","*","models/ed","Imports",FALSE
 "dplyr","*","models/ldndc","Imports",FALSE
+"dplyr","*","models/rothc","Imports",FALSE
 "dplyr","*","models/sipnet","Imports",FALSE
 "dplyr","*","models/stics","Imports",FALSE
 "dplyr","*","modules/assim.sequential","Imports",FALSE
@@ -501,6 +502,7 @@
 "rlang","*","models/biocro","Imports",FALSE
 "rlang","*","models/ed","Imports",FALSE
 "rlang","*","models/ldndc","Imports",FALSE
+"rlang","*","models/rothc","Imports",FALSE
 "rlang","*","models/sipnet","Imports",FALSE
 "rlang","*","modules/assim.sequential","Imports",FALSE
 "rlang","*","modules/benchmark","Imports",FALSE

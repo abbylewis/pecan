@@ -113,16 +113,21 @@ met2model.RothC <- function(in.path,
     )
   }
 
+  timestep <- met$timestamp |>
+    diff(units = "secs") |>
+    mean() |>
+    as.numeric()
+
   met$year <- lubridate::year(met$timestamp)
   met$month <- lubridate::month(met$timestamp)
-  met$Tmp <- met$air_temperature |>
+  met$Tmp_C <- met$air_temperature |>
     PEcAn.utils::ud_convert("K", "degC")
-  met$Rain <- 0# TODO... sum up to convert from flux to accumulation, right?
-  met$Evap <- 0# TODO... how to convert Qair to pan evaporation?
+  met$Rain_mm <- met$precipitation_flux * timestep # kg/m2/sec -> mm total
+  met$Evap_mm <- 0# TODO... how to convert Qair to pan evaporation?
 
   met_monthly <- merge(
-    stats::aggregate(met, Tmp ~ year + month, mean),
-    stats::aggregate(met, cbind(Rain, Evap) ~ year + month, sum),
+    stats::aggregate(met, Tmp_C ~ year + month, mean),
+    stats::aggregate(met, cbind(Rain_mm, Evap_mm) ~ year + month, sum),
     sort = FALSE # would treat months as strings; sort as numbers below instead
   )
   met_monthly <- met_monthly[order(met_monthly$year, met_monthly$month), ]

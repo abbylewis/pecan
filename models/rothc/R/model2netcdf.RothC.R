@@ -30,7 +30,10 @@ model2netcdf.RothC <- function(outdir, sitelat, sitelon, start_date, end_date) {
   # PEVAP_mm, SMD_mm, RM_Moist, PC, RM_PC, DPM_t_C_ha, RPM_t_C_ha, Bio_t_C_ha,
   # Hum_t_C_ha, IOM_t_C_ha, SOC_t_C_ha, CO2_t_C_ha
   res <- utils::read.csv(file.path(outdir, "month_results.out")) |>
-    # Remove spinup lines. TODO handle better?
+    # Remove spinup lines. TODO handle better:
+    # - are there always just two of them?
+    # - is first year of data always used as spinup?
+    # - is temperature always null for these and no others?
     dplyr::filter(.data$Year > 1) |>
     # Convert time formats
     dplyr::mutate(

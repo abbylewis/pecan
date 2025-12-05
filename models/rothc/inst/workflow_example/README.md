@@ -24,7 +24,8 @@ meaningful predictions yet.
 ## To run
 
 * put weather data in `data_raw/ERA5_CA_nc/` (or update paths to where your weather already is)
-* put RothC in `/usr/local/bin/RothC_v2.1.0` (or update that path in the template)
+* Update line 45 of `template.xml` to the path where you installed your copy of RothC
+	(or put RothC at `/usr/local/bin/RothC_v2.1.0`)
 * update `site_info.csv` with your sites of interest
-* TK: site-specific management and soil information once implemented
+* TK: Add site-specific management and soil information once implemented
 * `./run.sh`

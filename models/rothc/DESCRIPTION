@@ -7,21 +7,24 @@ Authors@R: c(
     person("Rothamsted Research", role = c("cph"))
             )
 Description: This module provides functions to link the Rothamstead soil carbon model "RothC" to PEcAn.
-  Uses RothC 1.0.0, made available by Rothamstead Research under the Apache License 2.0. TODO: Determine whether we are including a copy of the RothC sources in this package or connecting to externally installed versions, get copyright notice and license requirements met.
+  Uses RothC >= 2.0, available on GitHub <https://github.com/Rothamsted-Models/RothC_Code>
+  as well as directly from the RothC team <https://www.rothamsted.ac.uk/rothamsted-carbon-model-rothc>.
+URL: https://pecanproject.github.io
+BugReports: https://github.com/PecanProject/pecan/issues
 Depends: R (>= 4.1)
 Imports:
     dplyr,
     lubridate (>= 1.6.0),
     ncdf4,
     PEcAn.logger,
-    PEcAn.utils (>= 1.4.8),
+    PEcAn.utils (>= 1.8.0),
     rlang,
     stats,
     utils
 Suggests:
     testthat (>= 3.0.0),
     withr
-SystemRequirements: RothC_Py
+SystemRequirements: RothC
 OS_type: unix
 License: BSD_3_clause + file LICENSE
 Copyright: Authors

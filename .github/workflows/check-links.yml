@@ -1,7 +1,6 @@
 name: Check Documentation Links (Periodic Checks)
-#test
+
 on:
-  push:
   # Run weekdays at 10:00 UTC
   schedule:
     - cron: '0 10 * * 1-5'
@@ -44,7 +43,7 @@ jobs:
         id: search-issue
         run: |
           encoded_issue_name=$(echo "$ISSUE_NAME" | sed 's/ /%20/g')
-          response=$(curl -s -X GET "https://api.github.com/search/issues?q=$encoded_issue_name+repo:${{ github.repository }}+state:open+label:automated-issue&type=Issues")
+          response=$(curl -s -X GET "https://api.github.com/search/issues?q=$encoded_issue_name+repo:PecanProject/pecan+state:open+label:automated-issue&type=Issues")
           issue_number=$(echo "$response" | jq -r '.items[0].number // empty')
           echo "issue_number=$issue_number" >> $GITHUB_OUTPUT
       
@@ -64,4 +63,4 @@ jobs:
         uses: peter-evans/close-issue@v3
         with:
           issue-number: ${{ steps.search-issue.outputs.issue_number }}
-          comment: '[Periodic links check](https://github.com/${{ github.repository }}/actions/workflows/check-links.yml) no longer finds broken links, closing issue.'
+          comment: '[Periodic links check](https://github.com/PecanProject/pecan/actions/workflows/check-links.yml) no longer finds broken links, closing issue.'

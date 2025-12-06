@@ -2,8 +2,8 @@
 
 export(met2model.RothC)
 export(model2netcdf.RothC)
-export(read_restart.ModelName)
+export(read_restart.RothC)
 export(write.config.RothC)
-export(write_restart.ModelName)
+export(write_restart.RothC)
 importFrom(rlang,.data)
 importFrom(rlang,.env)

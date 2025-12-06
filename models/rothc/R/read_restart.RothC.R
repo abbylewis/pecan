@@ -1,4 +1,6 @@
-#' @title Read restart template for SDA
+#' Read restart template for SDA
+#'
+#' Reads restart files from RothC. Not implemented yet.
 #'
 #' @author Chris Black
 #'
@@ -9,13 +11,11 @@
 #' @param var.names   Variable names to be extracted
 #' @param params      Any parameters required for state calculations
 #'
-#' @description Read restart files from model.
-#'
 #' @return Forecast numeric matrix
 #' @export
-read_restart.ModelName <- function(outdir,
-                                   runid,
-                                   stop.time,
-                                   settings,
-                                   var.names,
-                                   params) {}
+read_restart.RothC <- function(outdir,
+                               runid,
+                               stop.time,
+                               settings,
+                               var.names,
+                               params) {}

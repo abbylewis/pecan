@@ -1,4 +1,6 @@
-#' @title Write restart template for SDA
+#' Write restart template for SDA
+#'
+#' Not implemented yet.
 #'
 #' @author Chris Black
 #'
@@ -14,15 +16,13 @@
 #' @param inputs       new input paths updated by the SDA workflow,
 #'      will be passed to write.configs
 #'
-#' @description Write restart files for model
-#'
 #' @export
-write_restart.ModelName <- function(outdir,
-                                    runid,
-                                    start.time,
-                                    stop.time,
-                                    settings,
-                                    new.state,
-                                    RENAME,
-                                    new.params,
-                                    inputs) {}
+write_restart.RothC <- function(outdir,
+                                runid,
+                                start.time,
+                                stop.time,
+                                settings,
+                                new.state,
+                                RENAME,
+                                new.params,
+                                inputs) {}

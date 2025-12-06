@@ -4,6 +4,12 @@
 
 * `write.events.SIPNET()` to generate SIPNET `events.in` files from a `events.json` file.
 
+## Documentation
+
+* Improved README with comprehensive description of SIPNET model and its integration with PEcAn
+* Updated PEcAn book SIPNET page with model metadata and proper documentation links
+* Replaced outdated installation instructions with current methods pointing to official SIPNET repository
+
 # PEcAn.SIPNET 1.9.1
 
 ## Changed

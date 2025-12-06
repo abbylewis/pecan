@@ -45,6 +45,7 @@ For more information about this file see also [Keep a Changelog](http://keepacha
 
 - Package `PEcAn.uncertainty` has changed licensing. With approval from all its contributors, we now provide it under a BSD 3-clause license rather than the previously used NCSA Open Source license.
 - Ensemble and sensitivity analyses now assign an ensemble ID if one is not specified in the XML, even when running with no DB (#3654).
+- Improved PEcAn.SIPNET documentation: enhanced README with comprehensive model description, updated book pages with proper metadata and current installation instructions, and connected all SIPNET documentation resources (#3703).
 - `download.ERA5_cds` now uses the R package ecmwfr (replacing python dependency of cdsapi via reticulate), enabling direct NetCDF downloads; and made flexible for both reanalysis and ensemble data product.
 - `extract_soil_gssurgo` now supports spatial sampling using a grid of user-defined size and spacing. And supports ensemble simulation of soil organic carbon (SOC) stocks, using area-weighted aggregation
 - The ERA5 NC extraction function can now handle multi-site instead of one

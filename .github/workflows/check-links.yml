@@ -1,6 +1,7 @@
 name: Check Documentation Links (Periodic Checks)
 
 on:
+  push:
   # Run weekdays at 10:00 UTC
   schedule:
     - cron: '0 10 * * 1-5'

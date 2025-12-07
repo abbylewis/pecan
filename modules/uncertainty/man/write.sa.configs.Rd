@@ -28,6 +28,8 @@ by \code{settings$rundir} before writing to it?}
 
 \item{write.to.db}{logical: Record this run to BETY? If TRUE, uses connection
 settings specified in \code{settings$database}}
+
+\item{input_design}{data.frame coordinating input files across runs}
 }
 \value{
 list, containing $runs = data frame of runids,

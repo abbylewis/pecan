@@ -12,7 +12,7 @@ format:
 
 # Introduction {#introduction}
 
-Meta-analysis in PEcAn is a hierarchical Bayesian statistical approach that synthesizes plant trait data from literature to constrain ecosystem model parameters. The PEcAn.MA module implements this functionality to combine prior information with observational data, generating posterior distributions for model parameters.
+Meta-analysis in PEcAn is a hierarchical Bayesian statistical approach that synthesizes plant trait data from literature to constrain ecosystem model parameters. The **PEcAn.MA** module implements this functionality to combine prior information with observational data, generating posterior distributions for model parameters.
 
 In a standard PEcAn workflow, this step queries the BETYdb database for trait data and priors. For this demonstration, we will use pre-generated data files to simulate the workflow without requiring an active database connection during the notebook execution.
 

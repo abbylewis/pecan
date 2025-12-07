@@ -167,7 +167,7 @@ run.meta.analysis(
 
 The meta-analysis produces several output files in the PFT directory.
 
-```{r results}
+```{r output-files}
 # For a single PFT run, we can directly access the first PFT's output directory
 data_dir <- settings$pfts[[1]]$outdir
 list.files(data_dir)

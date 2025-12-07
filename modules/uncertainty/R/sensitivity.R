@@ -101,6 +101,7 @@ read.sa.output <- function(traits, quantiles, pecandir, outdir, pft.name = "",
 #'   by \code{settings$rundir} before writing to it?
 #' @param write.to.db logical: Record this run to BETY? If TRUE, uses connection
 #'   settings specified in \code{settings$database}
+#' @param input_design data.frame coordinating input files across runs
 #'
 #' @return list, containing $runs = data frame of runids,
 #'  and $ensemble.id = the ensemble ID for these runs.

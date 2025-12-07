@@ -140,7 +140,7 @@ str(settings)
 
 # Run Meta Analysis
 
-We now run the meta-analysis. The `run.meta.analysis` function will:
+We now run the meta-analysis. The `runModule.run.meta.analysis` function will:
 1.  Read the `trait.data.Rdata` and `prior.distns.Rdata` from the PFT output directory.
 2.  Run the Bayesian meta-analysis (MCMC) to estimate posterior distributions.
 3.  Save the results (`trait.mcmc.Rdata` and `post.distns.Rdata`).

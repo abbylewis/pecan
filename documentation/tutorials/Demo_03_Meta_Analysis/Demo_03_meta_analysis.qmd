@@ -157,7 +157,7 @@ run.meta.analysis(
   dbfiles = settings$run$inputs$met$path$path1,
   database = NULL,
   use_ghs = settings$meta.analysis$random.effects$use_ghs,
-  update = FALSE
+  update = TRUE # update existing results if they exist
 )
 ```
 

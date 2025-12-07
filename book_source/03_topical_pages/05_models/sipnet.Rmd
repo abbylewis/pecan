@@ -5,7 +5,7 @@
 | Home Page | https://pecanproject.github.io/sipnet |
 | Source Code | https://github.com/PecanProject/sipnet |
 | License | BSD 3-Clause |
-| Authors | Bill Sacks, Liza Nicoll, others |
+| Authors | Michael Longfritz, William Sacks, David Moore, John M. Zobitz, Bobby H. Braswell, David S. Schimel, Rob Kooper, Michael C. Dietze, Istem Fer, Chris Black, David S. LeBauer|
 | PEcAn Integration | Michael Dietze, Rob Kooper |
 
 **Introduction**
@@ -14,7 +14,7 @@ SIPNET (Simplified Photosynthesis and Evapotranspiration Model) is a lightweight
 
 Key features include simulation of photosynthesis, respiration, allocation, soil water, soil temperature, and nitrogen cycling on sub-daily time steps. The model tracks vegetation, litter, soil, and mineral-N pools, and includes event-based management for agricultural processes.
 
-For comprehensive model documentation, see the [SIPNET documentation](https://pecanproject.github.io/sipnet). For the PEcAn.SIPNET package documentation, see the [package website](https://pecanproject.github.io/package-documentation/develop/PEcAn.SIPNET/).
+For model documentation including model structure, user guide, and developer guide, see the [SIPNET documentation](https://pecanproject.github.io/sipnet). For PEcAn.SIPNET documentation, see the [package website](https://pecanproject.github.io/package-documentation/develop/PEcAn.SIPNET/).
 
 **PEcAn configuration file additions**
 
@@ -36,7 +36,7 @@ SIPNET is configured using 3 files which are placed in the run folder, as well a
 
 For current SIPNET installation instructions, please see:
 
-- [Installing SIPNET in the PEcAn documentation](https://pecanproject.github.io/pecan-documentation/develop/install-models.html#inst-sipnet)
+- [Installing SIPNET in the PEcAn documentation](https://pecanproject.github.io/pecan-documentation/develop/osinstall.html#sipnet-inst-sipnet)
 - [SIPNET Installation Guide](https://pecanproject.github.io/sipnet/install.html)
 
 The recommended approach is to install SIPNET from the official [SIPNET repository](https://github.com/PecanProject/sipnet)

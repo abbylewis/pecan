@@ -7,6 +7,7 @@
 #' @param sa_input_design Input design matrix for SA (internal use)
 #' @return A modified settings object, invisibly
 #' @importFrom dplyr %>%
+#' @importFrom rlang %||%
 #' @export
 
 

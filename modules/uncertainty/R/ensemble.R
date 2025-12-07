@@ -48,7 +48,7 @@ read.ensemble.output <- function(ensemble.size, pecandir, outdir, start.year, en
       assign(var, out.tmp[[var]])
     }
     
-    # Derivation
+    # derivation & aggregation
     out <- eval(parse(text = expr))
     ensemble.output[[as.character(i)]] <- mean(out, na.rm = TRUE) 
   }

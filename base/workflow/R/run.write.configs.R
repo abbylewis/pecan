@@ -8,11 +8,13 @@
 #'
 #' @param settings a PEcAn settings list
 #' @param ensemble.size number of ensemble runs
-#' @param input_design input indices for samples
 #' @param write should the runs be written to the database?
 #' @param posterior.files Filenames for posteriors for drawing samples for ensemble and sensitivity
 #'    analysis (e.g. post.distns.Rdata, or prior.distns.Rdata)
 #' @param overwrite logical: Replace output files that already exist?
+#' @param input_design DEPRECATED. Use input_design_ens and input_design_sa instead
+#' @param input_design_ens Input design matrix for ensemble analysis
+#' @param input_design_sa Input design matrix for sensitivity analysis
 #'
 #' @details The default value for \code{posterior.files} is NA, in which case the
 #'    most recent posterior or prior (in that order) for the workflow is used.
@@ -23,11 +25,12 @@
 #' @return an updated settings list, which includes ensemble IDs for SA and ensemble analysis
 #' @export
 #'
-#' @author David LeBauer, Shawn Serbin, Ryan Kelly, Mike Dietze
+#' @author David LeBauer, Shawn Serbin, Ryan Kelly, Mike Dietze, Akash B V
 
-run.write.configs <- function(settings, ensemble.size, input_design, write = TRUE,
+run.write.configs <- function(settings, ensemble.size, write = TRUE,
                               posterior.files = rep(NA, length(settings$pfts)),
-                              overwrite = TRUE) {
+                              overwrite = TRUE, input_design = NULL,
+                              input_design_ens = NULL, input_design_sa = NULL) {
   ## Skip database connection if settings$database is NULL or write is False
   if (!isTRUE(write) && is.null(settings$database)) {
     PEcAn.logger::logger.info("Not writing this run to database, so database connection skipped")
@@ -105,10 +108,10 @@ run.write.configs <- function(settings, ensemble.size, input_design, write = TRU
 
   samples.file <- file.path(settings$outdir, "samples.Rdata")
   if (file.exists(samples.file)) {
-    samples <- new.env()
-    load(samples.file, envir = samples) ## loads ensemble.samples, trait.samples, sa.samples, runs.samples, env.samples
-    trait.samples <- samples$trait.samples
-    trait_sample_indices <- input_design[["param"]]
+    existing_data <- new.env()
+    load(samples.file, envir = existing_data) ## loads ensemble.samples, trait.samples, sa.samples, runs.samples, env.samples
+    trait.samples <- existing_data$trait.samples
+    trait_sample_indices <- input_design_ens[["param"]]
     ensemble.samples <- list()
     for (pft in names(trait.samples)) {
       pft_traits <- trait.samples[[pft]]
@@ -121,7 +124,7 @@ run.write.configs <- function(settings, ensemble.size, input_design, write = TRU
       names(ensemble.samples[[pft]]) <- names(pft_traits)
     }
     sa.samples <- samples$sa.samples
-    runs.samples <- samples$runs.samples
+    ## runs.samples <- samples$runs.samples
     ## env.samples <- samples$env.samples
   } else {
     PEcAn.logger::logger.error(samples.file, "not found, this file is required by the run.write.configs function")
@@ -159,6 +162,9 @@ run.write.configs <- function(settings, ensemble.size, input_design, write = TRU
   pft.names <- names(trait.samples)
   trait.names <- lapply(trait.samples, names)
 
+  # Initialize the Manifest Dataframe
+  run_manifest_df <- data.frame()
+
   ### NEED TO IMPLEMENT: Load Environmental Priors and Posteriors
 
   ### Sensitivity Analysis
@@ -170,11 +176,17 @@ run.write.configs <- function(settings, ensemble.size, input_design, write = TRU
       quantile.samples = sa.samples,
       settings = settings,
       model = model,
+      input_design = input_design_sa,
       write.to.db = write
     )
 
+    # collect manifest data
+    if ("manifest" %in% names(sa.runs)) {
+      run_manifest_df <- rbind(run_manifest_df, sa.runs$manifest)
+    }
+
     # Store output in settings and output variables
-    runs.samples$sa <- sa.run.ids <- sa.runs$runs
+    sa.run.ids <- sa.runs$runs
     settings$sensitivity.analysis$ensemble.id <- sa.ensemble.id <- sa.runs$ensemble.id
 
     # Save sensitivity analysis info
@@ -192,12 +204,17 @@ run.write.configs <- function(settings, ensemble.size, input_design, write = TRU
       ensemble.samples = ensemble.samples,
       settings = settings,
       model = model,
-      input_design = input_design,
+      input_design = input_design_ens,
       write.to.db = write
     )
 
+    # collect manifest data
+    if ("manifest" %in% names(ens.runs)) {
+      run_manifest_df <- rbind(run_manifest_df, ens.runs$manifest)
+    }
+
     # Store output in settings and output variables
-    runs.samples$ensemble <- ens.run.ids <- ens.runs$runs
+    ens.run.ids <- ens.runs$runs
     settings$ensemble$ensemble.id <- ens.ensemble.id <- ens.runs$ensemble.id
     ens.samples <- ensemble.samples # rename just for consistency
 
@@ -211,12 +228,25 @@ run.write.configs <- function(settings, ensemble.size, input_design, write = TRU
   PEcAn.logger::logger.info("###### Finished writing model run config files #####")
   PEcAn.logger::logger.info("config files samples in ", file.path(settings$outdir, "run"))
 
-  ### Save output from SA/Ensemble runs
-  # A lot of this is duplicate with the ensemble/sa specific output above, but kept for backwards compatibility.
-  save(ensemble.samples, trait.samples, sa.samples, runs.samples, pft.names, trait.names,
-    file = file.path(settings$outdir, "samples.Rdata")
-  )
-  PEcAn.logger::logger.info("parameter values for runs in ", file.path(settings$outdir, "samples.RData"))
+  # write runs manifest
+
+  manifest.file <- file.path(settings$outdir, "runs_manifest.csv")
+
+  if (nrow(run_manifest_df) > 0) {
+    if (overwrite && file.exists(manifest.file)) {
+      unlink(manifest.file)
+    }
+
+    utils::write.table(run_manifest_df,
+                       file = manifest.file,
+                       sep = ",",
+                       row.names = FALSE,
+                       col.names = !file.exists(manifest.file),
+                       append = file.exists(manifest.file))
+
+    PEcAn.logger::logger.info("Run manifest written to ", manifest.file)
+  }
+
   options(scipen = scipen)
   invisible(settings)
   return(settings)

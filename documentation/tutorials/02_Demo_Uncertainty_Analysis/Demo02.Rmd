@@ -3,7 +3,7 @@
 > [!WARNING]
 > This web UI tutorial is deprecated. Please refer to the new notebook-based tutorial below.
 
-**New Tutorial:** [Uncertainty Analysis (Quarto)](rendered-demo-notebooks/uncertainty.html)
+**New Tutorial:** [Uncertainty Analysis (Quarto)](#run-demo-2)
 
 You can find the source for this tutorial at [https://github.com/PecanProject/pecan/blob/develop/documentation/tutorials/Demo_02_Uncertainty_Analysis/uncertainty.qmd](https://github.com/PecanProject/pecan/blob/develop/documentation/tutorials/Demo_02_Uncertainty_Analysis/uncertainty.qmd).
 

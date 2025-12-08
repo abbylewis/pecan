@@ -494,6 +494,7 @@
 "rlang","*","base/qaqc","Imports",FALSE
 "rlang","*","base/utils","Imports",FALSE
 "rlang","*","base/visualization","Imports",FALSE
+"rlang","*","base/workflow","Imports",FALSE
 "rlang","*","models/biocro","Imports",FALSE
 "rlang","*","models/ed","Imports",FALSE
 "rlang","*","models/ldndc","Imports",FALSE

@@ -127,17 +127,6 @@ settings <- PEcAn.settings::prepare.settings(settings)
 
 See Demo 1 Section 6 for details on what these functions do. Briefly, they read the XML file, convert it into an R list object that PEcAn can use, check that settings are valid, fill in defaults, and create the output directory.
 
-## Explore the Settings Object
-
-Once the settings have been read and prepared, it is useful to inspect the structure of the `settings` object. This object is an R list containing all parameters and configurations for the PEcAn workflow.
-
-*   `str(settings)` displays the internal structure of the `settings` object. This shows how the settings are represented in R and is useful for debugging and verifying settings.
-
-```{r explore-settings}
-str(settings)
-```
-
-
 # Run Meta Analysis
 
 We now run the meta-analysis. The `runModule.run.meta.analysis` function will:

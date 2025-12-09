@@ -123,9 +123,9 @@ run.write.configs <- function(settings, ensemble.size, write = TRUE,
       )
       names(ensemble.samples[[pft]]) <- names(pft_traits)
     }
-    sa.samples <- samples$sa.samples
-    ## runs.samples <- samples$runs.samples
-    ## env.samples <- samples$env.samples
+    sa.samples <- existing_data$sa.samples
+    ## runs.samples <- existing_data$runs.samples
+    ## env.samples <- existing_data$env.samples
   } else {
     PEcAn.logger::logger.error(samples.file, "not found, this file is required by the run.write.configs function")
   }

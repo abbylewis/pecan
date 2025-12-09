@@ -33,7 +33,7 @@ We simulate plant and ecosystem carbon balance (Net Primary Productivity and Net
 
 In this specific demo, we are performing a meta-analysis for the **temperate coniferous** Plant Functional Type (PFT). The goal is to estimate the probability distributions for key model parameters (e.g., SLA, leaf turnover rate) by combining:
 *   **Priors**: Existing knowledge about the parameters.
-*   **Data**: Observed trait data (simulated for this demo).
+*   **Data**: Observed trait data from the BETYdb database (pre-generated for this demo).
 
 # Prerequisites
 

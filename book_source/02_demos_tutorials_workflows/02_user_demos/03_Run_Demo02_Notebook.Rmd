@@ -11,7 +11,7 @@ To run this notebook interactively, you will need:
 ### Steps to Run
 
 1.  **Open in RStudio**:
-    Open the `uncertainty.qmd` file in RStudio.
+    Open the [`uncertainty.qmd`](https://github.com/PecanProject/pecan/blob/develop/documentation/tutorials/Demo_02_Uncertainty_Analysis/uncertainty.qmd) file in RStudio.
 
 2.  **Run Interactively**:
     You can run separate chunks and go through the comments of every section to understand the notebook better.

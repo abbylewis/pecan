@@ -39,17 +39,18 @@ In this specific demo, we are performing a meta-analysis for the **temperate con
 
 Before running this notebook, make sure you have:
 
-*   **PEcAn packages installed**: You can install all PEcAn packages and their dependencies by running the following command in the root of your PEcAn repository:
-
-```r
-# Enable repository from pecanproject
-options(repos = c(
-  pecanproject = 'https://pecanproject.r-universe.dev',
-  CRAN = 'https://cloud.r-project.org'))
-# Download and install PEcAn.all in R
-install.packages('PEcAn.all')
-```
-
+*   **PEcAn packages installed**:
+    *   **For this demo**: You only need a subset of PEcAn packages to run the meta-analysis.
+        ```r
+        # Enable repository from pecanproject
+        options(repos = c(
+          pecanproject = 'https://pecanproject.r-universe.dev',
+          CRAN = 'https://cloud.r-project.org'))
+        
+        # Install core packages for meta-analysis
+        install.packages(c('PEcAn.MA', 'PEcAn.settings', 'PEcAn.utils', 'PEcAn.logger'))
+        ```
+       
 *   **A valid `pecan.xml` configuration file**: Start with the example at `pecan/documentation/tutorials/Demo_03_Meta_Analysis/pecan.xml`.
 *   **SIPNET binary**: While not strictly used for the meta-analysis calculation itself, it is part of the broader workflow context.
 *   **Pre-generated Data**: This demo relies on `trait.data.Rdata` and `prior.distns.Rdata` files which are included in the `pft/temperate.coniferous` directory.
@@ -79,8 +80,12 @@ source(
 First, we need to load the PEcAn R packages. These packages provide all the functions we'll use to run the workflow.
 
 ```{r libraries}
-# Load the PEcAn.all package, which includes all necessary PEcAn functionality
-library("PEcAn.all")
+# Load necessary PEcAn packages
+# library("PEcAn.all") # Alternatively, load all packages if installed
+library("PEcAn.settings")
+library("PEcAn.MA")
+library("PEcAn.utils")
+library("PEcAn.logger")
 ```
 
 # Load PEcAn Settings File
@@ -256,7 +261,11 @@ If you encounter a problem with PEcAn that’s not covered in the documentation,
 ### PEcAn package versions.
 
 ```{r version-info}
-PEcAn.all::pecan_version()
+if (requireNamespace("PEcAn.all", quietly = TRUE)) {
+  PEcAn.all::pecan_version()
+} else {
+  print("PEcAn.all not installed. See sessionInfo() below for package versions.")
+}
 ```
 
 ### R session information:

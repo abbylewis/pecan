@@ -21,20 +21,26 @@ runModule.run.write.configs <- function(settings,
       PEcAn.logger::logger.warn("Existing runs.txt file will be removed.")
       unlink(file.path(settings$rundir, "runs.txt"))
     }
-    if (is.null(input_design) && "ensemble" %in% names(settings)) {
+    
+    # handle ensemble design - check in priority order
+    if (!is.null(ens_input_design)) {
+      # already provided, use as-is
+    } else if (!is.null(input_design)) {
+      ens_input_design <- input_design
+    } else if ("ensemble" %in% names(settings)) {
+      # generate new design
       ensemble_size <- settings$ensemble$size %||% 1
       design_result <- PEcAn.uncertainty::generate_joint_ensemble_design(
         settings = settings[1],
         ensemble_size = ensemble_size
       )
       ens_input_design <- design_result$X
-    } else if (!is.null(input_design)) {
-      ens_input_design <- input_design
     }
     
-    sa_input_design <- NULL
-    
-    if ("sensitivity.analysis" %in% names(settings)) {
+    # handle SA design - check if already provided before generating
+    if (!is.null(sa_input_design)) {
+      # already provided, use as-is
+    } else if ("sensitivity.analysis" %in% names(settings)) {
       # Load samples to determine SA run requirements
       samples.file <- file.path(settings$outdir, "samples.Rdata")
       load(samples.file)
@@ -71,20 +77,26 @@ runModule.run.write.configs <- function(settings,
     if (is.null(settings$ensemble$samplingspace$parameters$method)) {
       settings$ensemble$samplingspace$parameters$method <- "uniform"
     }
-    if (is.null(input_design) && "ensemble" %in% names(settings)) {
+    
+    # handle ensemble design - check in priority order
+    if (!is.null(ens_input_design)) {
+      # use provided design (from papply or direct call)
+    } else if (!is.null(input_design)) {
+      ens_input_design <- input_design
+    } else if ("ensemble" %in% names(settings)) {
+      # generate new design only if nothing provided
       ensemble_size <- settings$ensemble$size %||% 1
       design_result <- PEcAn.uncertainty::generate_joint_ensemble_design(
         settings = settings,
         ensemble_size = ensemble_size
       )
       ens_input_design <- design_result$X
-    } else if (!is.null(input_design)) {
-      ens_input_design <- input_design
     }
     
-    sa_input_design <- NULL
-    
-    if ("sensitivity.analysis" %in% names(settings)) {
+    # handle SA design - check if already provided before generating
+    if (!is.null(sa_input_design)) {
+      # use provided design (from papply)
+    } else if ("sensitivity.analysis" %in% names(settings)) {
       # Load samples to determine SA run requirements
       samples.file <- file.path(settings$outdir, "samples.Rdata")
       load(samples.file)

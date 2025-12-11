@@ -3,7 +3,6 @@
  <pfts>
   <pft>
    <name>temperate.coniferous</name>
-   <posterior.files>pft/temperate.coniferous</posterior.files>
    <outdir>pft/temperate.coniferous</outdir>
   </pft>
  </pfts> 

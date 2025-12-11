@@ -34,6 +34,10 @@ For more information about this file see also [Keep a Changelog](http://keepacha
  - Support for inspecting and plotting NetCDF output variables within the notebook workflow.
 - added support for soil temperature, relative humidity, soil moisture, and PPFD downscaling to `met_temporal_downscale.Gaussian_ensemble`
 - The PEcAn uncertainty analysis tutorial ("Demo 2") has been updated and reimplemented as a Quarto notebook at `documentation/tutorials/Demo_02_Uncertainty_Analysis/uncertainty.qmd`. (#3570)
+- Added the shared `input_design` matrix, generated via 
+ `runModule.run.write.configs()`/`generate_joint_ensemble_design()`, that keeps
+  parameter draws and sampled inputs aligned across `run.write.configs()`,
+  `write.ensemble.configs()`(#3535, #3634, #3677).
 
 ### Fixed
 
@@ -53,6 +57,10 @@ For more information about this file see also [Keep a Changelog](http://keepacha
 - Stopped testing on R 4.1, started testing on R 4.5, and updated prebuilt Docker images to match -- they are now available for R releases 4.2 through 4.5 as well as for R under development.
 - `write.config.STICS()` now modifies parameters with vectors rather than individually.
 - Code for DART has been moved from `modules/` to `contrib/` and its license more clearly described.
+- Clarified how to build or reuse the shared `input_design` design matrix that
+  coordinates parameter draws and sampled inputs across
+  `runModule.run.write.configs()`, ensemble, and sensitivity writers so custom
+  workflows know to keep the `param` column and row order intact (#3677).
 
 
 

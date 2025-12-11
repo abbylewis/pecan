@@ -178,6 +178,11 @@ print(post.distns)
 
 It is important to check the MCMC chains for convergence. We can visualize the trace plots and density plots for each trait.
 
+The `plot` function for MCMC objects typically produces two types of plots for each parameter:
+
+1.  **Trace Plot**: Shows the value of the parameter at each iteration of the MCMC chain. We look for a "fuzzy caterpillar" shape, indicating good mixing and convergence. There should be no visible trend (drift) up or down.
+2.  **Density Plot**: Shows the estimated posterior probability distribution of the parameter. This represents our updated belief about the parameter value after combining the prior with the data.
+
 ```{r load_mcmc}
 load(file.path(data_dir, "trait.mcmc.Rdata"))
 ```

@@ -213,9 +213,22 @@ for (trait in names(trait.mcmc)) {
 
 # Conclusion
 
-This notebook demonstrated how to run the PEcAn meta-analysis module programmatically. By combining prior information with (simulated) observational data, we generated posterior distributions for key PFT parameters. These posteriors can now be used to parameterize the ecosystem model, propagating the uncertainty from the data to the model projections.
+In this demo, we have successfully run a Bayesian meta-analysis to estimate the posterior distributions of plant traits for a temperate coniferous forest.
 
-You can now modify parameters, try different models, or extend the analysis as needed. Try editing the `pecan.xml` file. Give it a new name and update the **settings_path** variable at the beginning of this Demo to point to the new file. See how the changes affect the model output!
+## Using these Posteriors
+
+Now that you have generated these posterior distributions, you can use them to constrain the parameters of an ecosystem model. To do this:
+
+1.  **Locate your output**: Note the path to the `post.distns.Rdata` file generated in the `pft/temperate.coniferous` directory.
+2.  **Update your `pecan.xml`**: In your model run configuration (e.g., from Demo 01 or Demo 02), update the `<posterior.files>` tag within the `<pft>` section to point to this file.
+    ```xml
+    <pft>
+      <name>temperate.coniferous</name>
+      <posterior.files>/path/to/your/demo/pft/temperate.coniferous/post.distns.Rdata</posterior.files>
+    </pft>
+    ```
+3.  **Rerun the model**: Execute your PEcAn workflow (e.g., Demo 01 or Demo 02).
+4.  **Compare results**: Observe how the width of the confidence intervals and the overall uncertainty analysis results change when using these informative priors compared to the default uninformative priors.
 
 # Further Exploration
 

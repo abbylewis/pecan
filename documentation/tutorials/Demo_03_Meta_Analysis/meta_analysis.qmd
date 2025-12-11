@@ -29,7 +29,9 @@ This notebook demonstrates how to:
 
 **Context & modeling scenario:**
 
-We simulate plant and ecosystem carbon balance (Net Primary Productivity and Net Ecosystem Exchange) at the AmeriFlux Niwot Ridge Forest site ([US‑NR1](https://ameriflux.lbl.gov/sites/siteinfo/US-NR1)) during the year 2004. We use SIPNET parameterized as a temperate conifer PFT and driven by AmeriFlux meteorology following the analysis in [Moore et al. (2007)](https://doi.org/10.1016/j.agrformet.2008.04.013). This notebook also provides a compact template that can be extended to more years, locations, and PFTs.
+This demo supports the modeling scenario introduced in [Demo 01](../Demo_1_Basic_Run/run_pecan.qmd) and [Demo 02](../Demo_02_Uncertainty_Analysis/uncertainty.qmd), which simulated ecosystem carbon balance at the AmeriFlux Niwot Ridge Forest site ([US‑NR1](https://ameriflux.lbl.gov/sites/siteinfo/US-NR1)) using the SIPNET model.
+
+While those demos focused on running the ecosystem model, this notebook zooms in on the **Meta-Analysis** step. We will generate informative posterior distributions for the **temperate coniferous** Plant Functional Type (PFT) used in those simulations. These posteriors can then be used to constrain the parameters of the SIPNET model (or other models) to improve prediction accuracy.
 
 In this specific demo, we are performing a meta-analysis for the **temperate coniferous** Plant Functional Type (PFT). The goal is to estimate the probability distributions for key model parameters (e.g., SLA, leaf turnover rate) by combining:
 *   **Priors**: Existing knowledge about the parameters.

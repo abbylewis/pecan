@@ -242,6 +242,14 @@ The [next set of tutorials](#demo-table) will focus on the process of data assim
 **MCMC Concepts**
 [Explore](https://github.com/PecanProject/pecan/blob/main/documentation/tutorials/MCMC/MCMC_Concepts.Rmd) Bayesian MCMC concepts using the photosynthesis module
 
+**Parameter Data Assimilation (PDA)**
+
+[Explore](https://github.com/PecanProject/pecan/blob/main/documentation/tutorials/ParameterAssimilation/PDA.Rmd) how to perform Parameter Data Assimilation (calibration) in PEcAn. While meta-analysis constrains parameters using literature data, PDA constrains parameters by comparing model output directly against field observations (e.g., flux tower data).
+
+**State Data Assimilation (SDA)**
+
+[Explore](https://github.com/PecanProject/pecan/blob/main/documentation/tutorials/StateAssimilation/TreeRingSDA.Rmd) how to perform State Data Assimilation. This tutorial demonstrates how to update the internal states of the model (such as carbon pools) using observations, for example, assimilating tree ring widths to constrain biomass trajectories.
+
 **More info about tools, analyses, and specific tasks…**
 
 Additional information about specific tasks (adding sites, models, data; software updates; etc.) and analyses (e.g. data assimilation) can be found in the PEcAn [documentation](https://pecanproject.github.io/pecan-documentation/)

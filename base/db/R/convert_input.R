@@ -114,7 +114,6 @@ convert_input <-
   # different.
   existing.input <- NULL
   existing.dbfile <- NULL
-  PEcAn.logger::logger.info("DEBUG: Initialized existing.input/dbfile to NULL")
   if (forecast) {
     #if the data is an ensemble, ensemble will be set equal to the number of ensemble members.
     #However, if the data is not an ensemble, ensemble will be equal to FALSE.  In order to treat ensemble and 

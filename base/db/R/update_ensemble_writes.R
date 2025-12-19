@@ -19,6 +19,7 @@
 #' @param existing.input data.frame. Possibly zero rows representing the current record(s) in the `inputs` table that match (or partially match) the data being added. If no matching record exists, an empty data frame is supplied.
 #' @param existing.dbfile data.frame. Possibly zero rows representing the current record(s) in the `dbfiles` table that match (or partially match) the data being added. If no matching record exists, an empty data frame is supplied.
 #' @param input data.frame. Single row with the parent input record from BETYdb, typically including columns like `id`, `start_date`, `end_date`, etc. If the new data are derived from an existing input, this links them in the `parent_id` column of the new entries.
+#' @param site.id integer. The ID of the site associated with the input data.
 #' 
 #' @return list with two elements: \describe{ \item{input.id}{A numeric vector of new (or updated) input record IDs.} \item{dbfile.id}{A numeric vector of new (or updated) dbfile record IDs.} }
 #' 

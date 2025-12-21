@@ -35,16 +35,19 @@ run_meta_analysis_pft <- function(
   # Create output directory if it doesn't already exist
   dir.create(outdir, showWarnings = FALSE)
 
-  jagged.data <- lapply(trait_data, PEcAn.MA::jagify, use_ghs = use_ghs)
+  jagged_data <- lapply(trait_data, PEcAn.MA::jagify, use_ghs = use_ghs)
 
-  if(!use_ghs){
+  if (!use_ghs) {
     # check if any data left after excluding greenhouse
-    all_trait_check <- vapply(jagged.data, nrow, numeric(1))
-    if(any(all_trait_check == 0)){
+    all_trait_check <- vapply(jagged_data, nrow, numeric(1))
+    if (any(all_trait_check == 0)) {
       nodat <- which(all_trait_check == 0)
-      jagged.data[nodat] <- NULL
+      jagged_data[nodat] <- NULL
       PEcAn.logger::logger.info(
-        "No more data left after excluding greenhouse data for the following traits:",
+        paste(
+          "No more data left after excluding greenhouse data",
+          "for the following traits:"
+        ),
         paste(names(all_trait_check)[nodat], collapse = ", ")
       )
     }
@@ -53,10 +56,10 @@ run_meta_analysis_pft <- function(
   ## Check that data is consistent with prior
   errors <- character()
   warnings <- character()
-  for (trait in names(jagged.data)) {
-    data.median <- stats::median(jagged.data[[trait]][ , 'Y'])
-    prior       <- prior.distns[trait, ]
-    check       <- check_consistent(data.median, prior)
+  for (trait in names(jagged_data)) {
+    data_median <- stats::median(jagged_data[[trait]][, "Y"])
+    prior       <- priors[trait, ]
+    check       <- check_consistent(data_median, prior)
     if (all(check)) {
       next
     }
@@ -66,43 +69,53 @@ run_meta_analysis_pft <- function(
     errors <- c(errors, trait)
   }
   if (length(warnings) > 0) {
-    msg <- paste0("The following traits *might* be inconsistent with priors: ", paste(warnings, collapse = ", "))
+    msg <- paste0(
+      "The following traits *might* be inconsistent with priors: ",
+      paste(warnings, collapse = ", ")
+    )
     PEcAn.logger::logger.warn(msg)
   }
   if (length(errors) > 0) {
-    msg <- paste0("The following traits are inconsistent with priors: ", paste(errors, collapse = ", "))
+    msg <- paste0(
+      "The following traits are inconsistent with priors: ",
+      paste(errors, collapse = ", ")
+    )
     PEcAn.logger::logger.error(msg)
     stop(msg)
   }
 
   ## Average trait data
-  trait.average <- vapply(jagged.data, function(x) mean(x[["Y"]], na.rm = TRUE), numeric(1))
-  
+  trait_average <- vapply(
+    jagged_data,
+    function(x) mean(x[["Y"]], na.rm = TRUE),
+    numeric(1)
+  )
+
   ## Set gamma distribution prior
-  prior.variances <- as.data.frame(rep(1, nrow(prior.distns)))
-  row.names(prior.variances) <- row.names(prior.distns)
-  prior.variances[names(trait.average), ] <- 0.001 * trait.average ^ 2
-  prior.variances["seedling_mortality", 1] <- 1
+  prior_variances <- as.data.frame(rep(1, nrow(priors)))
+  row.names(prior_variances) <- row.names(priors)
+  prior_variances[names(trait_average), ] <- 0.001 * trait_average ^ 2
+  prior_variances["seedling_mortality", 1] <- 1
   taupriors <- list(
     tauA = gamma_tau,
-    tauB = apply(prior.variances, 1, function(x) min(gamma_tau, x))
+    tauB = apply(prior_variances, 1, function(x) min(gamma_tau, x))
   )
-  
+
   ### Run the meta-analysis
-  trait.mcmc <- pecan.ma(jagged.data,
-                         prior.distns,
-                         taupriors, 
-                         j.iter = iterations, 
-                         outdir = outdir, 
+  trait_mcmc <- pecan.ma(jagged_data,
+                         priors,
+                         taupriors,
+                         j.iter = iterations,
+                         outdir = outdir,
                          random = random)
-  
+
   ### Check that meta-analysis posteriors are consistent with priors
   errors <- character()
   warnings <- character()
-  for (trait in names(trait.mcmc)) {
-    post.median <- stats::median(as.matrix(trait.mcmc[[trait]][, "beta.o"]))
-    prior       <- prior.distns[trait, ]
-    check       <- check_consistent(data.median, prior)
+  for (trait in names(trait_mcmc)) {
+    post_median <- stats::median(as.matrix(trait_mcmc[[trait]][, "beta.o"]))
+    prior       <- priors[trait, ]
+    check       <- check_consistent(post_median, prior)
     if (all(check)) {
       next
     }
@@ -112,20 +125,31 @@ run_meta_analysis_pft <- function(
     errors <- c(errors, trait)
   }
   if (length(warnings) > 0) {
-    msg <- paste0("The following posteriors *might* be inconsistent with priors: ", paste(warnings, collapse = ", "))
+    msg <- paste0(
+      "The following posteriors *might* be inconsistent with priors: ",
+      paste(warnings, collapse = ", ")
+    )
     PEcAn.logger::logger.warn(msg)
   }
   if (length(errors) > 0) {
-    msg <- paste0("The following posteriors are inconsistent with priors: ", paste(errors, collapse = ", ")) 
+    msg <- paste0(
+      "The following posteriors are inconsistent with priors: ",
+      paste(errors, collapse = ", ")
+    )
     PEcAn.logger::logger.error(msg)
     stop(msg)
   }
-  
-  ### Generate summaries and diagnostics, discard samples if trait failed to converge
-  trait.mcmc <- pecan.ma.summary(trait.mcmc, pft_name, outdir, threshold)
-  post.distns <- approx.posterior(trait.mcmc, prior.distns, jagged.data, outdir)
 
-  return(list(trait.mcmc = trait.mcmc, post.distns = post.distns, jagged.data = jagged.data))
+  # Generate summaries and diagnostics, discard samples if trait failed to
+  # converge
+  trait_mcmc <- pecan.ma.summary(trait_mcmc, pft_name, outdir, threshold)
+  post_distns <- approx.posterior(trait_mcmc, priors, jagged_data, outdir)
+
+  return(list(
+    trait.mcmc = trait_mcmc,
+    post.distns = post_distns,
+    jagged.data = jagged_data
+  ))
 }
 
 #' Check that a data value is consistent with its prior
@@ -139,11 +163,11 @@ run_meta_analysis_pft <- function(
 check_consistent <- function(point, prior,
                              perr = 5e-04, pwarn = 0.025) {
   stopifnot(pwarn >= perr)
-  p.data <- p.point.in.prior(point = point, prior = prior)
-  if ((p.data >= pwarn) && (p.data <= 1 - pwarn)) {
+  p_data <- p.point.in.prior(point = point, prior = prior)
+  if ((p_data >= pwarn) && (p_data <= 1 - pwarn)) {
     return(c(no_error = TRUE, no_warning = TRUE))
   }
-  if ((p.data >= perr) && (p.data <= 1 - perr)) {
+  if ((p_data >= perr) && (p_data <= 1 - perr)) {
     return(c(no_error = TRUE, no_warning = FALSE))
   }
   return(c(no_error = FALSE, no_warning = FALSE))

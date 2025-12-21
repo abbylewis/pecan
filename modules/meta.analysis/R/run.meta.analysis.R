@@ -1,4 +1,160 @@
+#' Complete meta-analysis workflow for a single plant functional type (PFT)
+#'
+#' @param trait_data (list) Named list of trait data.
+#' @param priors (list) Named list of priors
+#' @param gamma_tau (numeric; default = 0.01) Prior on gamma tau parameter
+#' @param pft_name (character) Name of PFT (passed to `pecan.ma.summary`)
+#' @param outdir (character) Path to directory where outputs will be stored.
+#' @inheritParams pecan.ma
+#' @inheritParams pecan.ma.summary
+#'
+#' @return (list) List of trait meta-analysis results, including:
+#'    - `trait.mcmc`: MCMC samples
+#'    - `post.distns`: Posterior distributions
+#'    - `jagged.data`: "JAGS-ified" input data (after GHG screen, if applied)
+#'
+#' @export
+run_meta_analysis_pft <- function(
+  trait_data,
+  priors,
+  iterations,
+  pft_name,
+  outdir,
+  random = TRUE,
+  threshold = 1.2,
+  use_ghs = TRUE,
+  gamma_tau = 0.01
+) {
+  stopifnot(
+    is.list(trait_data),
+    is.logical(use_ghs),
+    is.numeric(gamma_tau),
+    gamma_tau > 0
+  )
 
+  # Create output directory if it doesn't already exist
+  dir.create(outdir, showWarnings = FALSE)
+
+  jagged.data <- lapply(trait_data, PEcAn.MA::jagify, use_ghs = use_ghs)
+
+  if(!use_ghs){
+    # check if any data left after excluding greenhouse
+    all_trait_check <- vapply(jagged.data, nrow, numeric(1))
+    if(any(all_trait_check == 0)){
+      nodat <- which(all_trait_check == 0)
+      jagged.data[nodat] <- NULL
+      PEcAn.logger::logger.info(
+        "No more data left after excluding greenhouse data for the following traits:",
+        paste(names(all_trait_check)[nodat], collapse = ", ")
+      )
+    }
+  }
+
+  ## Check that data is consistent with prior
+  errors <- character()
+  warnings <- character()
+  for (trait in names(jagged.data)) {
+    data.median <- stats::median(jagged.data[[trait]][ , 'Y'])
+    prior       <- prior.distns[trait, ]
+    check       <- check_consistent(data.median, prior)
+    if (all(check)) {
+      next
+    }
+    if (check[["no_error"]]) {
+      warnings <- c(warnings, trait)
+    }
+    errors <- c(errors, trait)
+  }
+  if (length(warnings) > 0) {
+    msg <- paste0("The following traits *might* be inconsistent with priors: ", paste(warnings, collapse = ", "))
+    PEcAn.logger::logger.warn(msg)
+  }
+  if (length(errors) > 0) {
+    msg <- paste0("The following traits are inconsistent with priors: ", paste(errors, collapse = ", "))
+    PEcAn.logger::logger.error(msg)
+    stop(msg)
+  }
+
+  ## Average trait data
+  trait.average <- vapply(jagged.data, function(x) mean(x[["Y"]], na.rm = TRUE), numeric(1))
+  
+  ## Set gamma distribution prior
+  prior.variances <- as.data.frame(rep(1, nrow(prior.distns)))
+  row.names(prior.variances) <- row.names(prior.distns)
+  prior.variances[names(trait.average), ] <- 0.001 * trait.average ^ 2
+  prior.variances["seedling_mortality", 1] <- 1
+  taupriors <- list(
+    tauA = gamma_tau,
+    tauB = apply(prior.variances, 1, function(x) min(gamma_tau, x))
+  )
+  
+  ### Run the meta-analysis
+  trait.mcmc <- pecan.ma(jagged.data,
+                         prior.distns,
+                         taupriors, 
+                         j.iter = iterations, 
+                         outdir = outdir, 
+                         random = random)
+  
+  ### Check that meta-analysis posteriors are consistent with priors
+  errors <- character()
+  warnings <- character()
+  for (trait in names(trait.mcmc)) {
+    post.median <- stats::median(as.matrix(trait.mcmc[[trait]][, "beta.o"]))
+    prior       <- prior.distns[trait, ]
+    check       <- check_consistent(data.median, prior)
+    if (all(check)) {
+      next
+    }
+    if (check[["no_error"]]) {
+      warnings <- c(warnings, trait)
+    }
+    errors <- c(errors, trait)
+  }
+  if (length(warnings) > 0) {
+    msg <- paste0("The following posteriors *might* be inconsistent with priors: ", paste(warnings, collapse = ", "))
+    PEcAn.logger::logger.warn(msg)
+  }
+  if (length(errors) > 0) {
+    msg <- paste0("The following posteriors are inconsistent with priors: ", paste(errors, collapse = ", ")) 
+    PEcAn.logger::logger.error(msg)
+    stop(msg)
+  }
+  
+  ### Generate summaries and diagnostics, discard samples if trait failed to converge
+  trait.mcmc <- pecan.ma.summary(trait.mcmc, pft_name, outdir, threshold)
+  post.distns <- approx.posterior(trait.mcmc, prior.distns, jagged.data, outdir)
+
+  return(list(trait.mcmc = trait.mcmc, post.distns = post.distns, jagged.data = jagged.data))
+}
+
+#' Check that a data value is consistent with its prior
+#'
+#' @param point (numeric) Data value to check
+#' @param p_error (numeric) Probability value outside of which we raise an error
+#' @param p_warning (numeric) Probability value outside of which we raise a warning
+#' @inheritParams p.point.in.prior
+#'
+#' @return (c(no_error = <boolean>, no_warning = <boolean>))
+check_consistent <- function(point, prior,
+                             perr = 5e-04, pwarn = 0.025) {
+  stopifnot(pwarn >= perr)
+  p.data <- p.point.in.prior(point = point, prior = prior)
+  if ((p.data >= pwarn) && (p.data <= 1 - pwarn)) {
+    return(c(no_error = TRUE, no_warning = TRUE))
+  }
+  if ((p.data >= perr) && (p.data <= 1 - perr)) {
+    return(c(no_error = TRUE, no_warning = FALSE))
+  }
+  return(c(no_error = FALSE, no_warning = FALSE))
+}
+
+#' "Workflow" version of run.meta.analysis.pft
+#'
+#' Thin wrapper around `run_meta_analysis_pft` that also reads/writes files 
+#' and registers results in the PEcAn database. 
+#'
+#' @inheritParams run_meta_analysis_pft
 run.meta.analysis.pft <- function(pft, iterations, random = TRUE, threshold = 1.2, dbfiles, dbcon, use_ghs = TRUE, update = FALSE) {
   # check to see if get.trait was executed
   if (!file.exists(file.path(pft$outdir, "trait.data.Rdata")) || 
@@ -48,92 +204,28 @@ run.meta.analysis.pft <- function(pft, iterations, random = TRUE, threshold = 1.
   # create path where to store files
   pathname <- file.path(dbfiles, "posterior", pft$posteriorid)
   dir.create(pathname, showWarnings = FALSE, recursive = TRUE)
-  
-  ## Convert data to format expected by pecan.ma
-  jagged.data <- lapply(trait_env$trait.data, PEcAn.MA::jagify, use_ghs = use_ghs)
-  
+
+  ma_result <- run_meta_analysis_pft(
+    trait_data = trait_env[["trait.data"]],
+    priors = prior_env[["prior.distns"]],
+    iterations = iterations,
+    pft_name = pft[["name"]],
+    outdir = pft[["outdir"]],
+    random = random,
+    threshold = threshold,
+    use_ghs = use_ghs,
+    gamma_tau = gamma_tau
+  )
+
   ## Save the jagged.data object, replaces previous madata.Rdata object
   ## First 6 columns are equivalent and direct inputs into the meta-analysis
-  save(jagged.data, file = file.path(pft$outdir, "jagged.data.Rdata"))
-  
-  if(!use_ghs){
-    # check if any data left after excluding greenhouse
-    all_trait_check <- sapply(jagged.data, nrow)
-    if(any(all_trait_check == 0)){
-      nodat <- which(all_trait_check == 0)
-      jagged.data[nodat] <- NULL
-      PEcAn.logger::logger.info("No more data left after excluding greenhouse data for the following traits:", paste(names(all_trait_check)[nodat], collapse = ", "))
-    }
-  }
-
-  check_consistent <- function(data.median, prior, trait, msg_var,
-                               perr = 5e-04, pwarn = 0.025) {
-
-    p.data <- p.point.in.prior(point = data.median, prior = prior)
-
-    if (p.data <= 1 - perr & p.data >= perr) {
-      if (p.data <= 1 - pwarn & p.data >= pwarn) {
-        PEcAn.logger::logger.info("OK! ", trait, " ", msg_var, " and prior are consistent:")
-      } else {
-        PEcAn.logger::logger.warn("CHECK THIS: ", trait, " ", msg_var, " and prior are inconsistent:")
-      }
-    } else {
-      PEcAn.logger::logger.debug("NOT OK! ", trait, " ", msg_var, " and prior are probably not the same:")
-      return(NA)
-    }
-    PEcAn.logger::logger.info(trait, "P[X<x] =", p.data)
-    return(1)
-  }
-
-  
-  ## Check that data is consistent with prior
-  for (trait in names(jagged.data)) {
-    data.median <- stats::median(jagged.data[[trait]][ , 'Y'])
-    prior       <- prior_env$prior.distns[trait, ]
-    check       <- check_consistent(data.median, prior, trait, "data")
-    if (is.na(check)) {
-      return(NA)
-    }
-  }
-  
-  ## Average trait data
-  trait.average <- sapply(jagged.data, function(x) mean(x$Y, na.rm = TRUE) )
-  
-  ## Set gamma distribution prior
-  tau_value <- 0.01
-  prior.variances <- as.data.frame(rep(1, nrow(prior_env$prior.distns)))
-  row.names(prior.variances) <- row.names(prior_env$prior.distns)
-  prior.variances[names(trait.average), ] <- 0.001 * trait.average ^ 2
-  prior.variances["seedling_mortality", 1] <- 1
-  taupriors <- list(tauA = tau_value, tauB = apply(prior.variances, 1, function(x) min(tau_value, x)))
-  
-  ### Run the meta-analysis
-  trait.mcmc <- pecan.ma(jagged.data,
-                         prior_env$prior.distns,
-                         taupriors, 
-                         j.iter = iterations, 
-                         outdir = pft$outdir, 
-                         random = random)
-  
-  ### Check that meta-analysis posteriors are consistent with priors
-  for (trait in names(trait.mcmc)) {
-    post.median <- stats::median(as.matrix(trait.mcmc[[trait]][, "beta.o"]))
-    prior       <- prior_env$prior.distns[trait, ]
-    check <- check_consistent(post.median, prior, trait, "data")
-    if (is.na(check)) {
-      return(NA)
-    }
-  }
-  
-  ### Generate summaries and diagnostics, discard samples if trait failed to converge
-  trait.mcmc <- pecan.ma.summary(trait.mcmc, pft$name, pft$outdir, threshold)
+  save(ma_result[["jagged.data"]], file = file.path(pft$outdir, "jagged.data.Rdata"))
   
   ### Save the meta.analysis output
-  save(trait.mcmc, file = file.path(pft$outdir, "trait.mcmc.Rdata"))
+  save(ma_result[["trait.mcmc"]], file = file.path(pft$outdir, "trait.mcmc.Rdata"))
   
-  post.distns <- approx.posterior(trait.mcmc, prior_env$prior.distns, jagged.data, pft$outdir)
   dist_MA_path <- file.path(pft$outdir, "post.distns.MA.Rdata")
-  save(post.distns, file = dist_MA_path)
+  save(ma_result[["post.distns"]], file = dist_MA_path)
 
   dist_path <- file.path(pft$outdir, "post.distns.Rdata")
   

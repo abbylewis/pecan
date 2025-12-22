@@ -31,8 +31,6 @@
 #' # 3     3   1  1    1   # trait1 @ q=15.9%
 #' # 4     4   1  1    1   # trait1 @ q=84.1%
 #' # ...
-#' 
-#' # All non-param columns are constant (1)
 #' }
 #' @export
 #' @author Akash B V

@@ -90,7 +90,7 @@ test_that("OAT design has constant inputs while ensemble design varies them", {
       info = "SA design: non-param columns must be constant")
   }
   
-  # ensemble design - non-param can vary (mocked to show variation)
+  ## ensemble design - non-param can vary (mocked to show variation)
   settings$run <- list(inputs = list(met = list(path = c("m1.nc", "m2.nc", "m3.nc"))))
   mockery::stub(generate_joint_ensemble_design, "input.ens.gen",
     function(...) list(ids = c(1, 2, 3, 1, 2)))

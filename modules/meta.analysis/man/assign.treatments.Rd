@@ -2,7 +2,7 @@
 % Please edit documentation in R/assign.treatments.R
 \name{assign.treatments}
 \alias{assign.treatments}
-\title{assign.treatments}
+\title{Change treatments to sequential integers}
 \usage{
 assign.treatments(data)
 }
@@ -13,13 +13,17 @@ assign.treatments(data)
 dataframe with sequential treatments
 }
 \description{
-Change treatments to sequential integers
-}
-\details{
 Assigns all control treatments the same value, then assigns unique treatments
 within each site. Each site is required to have a control treatment.
 The algorithm (incorrectly) assumes that each site has a unique set of experimental
-treatments. This assumption is required by the data in BETYdb that does not always consistently name treatments or quantity them in the managements table. Also it avoids having the need to estimate treatment by site interactions in the meta analysis model. This model uses data in the control treatment to estimate model parameters so the impact of the assumption is minimal.
+treatments. This assumption is required by the data in BETYdb that does not
+always consistently name treatments or quantity them in the managements
+table. Also it avoids having the need to estimate treatment by site
+interactions in the meta analysis model. This model uses data in the control
+treatment to estimate model parameters so the impact of the assumption is
+}
+\details{
+minimal.
 }
 \author{
 David LeBauer, Carl Davidson, Alexey Shiklomanov

@@ -81,7 +81,7 @@ generate_OAT_SA_design <- function(settings, sa_samples = NULL) {
     n_non_median <- sum(quantile_names != MEDIAN)
     
     # add runs for this pft: (traits) * (non-median quantiles)
-    num_sa_runs <- num_sa_runs + (n_traits * n_non_median) # num_sa_runs += n_traits * n_non_median
+    num_sa_runs <- num_sa_runs + (n_traits * n_non_median)
   }
   
   # get input types from samplingspace

@@ -27,6 +27,16 @@ Consult documentation of the PEcAn Project; either the [latest stable developmen
 
 See our ["Tutorials Page"](https://pecanproject.github.io/tutorials.html) that provides self-guided tutorials, links to vignettes, and an overview presentation.
 
+### Notebook-based tutorials
+
+The **recommended** way to get started with PEcAn is through the notebook-based tutorials.
+These provide reproducible, end-to-end examples of PEcAn workflows using rendered
+**Quarto** notebooks.
+
+Current tutorials include:
+- https://pecanproject.github.io/pecan-documentation/develop/rendered-demo-notebooks/run_pecan.html
+- https://pecanproject.github.io/pecan-documentation/develop/rendered-demo-notebooks/uncertainty.html
+
 ### Installation
 
 Complete instructions on how to install PEcAn can be found in the [documentation here](https://pecanproject.github.io/pecan-documentation/develop/pecan-manual-setup.html). To get PEcAn up and running you can use one of the following methods:
@@ -49,12 +59,11 @@ Some functionalities will be limited without also installing the Postgres databa
 
 Visit our [webpage](https://pecanproject.github.io) to keep up with latest news, version, and information about the PEcAn Project
 
-#### Web Interface demo
+#### Web Interface demo (legacy)
 
-The fastest way to begin modeling ecosystems is through the PEcAn web interface.  
-We have a [demo website](http://pecan.ncsa.illinois.edu/pecan/01-introduction.php) that runs the current version of PEcAn. Using this instance you can perform a run using either ED or SIPNET at any of the predefined sites.
+The PEcAn web interface is considered a legacy interface and is **no longer** the recommended entry point for new users.
 
-The demo instance only allows for runs at pecan.ncsa.illinois.edu. Once you have set up the run it will execute on our server; depending on the number of people executing a model and the model selected this can take between a few seconds and a few minutes to finish. Once it's finished, you see the results of the execution and can plot the outputs of the model. Complete examples of a few executions can be found in our online [tutorials](http://pecanproject.github.io/tutorials.html).
+Notebook-based tutorials provide reproducible, up-to-date examples of PEcAn workflows and are the recommended starting point for learning and exploration.
 
 ## Publications
 

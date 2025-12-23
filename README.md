@@ -21,21 +21,21 @@ PEcAn is not itself an ecosystem model, and it can be used to with a variety of 
 
 ## Documentation
 
-Consult documentation of the PEcAn Project; either the [latest stable development](https://pecanproject.github.io/pecan-documentation/develop/) branch, the latest [release](https://pecanproject.github.io/pecan-documentation/latest/). Documentation from [earlier releases is here](https://pecanproject.github.io/documentation.html).
+PEcAn documentation is available for both the [latest stable development](https://pecanproject.github.io/pecan-documentation/develop/) branch and the [latest release](https://pecanproject.github.io/pecan-documentation/latest/). Documentation for [earlier releases](https://pecanproject.github.io/documentation/) is also available.
+
+Package-level reference documentation for PEcAn modules is generated using [pkgdown](https://pkgdown.r-lib.org/) and can be found [here](https://pecanproject.github.io/package-documentation/develop/)
 
 ## Getting Started
 
-See our ["Tutorials Page"](https://pecanproject.github.io/tutorials.html) that provides self-guided tutorials, links to vignettes, and an overview presentation.
+See our ["Tutorials Page"](https://pecanproject.github.io/tutorials/) that provides self-guided tutorials, links to vignettes, and an overview presentation.
 
 ### Notebook-based tutorials
 
-The **recommended** way to get started with PEcAn is through the notebook-based tutorials.
-These provide reproducible, end-to-end examples of PEcAn workflows using rendered
-**Quarto** notebooks.
+The **recommended** way to get started with PEcAn is through the notebook-based tutorials. These provide reproducible, end-to-end examples of PEcAn workflows using rendered **Quarto** notebooks.
 
 Current tutorials include:
-- https://pecanproject.github.io/pecan-documentation/develop/rendered-demo-notebooks/run_pecan.html
-- https://pecanproject.github.io/pecan-documentation/develop/rendered-demo-notebooks/uncertainty.html
+- [Running a PEcAn workflow](https://pecanproject.github.io/pecan-documentation/develop/rendered-demo-notebooks/run_pecan.html)
+- [Uncertainty analysis tutorial](https://pecanproject.github.io/pecan-documentation/develop/rendered-demo-notebooks/uncertainty.html)
 
 ### Installation
 

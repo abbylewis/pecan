@@ -7,7 +7,7 @@
 #'
 #' @param settings PEcAn settings object
 #' @param sa_samples Optional. Pre-loaded SA samples from samples.Rdata.
-#'   If NULL, loads from settings$outdir/samples.Rdata
+#'   If NULL (default), generates new samples.
 #'
 #' @return list with component X: a data.frame with columns for each input type
 #'   and one row per SA run. Non-parameter columns are all 1 (constant).
@@ -37,24 +37,19 @@
 #' @importFrom rlang %||%
 generate_OAT_SA_design <- function(settings, sa_samples = NULL) {
   
-  # load SA samples if not provided
+  samples_file <- file.path(settings$outdir, "samples.Rdata")
+  
   if (is.null(sa_samples)) {
-    samples_file <- file.path(settings$outdir, "samples.Rdata")
     
-    # generate samples if they don't exist (safety fallback)
-    if (!file.exists(samples_file)) {
-      posterior.files <- settings$pfts %>%
-        purrr::map_chr("posterior.files", .default = NA_character_)
-      ens.sample.method <- settings$ensemble$samplingspace$parameters$method %||% "uniform"
-      
-      PEcAn.uncertainty::get.parameter.samples(
-        settings,
-        ensemble.size = 1,  # SA doesn't need ensemble samples
-        posterior.files,
-        ens.sample.method
-      )
-    }
+    posterior.files <- settings$pfts %>%
+      purrr::map_chr("posterior.files", .default = NA_character_)
     
+    # generate parameter samples - sa.samples created from quantiles
+    PEcAn.uncertainty::get.parameter.samples(
+      settings,
+      posterior.files = posterior.files
+    )
+
     samples_env <- new.env()
     load(samples_file, envir = samples_env)
     sa_samples <- samples_env$sa.samples

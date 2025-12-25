@@ -248,13 +248,25 @@ run.meta.analysis.pft <- function(pft, iterations, random = TRUE, threshold = 1.
 
   ## Save the jagged.data object, replaces previous madata.Rdata object
   ## First 6 columns are equivalent and direct inputs into the meta-analysis
-  save(ma_result[["jagged.data"]], file = file.path(pft$outdir, "jagged.data.Rdata"))
+
+  # NOTE: `save` saves R objects under their names in the current environment,
+  # so you cannot just do `save(ma_result[["jagged.data"]])` -- that will throw
+  # an error.
+  # TODO: We should really use `saveRDS` / `readRDS` for this everywhere...but
+  # for now, this is a workaround.
+  jagged.data <- ma_result[["jagged.data"]]
+  save(jagged.data, file = file.path(pft$outdir, "jagged.data.Rdata"))
+  rm(jagged.data)
   
   ### Save the meta.analysis output
-  save(ma_result[["trait.mcmc"]], file = file.path(pft$outdir, "trait.mcmc.Rdata"))
+  trait.mcmc <- ma_result[["trait.mcmc"]]
+  save(trait.mcmc, file = file.path(pft$outdir, "trait.mcmc.Rdata"))
+  rm(trait.mcmc)
   
   dist_MA_path <- file.path(pft$outdir, "post.distns.MA.Rdata")
-  save(ma_result[["post.distns"]], file = dist_MA_path)
+  post.distns <- ma_result[["post.distns"]]
+  save(post.distns, file = dist_MA_path)
+  rm(post.distns)
 
   dist_path <- file.path(pft$outdir, "post.distns.Rdata")
   

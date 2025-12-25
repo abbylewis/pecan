@@ -243,8 +243,7 @@ run.meta.analysis.pft <- function(pft, iterations, random = TRUE, threshold = 1.
     outdir = pft[["outdir"]],
     random = random,
     threshold = threshold,
-    use_ghs = use_ghs,
-    gamma_tau = gamma_tau
+    use_ghs = use_ghs
   )
 
   ## Save the jagged.data object, replaces previous madata.Rdata object

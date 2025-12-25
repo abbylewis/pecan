@@ -14,7 +14,7 @@
 ##' @return dataframe with sequential treatments
 ##' @export
 ##' @author David LeBauer, Carl Davidson, Alexey Shiklomanov
-assign.treatments <- function(data){
+assign_treatments <- function(data){
   data$trt_id[which(data$control == 1)] <- "control"
   sites <- unique(data$site_id)
   # Site IDs may be returned as `integer64`, which the `for` loop

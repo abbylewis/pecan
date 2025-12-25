@@ -44,7 +44,7 @@ For more information about this file see also [Keep a Changelog](http://keepacha
 
 ### Changed
 
-- `assign.treatments` has been moved from `PEcAn.utils` to `PEcAn.MA` since that's the only place where it's used.
+- `assign.treatments` has been renamed to `assign_treatments` and moved from `PEcAn.utils` to `PEcAn.MA` since that's the only place where it's used.
 - With new `PEcAn.MA::meta_analysis_standalone` function, `PEcAn.MA::run.meta.analysis.pft` now saves all files all at once _after_ the complete meta-analysis runs (and only if it is successful, including prior and posterior checks), rather than saving intermediate objects (like "JAGS-ified" data) as they are created.
 - Package `PEcAn.uncertainty` has changed licensing. With approval from all its contributors, we now provide it under a BSD 3-clause license rather than the previously used NCSA Open Source license.
 - Ensemble and sensitivity analyses now assign an ensemble ID if one is not specified in the XML, even when running with no DB (#3654).

@@ -8,7 +8,6 @@
 ##' table. Also it avoids having the need to estimate treatment by site
 ##' interactions in the meta analysis model. This model uses data in the control
 ##' treatment to estimate model parameters so the impact of the assumption is
-##'
 ##' minimal.
 ##'
 ##' @param data input data

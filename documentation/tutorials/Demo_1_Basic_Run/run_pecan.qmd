@@ -65,6 +65,9 @@ install.packages('PEcAn.all')
 
 - A valid `pecan.xml` configuration file or use the example provided: `pecan/documentation/tutorials/Demo_1_Basic_Run/pecan.xml`
 
+- Some steps in this notebook are model-specific and require the corresponding PEcAn model package to be installed (e.g. `PEcAn.SIPNET` when using the SIPNET model, which can be installed by running: `install.packages('PEcAn.SIPNET')`).
+
+
 ## How to Use This Notebook
 
 1. Each section is clearly marked with a heading
@@ -189,9 +192,6 @@ Additional outputs include logs, a `STATUS` file that records the steps of the w
 # Write Model Configuration Files
 
 This step generates the model-specific configuration files and scripts that will be used to run the ecosystem model. The process involves generating SIPNET configuration files using the `runModule.run.write.configs()` function.
-
-> **Note:** This demo uses the SIPNET model. Running this step requires the `PEcAn.SIPNET` package to be installed. If `PEcAn.SIPNET` is not available, this step will fail when attempting to generate SIPNET-specific configuration files.
-To install the SIPNET package, run: `install.packages('PEcAn.SIPNET')`
 
 ```{r write-configs}
 settings <- PEcAn.workflow::runModule.run.write.configs(settings)

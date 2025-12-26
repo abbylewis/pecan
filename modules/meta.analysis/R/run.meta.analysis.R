@@ -167,13 +167,13 @@ meta_analysis_standalone <- function(
 #'
 #' @return (c(no_error = <boolean>, no_warning = <boolean>))
 check_consistent <- function(point, prior,
-                             perr = 5e-04, pwarn = 0.025) {
-  stopifnot(pwarn >= perr)
+                             p_error = 5e-04, p_warning = 0.025) {
+  stopifnot(p_warning >= p_error)
   p_data <- p.point.in.prior(point = point, prior = prior)
-  if ((p_data >= pwarn) && (p_data <= 1 - pwarn)) {
+  if ((p_data >= p_warning) && (p_data <= 1 - p_warning)) {
     return(c(no_error = TRUE, no_warning = TRUE))
   }
-  if ((p_data >= perr) && (p_data <= 1 - perr)) {
+  if ((p_data >= p_error) && (p_data <= 1 - p_error)) {
     return(c(no_error = TRUE, no_warning = FALSE))
   }
   return(c(no_error = FALSE, no_warning = FALSE))

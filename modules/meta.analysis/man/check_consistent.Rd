@@ -4,7 +4,7 @@
 \alias{check_consistent}
 \title{Check that a data value is consistent with its prior}
 \usage{
-check_consistent(point, prior, perr = 5e-04, pwarn = 0.025)
+check_consistent(point, prior, p_error = 5e-04, p_warning = 0.025)
 }
 \arguments{
 \item{point}{(numeric) Data value to check}

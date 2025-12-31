@@ -7,12 +7,10 @@
 run.write.configs(
   settings,
   ensemble.size,
+  input_design,
   write = TRUE,
   posterior.files = rep(NA, length(settings$pfts)),
-  overwrite = TRUE,
-  input_design = NULL,
-  input_design_ens = NULL,
-  input_design_sa = NULL
+  overwrite = TRUE
 )
 }
 \arguments{
@@ -20,18 +18,15 @@ run.write.configs(
 
 \item{ensemble.size}{number of ensemble runs}
 
+\item{input_design}{Input design specification. A list with \code{ensemble} and/or
+\code{sensitivity} entries, each containing a data.frame of input indices.}
+
 \item{write}{should the runs be written to the database?}
 
 \item{posterior.files}{Filenames for posteriors for drawing samples for ensemble and sensitivity
 analysis (e.g. post.distns.Rdata, or prior.distns.Rdata)}
 
 \item{overwrite}{logical: Replace output files that already exist?}
-
-\item{input_design}{DEPRECATED. Use input_design_ens and input_design_sa instead}
-
-\item{input_design_ens}{Input design matrix for ensemble analysis}
-
-\item{input_design_sa}{Input design matrix for sensitivity analysis}
 }
 \value{
 an updated settings list, which includes ensemble IDs for SA and ensemble analysis

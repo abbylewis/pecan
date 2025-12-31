@@ -273,13 +273,9 @@ ensemble.id <- if (!is.null(settings$ensemble$id)) settings$ensemble$id else "NO
 # and shape of the output variable's distribution.
 
 # Construct the path to the ensemble output file
-ens_file <- PEcAn.uncertainty::ensemble.filename(
-  settings,
-  prefix = "ensemble.output",
-  ensemble.id = ensemble.id,
-  variable = variable,
-  start.year = start.year,
-  end.year = end.year
+ens_file <- file.path(
+  settings$outdir,
+  paste0("ensemble.output.", ensemble.id, ".", variable, ".", start.year, ".", end.year, ".Rdata")
 )
 
 # Check if the file exists, then load and plot the data

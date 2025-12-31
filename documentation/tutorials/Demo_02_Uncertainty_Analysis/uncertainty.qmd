@@ -257,6 +257,12 @@ Here we visualize the results of the ensemble analysis. It shows the overall dis
 
 This section reproduces the plots saved in the `ensemble.analysis/` folder in order to show the user how to access and visualize the results programmatically so that they can further investigate output and customize plots.
 
+```{r debug-files}
+# Debug: List files in the output directory to verify generation
+print(paste("Listing files in:", settings$outdir))
+print(list.files(settings$outdir))
+```
+
 ```{r visualize-ensemble-results}
 # --- 1. Define Helper Variables ---
 # Extract key variables from the settings object to simplify file path construction

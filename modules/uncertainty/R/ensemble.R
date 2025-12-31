@@ -29,10 +29,10 @@ read.ensemble.output <- function(ensemble.size, pecandir, outdir, start.year, en
   
   ensemble.output <- list()
   
-  for (i in seq_len(nrow(ens.run.ids))) {
-    
-    # Handle column name difference (manifest has 'run_id', legacy 'ens.run.ids' might have 'id')
-    run.id <- if ("run_id" %in% names(ens.run.ids)) ens.run.ids$run_id[i] else ens.run.ids$id[i]
+  # handles both (manifest has 'run_id', legacy 'ens.run.ids' might have 'id')
+  run_ids <- ens.run.ids$run_id %||% ens.run.ids$id
+  for (i in seq_along(run_ids)) {
+    run.id <- run_ids[i]
 
     # We pass the whole 'variables' vector once, avoiding repeated file open/close.
     out.tmp <- PEcAn.utils::read.output(

@@ -18,8 +18,8 @@ run.write.configs(
 
 \item{ensemble.size}{number of ensemble runs}
 
-\item{input_design}{Input design specification. A list with \code{ensemble} and/or
-\code{sensitivity} entries, each containing a data.frame of input indices.}
+\item{input_design}{Input design data.frame coordinating input files across runs.
+Contains columns for each sampled input (met, param, etc.) with row indices.}
 
 \item{write}{should the runs be written to the database?}
 

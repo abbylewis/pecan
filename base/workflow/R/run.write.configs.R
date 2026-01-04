@@ -12,8 +12,8 @@
 #' @param posterior.files Filenames for posteriors for drawing samples for ensemble and sensitivity
 #'    analysis (e.g. post.distns.Rdata, or prior.distns.Rdata)
 #' @param overwrite logical: Replace output files that already exist?
-#' @param input_design Input design specification. A list with \code{ensemble} and/or
-#'    \code{sensitivity} entries, each containing a data.frame of input indices.
+#' @param input_design Input design data.frame coordinating input files across runs.
+#'   Contains columns for each sampled input (met, param, etc.) with row indices.
 #'
 #' @details The default value for \code{posterior.files} is NA, in which case the
 #'    most recent posterior or prior (in that order) for the workflow is used.
@@ -29,10 +29,6 @@
 run.write.configs <- function(settings, ensemble.size, input_design, write = TRUE,
                               posterior.files = rep(NA, length(settings$pfts)),
                               overwrite = TRUE) {
-
-  # extract designs from input_design list
-  input_design_ens <- if (!is.null(input_design)) input_design$ensemble else NULL
-  input_design_sa <- if (!is.null(input_design)) input_design$sensitivity else NULL
                               
   ## Skip database connection if settings$database is NULL or write is False
   if (!isTRUE(write) && is.null(settings$database)) {
@@ -114,21 +110,29 @@ run.write.configs <- function(settings, ensemble.size, input_design, write = TRU
     existing_data <- new.env()
     load(samples.file, envir = existing_data) ## loads ensemble.samples, trait.samples, sa.samples, runs.samples, env.samples
     trait.samples <- existing_data$trait.samples
-    trait_sample_indices <- input_design_ens[["param"]]
-    ensemble.samples <- list()
-    for (pft in names(trait.samples)) {
-      pft_traits <- trait.samples[[pft]]
-      ensemble.samples[[pft]] <- as.data.frame(
-        lapply(
-          names(pft_traits),
-          function(trait) pft_traits[[trait]][trait_sample_indices]
-        )
-      )
-      names(ensemble.samples[[pft]]) <- names(pft_traits)
-    }
     sa.samples <- existing_data$sa.samples
-    ## runs.samples <- existing_data$runs.samples
-    ## env.samples <- existing_data$env.samples
+    
+    # build ensemble.samples only for ensemble runs
+    # SA runs use sa.samples directly (quantile-based), not ensemble.samples
+    if ("ensemble" %in% names(settings) && 
+        !is.null(input_design) && 
+        "param" %in% colnames(input_design)) {
+      trait_sample_indices <- input_design[["param"]]
+      ensemble.samples <- list()
+      for (pft in names(trait.samples)) {
+        pft_traits <- trait.samples[[pft]]
+        ensemble.samples[[pft]] <- as.data.frame(
+          lapply(
+            names(pft_traits),
+            function(trait) pft_traits[[trait]][trait_sample_indices]
+          )
+        )
+        names(ensemble.samples[[pft]]) <- names(pft_traits)
+      }
+    } else {
+      # use pre-generated samples
+      ensemble.samples <- existing_data$ensemble.samples
+    }
   } else {
     PEcAn.logger::logger.error(samples.file, "not found, this file is required by the run.write.configs function")
   }
@@ -179,7 +183,7 @@ run.write.configs <- function(settings, ensemble.size, input_design, write = TRU
       quantile.samples = sa.samples,
       settings = settings,
       model = model,
-      input_design = input_design_sa,
+      input_design = input_design,
       write.to.db = write
     )
 
@@ -207,7 +211,7 @@ run.write.configs <- function(settings, ensemble.size, input_design, write = TRU
       ensemble.samples = ensemble.samples,
       settings = settings,
       model = model,
-      input_design = input_design_ens,
+      input_design = input_design,
       write.to.db = write
     )
 

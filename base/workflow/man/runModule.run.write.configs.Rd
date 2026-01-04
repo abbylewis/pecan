@@ -13,7 +13,6 @@ runModule.run.write.configs(settings, overwrite = TRUE, input_design = NULL)
 
 \item{input_design}{Optional. Input design specification. Can be:
 \itemize{
-  \item A list with \code{ensemble} and/or \code{sensitivity} entries
   \item A single data.frame (interpreted as ensemble design)
   \item NULL to auto-generate designs based on settings
 }}

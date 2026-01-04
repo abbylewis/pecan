@@ -4,7 +4,6 @@
 #' @param overwrite logical: Replace config files if they already exist?
 #' @param input_design Optional. Input design specification. Can be:
 #'   \itemize{
-#'     \item A list with \code{ensemble} and/or \code{sensitivity} entries
 #'     \item A single data.frame (interpreted as ensemble design)
 #'     \item NULL to auto-generate designs based on settings
 #'   }

@@ -36,10 +36,10 @@ runModule.run.write.configs <- function(settings,
       PEcAn.logger::logger.warn("Existing runs.txt file will be removed.")
       unlink(file.path(settings$rundir, "runs.txt"))
     }
-    
+
     # prepare designs once for all sites (consistent sampling)
     designs <- .prepare_input_designs(settings[1], input_design)
-    
+
     return(PEcAn.settings::papply(settings,
                                   runModule.run.write.configs,
                                   overwrite = FALSE,
@@ -49,29 +49,82 @@ runModule.run.write.configs <- function(settings,
     if (is.null(settings$ensemble$samplingspace$parameters$method)) {
       settings$ensemble$samplingspace$parameters$method <- "uniform"
     }
-    
+
     # prepare designs (may already be normalized from MultiSettings)
     designs <- .prepare_input_designs(settings, input_design)
-
-    # determine ensemble size from design
-    ensemble_size <- if (!is.null(designs$ensemble)) {
-      nrow(designs$ensemble)
-    } else {
-      settings$ensemble$size %||% 1
-    }
 
     # check to see if there are posterior.files tags under pft
     posterior.files <- settings$pfts %>%
       purrr::map_chr("posterior.files", .default = NA_character_)
 
-    return(PEcAn.workflow::run.write.configs(
-      settings = settings,
-      ensemble.size = ensemble_size,
-      write = isTRUE(settings$database$bety$write), # treat null as FALSE
-      posterior.files = posterior.files,
-      overwrite = overwrite,
-      input_design = designs
-    ))
+    # track overwrite state: first call uses overwrite param, subsequent appends
+    current_overwrite <- overwrite
+
+    # start with original settings for final merge
+    settings_final <- settings
+
+    # ---------------- SENSITIVITY ANALYSIS CALL ----------------------
+    if ("sensitivity.analysis" %in% names(settings) && !is.null(designs$sensitivity)) {
+
+      PEcAn.logger::logger.info("Writing configs for Sensitivity Analysis...")
+
+      # create settings with ONLY sensitivity.analysis (no ensemble)
+      settings_sa <- settings
+      settings_sa$ensemble <- NULL
+
+      settings_sa_out <- PEcAn.workflow::run.write.configs(
+        settings = settings_sa,
+        ensemble.size = 1,  # SA doesn't use ensemble.size, but required param
+        write = isTRUE(settings$database$bety$write),
+        posterior.files = posterior.files,
+        overwrite = current_overwrite,
+        input_design = designs$sensitivity
+      )
+
+      # capture SA ensemble.id
+      settings_final$sensitivity.analysis <- settings_sa_out$sensitivity.analysis
+      # also capture any pft$outdir modifications
+      settings_final$pfts <- settings_sa_out$pfts
+
+      # subsequent calls should append, not overwrite
+      current_overwrite <- FALSE
+    }
+
+    # ------------------- ENSEMBLE CALL ----------------------
+    if ("ensemble" %in% names(settings) && !is.null(designs$ensemble)) {
+
+      PEcAn.logger::logger.info("Writing configs for Ensemble...")
+
+      # create settings with ONLY ensemble (no sensitivity.analysis)
+      settings_ens <- settings
+      settings_ens$sensitivity.analysis <- NULL
+
+      # determine ensemble size from design
+      ensemble_size <- if (!is.null(designs$ensemble)) {
+        nrow(designs$ensemble)
+      } else {
+        settings$ensemble$size %||% 1
+      }
+
+      settings_ens_out <- PEcAn.workflow::run.write.configs(
+        settings = settings_ens,
+        ensemble.size = ensemble_size,
+        write = isTRUE(settings$database$bety$write),
+        posterior.files = posterior.files,
+        overwrite = current_overwrite,
+        input_design = designs$ensemble
+      )
+
+      # capture ensemble.id
+      settings_final$ensemble <- settings_ens_out$ensemble
+      # capture pft$outdir if SA didn't already
+      if (!"sensitivity.analysis" %in% names(settings)) {
+        settings_final$pfts <- settings_ens_out$pfts
+      }
+    }
+
+    return(invisible(settings_final))
+
   } else {
     stop("runModule.run.write.configs only works with Settings or MultiSettings")
   }

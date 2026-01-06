@@ -6,6 +6,20 @@ section for the next release.
 
 For more information about this file see also [Keep a Changelog](http://keepachangelog.com/) .
 
+## [unreleased]
+
+### Added
+- Add function `PEcAn.MA::meta_analysis_standalone` to run meta-analysis without database or file IO.
+- Added Demo 03: Meta Analysis Quarto notebook (`documentation/tutorials/Demo_03_Meta_Analysis/meta_analysis.qmd`) to demonstrate how to perform Bayesian meta-analysis and visualize posterior distributions using pre-generated trait data.
+
+### Fixed
+
+### Changed
+- `assign.treatments` has been renamed to `assign_treatments` and moved from `PEcAn.utils` to `PEcAn.MA` since that's the only place where it's used.
+- With new `PEcAn.MA::meta_analysis_standalone` function, `PEcAn.MA::run.meta.analysis.pft` now saves all files all at once _after_ the complete meta-analysis runs (and only if it is successful, including prior and posterior checks), rather than saving intermediate objects (like "JAGS-ified" data) as they are created.
+
+
+
 ## [1.10.0] - 2026-01-06
 
 ### Added

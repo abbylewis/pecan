@@ -1,5 +1,20 @@
 # Troubleshooting and Debugging PEcAn
 
+This chapter provides guidance for diagnosing and resolving common
+issues encountered when running PEcAn workflows. Problems may arise
+from configuration errors, data availability issues, model failures,
+or system-level dependencies.
+
+Start with the general troubleshooting guidance below, then refer to
+specific sections for detailed solutions.
+
+## Common topics
+- [Workflow failures](#workflow-failures)
+- [Database issues](#database-issues)
+- [Model errors](#model-errors)
+- [Docker-related problems](#docker-issues)
+
+
 ## Cookies and pecan web pages
 
 You may need to disable cookies specifically for the pecan webserver in your browser. This is because your installation of php can include a 'PHPSESSID' that is quite long, and this can overflow the params field of the workflows table, depending on how long your hostname, model name, site name, etc are. 

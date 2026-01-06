@@ -1,3 +1,4 @@
 # (PART) Topical Pages {-}
 
+This part groups related documentation pages by topic.
 

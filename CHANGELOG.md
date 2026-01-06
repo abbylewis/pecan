@@ -36,6 +36,7 @@ For more information about this file see also [Keep a Changelog](http://keepacha
 - added support for soil temperature, relative humidity, soil moisture, and PPFD downscaling to `met_temporal_downscale.Gaussian_ensemble`
 - The PEcAn uncertainty analysis tutorial ("Demo 2") has been updated and reimplemented as a Quarto notebook at `documentation/tutorials/Demo_02_Uncertainty_Analysis/uncertainty.qmd`. (#3570)
 - Added `generate_OAT_SA_design()` function for sensitivity analysis input design. Unlike ensemble design which randomizes all inputs, SA design holds non-parameter inputs constant to isolate parameter effects (#3729)
+- Added Demo 03: Meta Analysis Quarto notebook (`documentation/tutorials/Demo_03_Meta_Analysis/meta_analysis.qmd`) to demonstrate how to perform Bayesian meta-analysis and visualize posterior distributions using pre-generated trait data.
 
 ### Fixed
 

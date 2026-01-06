@@ -6,7 +6,7 @@ section for the next release.
 
 For more information about this file see also [Keep a Changelog](http://keepachangelog.com/) .
 
-## Unreleased
+## [1.10.0] - 2026-01-06
 
 ### Added
 

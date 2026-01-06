@@ -9,7 +9,7 @@ vignette: >
 
 ```{r}
 library("PEcAn.MA")
-library("tibble")
+library("tibble", include.only = "tribble")
 
 set.seed(20251222)
 ```

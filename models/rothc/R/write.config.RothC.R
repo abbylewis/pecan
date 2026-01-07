@@ -1,15 +1,15 @@
-##' Writes a RothC config file.
-##'
-##' Requires a pft xml object, a list of trait values for a single model run,
-##' and the name of the file to create
-##'
-##' @param defaults list of defaults to process
-##' @param trait.values vector of samples for a given trait
-##' @param settings list of settings from pecan settings file
-##' @param run.id id of run
-##' @return configuration file for MODEL for given run
-##' @export
-##' @author Chris Black
+#' Writes a RothC config file.
+#'
+#' Requires a pft xml object, a list of trait values for a single model run,
+#' and the name of the file to create
+#'
+#' @param defaults list of defaults to process
+#' @param trait.values vector of samples for a given trait
+#' @param settings list of settings from pecan settings file
+#' @param run.id id of run
+#' @return configuration file for MODEL for given run
+#' @export
+#' @author Chris Black
 write.config.RothC <- function(defaults, trait.values, settings, run.id) {
 
   # find out where to write run/ouput
@@ -140,7 +140,8 @@ write.config.RothC <- function(defaults, trait.values, settings, run.id) {
   config.text <- gsub("@OPT_SMDBARE@", smdbare, config.text)
 
   ## Climate data
-  # (read here to use length in soil params, remainder of processing happens below)
+  # (we read it here to use its length in soil params,
+  # remainder of processing happens below)
   met_path <- settings$run$inputs$met$path
   met_in <- utils::read.table(met_path, header = TRUE)
   n_met <- nrow(met_in)
@@ -177,31 +178,29 @@ write.config.RothC <- function(defaults, trait.values, settings, run.id) {
     OA_HUM_f = 0.02
   )
 
-input_rows <- met_in |>
-  dplyr::bind_cols(inputs) |>
-  dplyr::select(
-    "year", "month",
-    "modern_pct",
-    "Tmp_C", "Rain_mm", "Evap_mm",
-    "C_inp_tC_ha", "FYM_tC_ha", "PC",
-    "PL_DPM_f", "PL_RPM_f",
-    "OA_DPM_f", "OA_RPM_f", "OA_BIO_f", "OA_HUM_f"
-  ) |>
-  # Duplicate first year as the equilibrium block
-  # TODO we probably want a more principled approach here
-  duplicate_first_year() |>
-  dplyr::mutate(
-    dplyr::across(dplyr::where(is.double), zapsmall)
-  ) |>
-  # Kinda ugly: Convert to one string to cram it into the template via gsub
-  format() |>
-  apply(1, paste, collapse = " ") |>
-  paste(collapse = "\n")
-
+  input_rows <- met_in |>
+    dplyr::bind_cols(inputs) |>
+    dplyr::select(
+      "year", "month",
+      "modern_pct",
+      "Tmp_C", "Rain_mm", "Evap_mm",
+      "C_inp_tC_ha", "FYM_tC_ha", "PC",
+      "PL_DPM_f", "PL_RPM_f",
+      "OA_DPM_f", "OA_RPM_f", "OA_BIO_f", "OA_HUM_f"
+    ) |>
+    # Duplicate first year as the equilibrium block
+    # TODO we probably want a more principled approach here
+    duplicate_first_year() |>
+    dplyr::mutate(
+      dplyr::across(dplyr::where(is.double), zapsmall)
+    ) |>
+    # Kinda ugly: Convert to one string to cram it into the template via gsub
+    format() |>
+    apply(1, paste, collapse = " ") |>
+    paste(collapse = "\n")
   config.text <- gsub("@CLIM_DATA@", input_rows, config.text)
 
-  config.file.name <- "RothC_input.dat"
-  writeLines(config.text, con = file.path(rundir, config.file.name))
+  writeLines(config.text, con = file.path(rundir, "RothC_input.dat"))
 
   invisible(config.text)
 }

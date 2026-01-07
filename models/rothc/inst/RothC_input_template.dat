@@ -2,7 +2,7 @@
 # @START_YEAR@-@START_MONTH@-@START_DAY@ to @END_YEAR@-@END_MONTH@-@END_DAY@
 #
 # opt_RMmoist  opt_SMDbare
-    @OPT_RMMOIST@          @OPT_SDDBARE@
+    @OPT_RMMOIST@          @OPT_SMDBARE@
 # (%)     (cm)  (t C/ha)      (-)      (%) (g/m3)     (%)   (-)
 # clay	depth	    iom   nsteps  siltper     BD      OC    minRM_Moist
 @SOIL_PARAMS@

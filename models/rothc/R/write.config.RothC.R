@@ -125,18 +125,19 @@ write.config.RothC <- function(defaults, trait.values, settings, run.id) {
   config.text <- gsub("@ENSNAME@", run.id, config.text)
   config.text <- gsub("@OUTFILE@", paste0("out", run.id), config.text)
 
-  # TODO make these editable -- hard-coding for MVP
   # OPT_RMMOIST: soil water parameterization.
   #   1: Standard RothC soil water parameters
   #   2: Van Genuchten soil properties and soil is allowed to be drier
   #     (ie hygroscopic / capillary water, -1000bar)
   #   3: Van Genuchten soil properties, but uses the Standard RothC
   #     soil water function
-  config.text <- gsub("@OPT_RMMOIST@", "1", config.text)
+  rmmoist <- settings$model$opt_RMmoist %||% 1
+  config.text <- gsub("@OPT_RMMOIST@", rmmoist, config.text)
   # Bare SMD: wilting point configuration
   #   1: Standard RothC bareSMD
   #   2: bareSMD is set to wilting point -15bar (could be better for dry soils)
-  config.text <- gsub("@OPT_SDDBARE@", "1", config.text)
+  smdbare <- settings$model$opt_RMmoist %||% 1
+  config.text <- gsub("@OPT_SMDBARE@", smdbare, config.text)
 
   ## Climate data
   # (read here to use length in soil params, remainder of processing happens below)

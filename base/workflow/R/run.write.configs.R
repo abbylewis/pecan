@@ -8,12 +8,13 @@
 #'
 #' @param settings a PEcAn settings list
 #' @param ensemble.size number of ensemble runs
+#' @param input_design Input design data.frame coordinating input files across runs.
+#'   Contains columns for each sampled input (met, param, etc.) with row indices,
+#'   as documented in \code{runModule.run.write.configs()}.
 #' @param write should the runs be written to the database?
 #' @param posterior.files Filenames for posteriors for drawing samples for ensemble and sensitivity
 #'    analysis (e.g. post.distns.Rdata, or prior.distns.Rdata)
 #' @param overwrite logical: Replace output files that already exist?
-#' @param input_design Input design data.frame coordinating input files across runs.
-#'   Contains columns for each sampled input (met, param, etc.) with row indices.
 #'
 #' @details The default value for \code{posterior.files} is NA, in which case the
 #'    most recent posterior or prior (in that order) for the workflow is used.
@@ -29,6 +30,18 @@
 run.write.configs <- function(settings, ensemble.size, input_design, write = TRUE,
                               posterior.files = rep(NA, length(settings$pfts)),
                               overwrite = TRUE) {
+
+  # Validate that input_design matches ensemble.size for ensemble runs
+  # Note: for SA, ensemble.size is not meaningful; SA design size is determined by
+  # number of (pft, trait, quantile) combinations
+  if (!is.null(input_design) && "ensemble" %in% names(settings)) {
+    if (nrow(input_design) != ensemble.size) {
+      stop(
+        "input_design has ", nrow(input_design), " rows, but ensemble.size is ",
+        ensemble.size, ".The design matrix must have exactly one row per run."
+      )
+    }
+  }
                               
   ## Skip database connection if settings$database is NULL or write is False
   if (!isTRUE(write) && is.null(settings$database)) {

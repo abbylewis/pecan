@@ -19,7 +19,8 @@ run.write.configs(
 \item{ensemble.size}{number of ensemble runs}
 
 \item{input_design}{Input design data.frame coordinating input files across runs.
-Contains columns for each sampled input (met, param, etc.) with row indices.}
+Contains columns for each sampled input (met, param, etc.) with row indices,
+as documented in \code{runModule.run.write.configs()}.}
 
 \item{write}{should the runs be written to the database?}
 

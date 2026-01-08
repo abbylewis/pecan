@@ -6,6 +6,7 @@
 * New function `clip_and_save_raster_file()` subsets rasters to match a polygon of interest (#3537).
 * New function `look_up_fertilizer_component()` contains typical carbon and nitrogen composition of common fertilizer types (#3559).
 * New PEcAn standard for `events.json` files. These contain information about management events (planting, harvest, irrigation, etc). The standard is defined in `inst/events_schema_v0.1.0.json` and event files can be validated against the schema with new function `validate_events()` (#3623, #3521).
+* Added `bism_kc_by_crop` dataset containing BISm crop coefficient schedules and stage timing references for use in ET estimation.
 
 ## Changed
 

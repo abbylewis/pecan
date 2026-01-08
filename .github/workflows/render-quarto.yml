@@ -29,32 +29,11 @@ jobs:
           version: '1.8.17'
 
 
-      - name: Parse notebook configuration
-        id: config
-        env:
-          NOTEBOOKS_LIST: |
-            documentation/tutorials/Demo_1_Basic_Run/run_pecan.qmd
-            documentation/tutorials/Demo_02_Uncertainty_Analysis/uncertainty.qmd
-            documentation/tutorials/Demo_03_Meta_Analysis/meta_analysis.qmd
-        run: |
-          paths="$NOTEBOOKS_LIST"
-          r_files_raw=$(echo "$paths" | awk 'NF {printf "\\\"/work/%s\\\", ", $0}')
-          r_files=${r_files_raw%, }
-          render_cmd_raw=$(echo "$paths" | awk 'NF {printf "quarto render /work/%s --to html && ", $0}')
-          render_cmd=${render_cmd_raw% && }
-          paths_out=$(echo "$paths" | tr '\n' ' ')
-          
-          echo "r_files=$r_files" >> $GITHUB_OUTPUT
-          echo "render_cmd=$render_cmd" >> $GITHUB_OUTPUT
-          echo "paths=$paths_out" >> $GITHUB_OUTPUT
-
       - name: Check R code style with styler
         run: |
           docker run --rm -v ${{ github.workspace }}:/work pecan-base-ci:latest bash -c "Rscript -e '
             if (!requireNamespace(\"styler\", quietly = TRUE)) install.packages(\"styler\");
-            files_to_check <- c(
-              ${{ steps.config.outputs.r_files }}
-            );
+            files_to_check <- list.files(\"/work/documentation/tutorials\", pattern = \"\\\\.qmd$\", full.names = TRUE, recursive = TRUE);
             unstyled <- styler::style_file(files_to_check);
             if (is.data.frame(unstyled) && \"changed\" %in% names(unstyled) && any(unstyled\$changed == TRUE)) {
               print(unstyled[unstyled\$changed, ]);
@@ -67,13 +46,14 @@ jobs:
       - name: Render Quarto notebooks to HTML
         run: |
           docker run --rm -v ${{ github.workspace }}:/work pecan-base-ci:latest bash -c "
-            ${{ steps.config.outputs.render_cmd }}
+            quarto render \$(find /work/documentation/tutorials -name '*.qmd') --to html
           "
 
       - name: Prepare HTML artifacts
         run: |
           mkdir quarto_html_build
-          for p in ${{ steps.config.outputs.paths }}; do
+          shopt -s globstar
+          for p in documentation/tutorials/**/*.qmd; do
             html_file="${p%.qmd}.html"
             files_dir="${p%.qmd}_files"
             

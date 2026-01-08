@@ -7,19 +7,7 @@
 generate_OAT_SA_design(settings, sa_samples = NULL)
 }
 \arguments{
-\item{settings}{PEcAn settings object. This function directly uses:
-\itemize{
-  \item \code{settings$outdir} - Output directory path for samples.Rdata
-  \item \code{settings$pfts} - List of PFTs (extracts \code{posterior.files})
-  \item \code{settings$ensemble$samplingspace} - Input types to include in design
-}
-When \code{sa_samples = NULL}, settings is passed to
-\code{\link{get.parameter.samples}} which additionally requires:
-\itemize{
-  \item \code{settings$sensitivity.analysis} - SA quantile configuration
-  \item \code{settings$database$bety} - Database connection (optional)
-  \item \code{settings$host$name} - Host name for dbfile.check (optional)
-}}
+\item{settings}{PEcAn settings object. See details for required elements.}
 
 \item{sa_samples}{Optional. Pre-loaded SA samples (named list with one
 element per PFT, each a matrix with quantiles as rows and traits as columns).
@@ -36,6 +24,24 @@ one-at-a-time across quantiles. This differs from ensemble design where
 all inputs vary together.
 }
 \details{
+## Settings requirements
+
+This function directly uses:
+\itemize{
+  \item \code{settings$outdir} - Output directory path for samples.Rdata
+  \item \code{settings$pfts} - List of PFTs (extracts \code{posterior.files})
+  \item \code{settings$ensemble$samplingspace} - Input types to include in design
+}
+
+When \code{sa_samples = NULL}, settings is passed to
+\code{\link{get.parameter.samples}} which additionally requires:
+\itemize{
+  \item \code{settings$sensitivity.analysis} - SA quantile configuration
+  \item \code{settings$database$bety} - Database connection (optional)
+  \item \code{settings$host$name} - Host name for dbfile.check (optional)
+}
+
+## OAT design logic
 For sensitivity analysis, we must isolate the effect of each 
 parameter by holding all other inputs constant. The param column contains
 sequential indices (1, 2, 3, ...) matching the SA run order in 

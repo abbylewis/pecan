@@ -1,1 +1,3 @@
 ## Coding Practices {#coding-practices}
+
+Good coding practices keep PEcAn's codebase clean, readable, and maintainable. This section covers the standards and conventions all contributors should follow.

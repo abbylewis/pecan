@@ -133,11 +133,25 @@ write.config.RothC <- function(defaults, trait.values, settings, run.id) {
   #     soil water function
   rmmoist <- settings$model$opt_RMmoist %||% 1
   config.text <- gsub("@OPT_RMMOIST@", rmmoist, config.text)
+
   # Bare SMD: wilting point configuration
   #   1: Standard RothC bareSMD
   #   2: bareSMD is set to wilting point -15bar (could be better for dry soils)
   smdbare <- settings$model$opt_RMmoist %||% 1
   config.text <- gsub("@OPT_SMDBARE@", smdbare, config.text)
+
+  # min_RM_moist: Lowest value taken by the soil moisture rate modifier,
+  # reached when soil water potential is -1500 kPa.
+  # Note: Only used if smdbare == 2.
+  # 0.2 is compatible with RothC 1.0; 0.15 or 0.1 may be better for dry systems.
+  # see Farina et al 2013 10.1016/j.geoderma.2013.01.021
+  min_rmmoist <- settings$model$min_RM_moist %||% 0.2
+  # not added to config.text here bc written as part of @SOIL_PARAMS@ below
+
+  # Soil depth to simulate.
+  # Caution: Currently gets overridden by layer boundaries in soil file,
+  # so it's really "simulate no deeper than this". TODO: FIXME.
+  model_depth_cm <- settings$model$soil_depth_cm %||% 23
 
   ## Climate data
   # (we read it here to use its length in soil params,
@@ -147,12 +161,54 @@ write.config.RothC <- function(defaults, trait.values, settings, run.id) {
   n_met <- nrow(met_in)
 
   ## Soil parameters
+  soil_list <- PEcAn.data.land::pool_ic_netcdf2list(
+    settings$run$inputs$soil_physics$path
+  )
+  soil_params <- soil_list$vals |>
+    as.data.frame() |>
+    dplyr::mutate(depth_cm = soil_list$dims$depth) |>
+    # TODO this drops layers that extend past bottom
+    # (eg with depth=23 and 0-10/10-30 layering, would use only 0-10)
+    # Least-code/copout approach:
+    # Make everyone generate their soil files with layers that match model depth
+    dplyr::filter(.data$depth_cm <= model_depth_cm) |>
+    dplyr::summarize(
+      # TODO consider weighting by layer thickness?
+      depth_cm = max(.data$depth_cm),
+      clay_pct = .data$fraction_of_clay_in_soil |>
+        mean() |>
+        PEcAn.utils::ud_convert("1", "%"),
+      silt_pct = .data$fraction_of_silt_in_soil |>
+        mean() |>
+        PEcAn.utils::ud_convert("1", "%"),
+      bulkdens_g_cm3 = .data$bulk_density |>
+        mean() |>
+        PEcAn.utils::ud_convert("kg m-3", "g cm-3"),
+      org_C_pct = .data$soil_organic_carbon_stock |>
+        sum() |>
+        PEcAn.utils::ud_convert("kg m-2", "g cm-2") |>
+        (\(x) x / (.data$depth_cm * .data$bulkdens_g_cm3))() |>
+        PEcAn.utils::ud_convert("1", "%"),
+      iom_tC_ha = .data$soil_organic_carbon_stock |>
+        sum() |>
+        PEcAn.utils::ud_convert("kg m-2", "t ha-1") |>
+        # Approximation from Falloon et al. 1998, 10.1016/S0038-0717(97)00256-3
+        (\(x) 0.049 * x^1.139)()
+    )
+
+  ## Build string from soil params
   ## (plus number of timesteps, weirdly snuck into the middle)
-  # TODO: read from run$inputs$soil_physics
   soil_param_string <- paste(
-    "23.4  23.0   3.0041", # clay_pct, depth_cm, iom_tC_ha
+    soil_params$clay_pct,
+    soil_params$depth_cm,
+    soil_params$iom_tC_ha,
     n_met + 12, # nsteps (includes extra year for spinup)
-    "58.6 1.27 0.94 0.2" # silt_pct, bulkdens_g_m3, org_C_pct, min_RM_moist
+    # NB these last 4 params are always written,
+    # but only used by model if smdbar == 2
+    soil_params$silt_pct,
+    soil_params$bulkdens_g_m3,
+    soil_params$org_C_pct,
+    min_rmmoist
   )
   config.text <- gsub("@SOIL_PARAMS@", soil_param_string, config.text)
 

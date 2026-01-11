@@ -181,7 +181,7 @@ write.config.RothC <- function(defaults, trait.values, settings, run.id) {
       silt_pct = .data$fraction_of_silt_in_soil |>
         mean() |>
         PEcAn.utils::ud_convert("1", "%"),
-      bulkdens_g_cm3 = .data$bulk_density |>
+      bulkdens_g_cm3 = .data$soil_bulk_density |>
         mean() |>
         PEcAn.utils::ud_convert("kg m-3", "g cm-3"),
       org_C_pct = .data$soil_organic_carbon_stock |>

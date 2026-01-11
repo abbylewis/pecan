@@ -19,8 +19,15 @@ rothc_varname_map <- dplyr::tribble(
   "Hum_t_C_ha", "Humified organic matter",     "t C ha-1", "slow_soil_pool_carbon_content",
   "IOM_t_C_ha", "Inert organic matter",        "t C ha-1", "structural_soil_pool_carbon_content",
   "SOC_t_C_ha", "Total soil organic carbon",   "t C ha-1", "TotSoilCarb",
-  "CO2_t_C_ha", "Accumulated CO2",             "t C ha-1", NA, # needs time dimension to match to "TotalResp" which is kg C m-2 sec-1
-  ## The remaining lines are parameters not variables, but mapping them here for "convenience"
+  "CO2_t_C_ha", "Accumulated CO2",             "t C ha-1", NA # needs time dimension to match to "TotalResp" which is kg C m-2 sec-1
+)
+
+
+# Mapping from RothC _input_ parameters to PEcAn standard names.
+# Not used anywhere in the code yet!
+# Just writing them down for reference and this file seemed like a good place
+rothc_param_map <- dplyr::tribble(
+  ~rothc_name, ~rothc_description, ~rothc_unit, ~pecan_name,
   "clay_pct",   "Clay content of the soil",    "pct",      "fraction_of_clay_in_soil",
   "depth_cm",   "Depth of soil layer sampled", "cm",       "depth",
   "iom_tC_ha",  "inert organic matter",        "t C ha-1", NA,

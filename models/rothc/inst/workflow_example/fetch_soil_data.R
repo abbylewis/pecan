@@ -49,8 +49,6 @@ args <- optparse::OptionParser(option_list = options) |>
 
 
 future::plan(args$parallel_strategy, workers = as.numeric(args$n_cores))
-# TODO option call not working -- do I need to assign it somewhere?
-furrr::furrr_options(seed = TRUE)
 
 site_info <-
   read.csv(
@@ -64,4 +62,9 @@ if (!args$overwrite) {
     dplyr::filter(!dir.exists(outdir))
 }
 site_info |>
-  furrr::future_pwalk(PEcAn.data.land::extract_soil_gssurgo, size = args$n_ens)
+  furrr::future_pwalk(
+    .f = PEcAn.data.land::extract_soil_gssurgo,
+    size = args$n_ens,
+    grid_size = 5,
+    .options = furrr::furrr_options(seed = TRUE)
+  )

@@ -4,6 +4,12 @@
 
 * `soil_params()` where bulk density is not specified by the user now look up `soil_bulk_density` from the soil type (as always intended) instead of always reporting 1350 kg/m3 because of a flow control typo.
 
+## Added
+
+* Datasets
+  *  `bism_kc_by_crop` dataset containing BISm crop coefficient schedules and stage timing references for use in ET estimation.
+  *  `landiq_crop_mapping_codes` dataset mapping LandIQ crop classification codes to human-readable crop names.
+  * `landiq_bsim_lookup` dataset mapping LandIQ crop classification codes to BISm crop numbers.
 
 # PEcAn.data.land 1.9.0
 
@@ -13,7 +19,6 @@
 * New function `clip_and_save_raster_file()` subsets rasters to match a polygon of interest (#3537).
 * New function `look_up_fertilizer_component()` contains typical carbon and nitrogen composition of common fertilizer types (#3559).
 * New PEcAn standard for `events.json` files. These contain information about management events (planting, harvest, irrigation, etc). The standard is defined in `inst/events_schema_v0.1.0.json` and event files can be validated against the schema with new function `validate_events()` (#3623, #3521).
-* Added `bism_kc_by_crop` dataset containing BISm crop coefficient schedules and stage timing references for use in ET estimation.
 
 ## Changed
 

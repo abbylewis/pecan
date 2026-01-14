@@ -46,7 +46,7 @@
   <opt_RMmoist>1</opt_RMmoist> <!-- TODO validate these. Using 2 (van Genuchten) for both options may be a better default -->
   <opt_SMDbare>1</opt_SMDbare>
   <min_RM_moist>0.1</min_RM_moist> <!-- TODO ignored when opt_SMDbare == 1 -->
-  <model_depth_cm>30</model_depth_cm>
+  <soil_depth_cm>30</soil_depth_cm>
  </model>
  <run>
   <site><!-- inserted at config time --></site>

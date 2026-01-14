@@ -111,6 +111,37 @@
 #' @source DayCent model default parameter file: `omad.100` obtained from the Soil Carbon Solutions Center, https://www.soilcarbonsolutionscenter.com
 "fertilizer_composition_data"
 
+#' LandIQ crop mapping codes
+#'
+#' LandIQ land-use class and subclass labels used for crop mapping.
+#'
+#' @format ## `landiq_crop_mapping_codes`
+#' A data frame with 203 rows and 4 columns:
+#' \describe{
+#'   \item{CLASS}{LandIQ class code.}
+#'   \item{class_name}{LandIQ class name.}
+#'   \item{SUBCLASS}{LandIQ subclass code.}
+#'   \item{subclass_name}{LandIQ subclass name.}
+#' }
+#' @source See `inst/extdata/landiq_crop_mapping_codes.tsv`.
+"landiq_crop_mapping_codes"
+
+#' Lookup between LandIQ codes and BISm crop numbers
+#'
+#' Crosswalk between LandIQ class/subclass codes and BISm crop identifiers.
+#' Unmatched crops have missing LandIQ fields.
+#'
+#' @format ## `landiq_bsim_lookup`
+#' A data frame with 66 rows and 3 columns:
+#' \describe{
+#'   \item{landiq_class}{LandIQ class code.}
+#'   \item{landiq_subclass}{LandIQ subclass code.}
+#'   \item{bsim_crop_number}{BISm crop number.}
+#' }
+#' @source Derived from `inst/extdata/landiq_bsim_lookup.csv`.
+"landiq_bsim_lookup"
+
+
 
 #' BIS crop coefficients by crop
 #

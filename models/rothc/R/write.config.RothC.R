@@ -199,16 +199,17 @@ write.config.RothC <- function(defaults, trait.values, settings, run.id) {
   ## Build string from soil params
   ## (plus number of timesteps, weirdly snuck into the middle)
   soil_param_string <- paste(
-    soil_params$clay_pct,
-    soil_params$depth_cm,
-    soil_params$iom_tC_ha,
+    round(soil_params$clay_pct, 1),
+    round(soil_params$depth_cm, 1),
+    round(soil_params$iom_tC_ha, 2),
     n_met + 12, # nsteps (includes extra year for spinup)
     # NB these last 4 params are always written,
     # but only used by model if smdbar == 2
-    soil_params$silt_pct,
-    soil_params$bulkdens_g_m3,
-    soil_params$org_C_pct,
-    min_rmmoist
+    round(soil_params$silt_pct, 1),
+    round(soil_params$bulkdens_g_cm3, 3),
+    round(soil_params$org_C_pct, 1),
+    min_rmmoist,
+    sep = "      " # just to align with headers, RothC doesn't care
   )
   config.text <- gsub("@SOIL_PARAMS@", soil_param_string, config.text)
 

@@ -273,35 +273,19 @@ end.year <- lubridate::year(settings$run$end.date)
 # It generates a histogram and a boxplot to show the central tendency, spread,
 # and shape of the output variable's distribution.
 
-requested_vars <- settings$ensemble$variable
+# Get the variables requested in the settings
+variables <- settings$ensemble$variable
+ensemble.id <- if (!is.null(settings$ensemble$ensemble.id)) settings$ensemble$ensemble.id else "NOENSEMBLEID"
 
-ens_files <- list.files(settings$outdir, pattern = "ensemble\\.output\\..*\\.Rdata", full.names = TRUE)
-found_vars <- c()
-if (length(ens_files) > 0) {
-  found_vars <- sapply(basename(ens_files), function(x) {
-    parts <- strsplit(x, "\\.")[[1]]
-    if (length(parts) >= 6) return(parts[4]) else return(NA)
-  })
-  found_vars <- unique(na.omit(as.character(found_vars)))
-}
-
-plot_vars <- unique(c(requested_vars, found_vars))
-settings$ensemble$variable <- plot_vars
-
-for (var in plot_vars) {
-  ens_pattern <- paste0("ensemble\\.output\\..*\\.", var, "\\.", start.year, "\\.", end.year, "\\.Rdata")
-  ens_files <- list.files(settings$outdir, pattern = ens_pattern, full.names = TRUE)
+# Loop through each requested variable
+for (var in variables) {
+  # Construct the path to the ensemble output file
+  ens_file <- file.path(
+    settings$outdir,
+    paste0("ensemble.output", ".", ensemble.id, ".", var, ".", start.year, ".", end.year, ".Rdata")
+  )
   
-  if (length(ens_files) > 0) {
-    # Use the most recently modified file for this variable
-    ens_file <- ens_files[which.max(file.info(ens_files)$mtime)]
-    
-    # Extract ID from the file to update settings (helpful for consistency)
-    parts <- strsplit(basename(ens_file), "\\.")[[1]]
-    if (length(parts) >= 3) {
-      settings$ensemble$id <- parts[3]
-    }
-    
+  if (file.exists(ens_file)) {
     PEcAn.logger::logger.info(paste("Plotting ensemble results for variable:", var, "from", basename(ens_file)))
     
     ens_env <- new.env()
@@ -348,11 +332,14 @@ This block visualizes the results of the sensitivity analysis. The plots show ho
 variables <- settings$ensemble$variable
 
 for (var in variables) {
-  sens_pattern <- paste0("sensitivity\\.results\\..*\\.", var, "\\.", start.year, "\\.", end.year, "\\.Rdata")
-  sens_files <- list.files(settings$outdir, pattern = sens_pattern, full.names = TRUE)
+  # Construct the path to the sensitivity analysis results file
+  sa.ensemble.id <- if (!is.null(settings$sensitivity.analysis$ensemble.id)) settings$sensitivity.analysis$ensemble.id else "NOENSEMBLEID"
+  sens_file <- file.path(
+    settings$outdir,
+    paste0("sensitivity.results", ".", sa.ensemble.id, ".", var, ".", start.year, ".", end.year, ".Rdata")
+  )
   
-  if (length(sens_files) > 0) {
-    sens_file <- sens_files[which.max(file.info(sens_files)$mtime)]
+  if (file.exists(sens_file)) {
     
     PEcAn.logger::logger.info(paste("Plotting sensitivity results for variable:", var, "from", basename(sens_file)))
     

@@ -275,14 +275,13 @@ end.year <- lubridate::year(settings$run$end.date)
 
 vars <- settings$ensemble[names(settings$ensemble) == "variable"]
 variables <- unlist(vars)
-ensemble.id <- if (!is.null(settings$ensemble$ensemble.id)) settings$ensemble$ensemble.id else "NOENSEMBLEID"
-
 # Loop through each requested variable
 for (var in variables) {
   # Construct the path to the ensemble output file
-  ens_file <- file.path(
-    settings$outdir,
-    paste0("ensemble.output", ".", ensemble.id, ".", var, ".", start.year, ".", end.year, ".Rdata")
+  ens_file <- PEcAn.uncertainty::ensemble.filename(
+    settings,
+    prefix = "ensemble.output",
+    all.var.yr = FALSE
   )
 
   if (file.exists(ens_file)) {
@@ -314,7 +313,7 @@ for (var in variables) {
 # This section visualizes the ensemble results over time, showing the mean,
 # median, and 95% confidence interval of the model output.
 # Loop through each variable for time series plots
-for (var in settings$ensemble$variable) {
+for (var in variables) {
   ens_ts_data <- PEcAn.uncertainty::read.ensemble.ts(settings, variable = var)
   if (!is.null(ens_ts_data)) {
     PEcAn.uncertainty::ensemble.ts(ens_ts_data)
@@ -333,10 +332,10 @@ variables <- unlist(vars)
 
 for (var in variables) {
   # Construct the path to the sensitivity analysis results file
-  sa.ensemble.id <- if (!is.null(settings$sensitivity.analysis$ensemble.id)) settings$sensitivity.analysis$ensemble.id else "NOENSEMBLEID"
-  sens_file <- file.path(
-    settings$outdir,
-    paste0("sensitivity.results", ".", sa.ensemble.id, ".", var, ".", start.year, ".", end.year, ".Rdata")
+  sens_file <- PEcAn.uncertainty::sensitivity.filename(
+    settings,
+    prefix = "sensitivity.results",
+    all.var.yr = FALSE
   )
 
   if (file.exists(sens_file)) {

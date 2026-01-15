@@ -273,8 +273,8 @@ end.year <- lubridate::year(settings$run$end.date)
 # It generates a histogram and a boxplot to show the central tendency, spread,
 # and shape of the output variable's distribution.
 
-# Get the variables requested in the settings
-variables <- settings$ensemble$variable
+vars <- settings$ensemble[names(settings$ensemble) == "variable"]
+variables <- unlist(vars)
 ensemble.id <- if (!is.null(settings$ensemble$ensemble.id)) settings$ensemble$ensemble.id else "NOENSEMBLEID"
 
 # Loop through each requested variable
@@ -328,8 +328,8 @@ This block visualizes the results of the sensitivity analysis. The plots show ho
 
 ```{r visualize-sensitivity-results}
 # --- 1. Load Sensitivity Analysis Results ---
-# Get the variables requested in the settings
-variables <- settings$ensemble$variable
+vars <- settings$sensitivity.analysis[names(settings$sensitivity.analysis) == "variable"]
+variables <- unlist(vars)
 
 for (var in variables) {
   # Construct the path to the sensitivity analysis results file

@@ -166,11 +166,17 @@ write.config.RothC <- function(defaults, trait.values, settings, run.id) {
   )
   soil_params <- soil_list$vals |>
     as.data.frame() |>
+    # netCDF metadata and PEcAn.data.land::soil.units("soil_depth") both
+    # say depth should be meters, but the gSSURGO files I've checked are in cm.
+    # TODO: fix either code or unit labels upstream,
+    # and check that they are consistent with other sources
+    # TODO 2: Assumes depth is given to bottom of layer -- is that correct?
     dplyr::mutate(depth_cm = soil_list$dims$depth) |>
     # TODO this drops layers that extend past bottom
     # (eg with depth=23 and 0-10/10-30 layering, would use only 0-10)
-    # Least-code/copout approach:
-    # Make everyone generate their soil files with layers that match model depth
+    # Consider rescaling partial layers
+    # (Or throwing an error on mismatch and making everyone generate their soil
+    #  files with layers that match model depth?)
     dplyr::filter(.data$depth_cm <= model_depth_cm) |>
     dplyr::summarize(
       # TODO consider weighting by layer thickness?

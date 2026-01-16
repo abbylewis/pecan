@@ -7,9 +7,8 @@
 ## Added
 
 * Datasets
-  *  `bism_kc_by_crop` dataset containing BISm crop coefficient schedules and stage timing references for use in ET estimation.
   *  `landiq_crop_mapping_codes` dataset mapping LandIQ crop classification codes to human-readable crop names.
-  * `landiq_bsim_lookup` dataset mapping LandIQ crop classification codes to BISm crop numbers.
+  *  `bism_kc_by_crop` dataset containing BISm crop coefficient schedules and stage timing references for use in ET estimation, including columns that map to LandIQ class and subclass.
 
 # PEcAn.data.land 1.9.0
 

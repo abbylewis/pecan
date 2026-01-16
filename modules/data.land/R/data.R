@@ -123,34 +123,20 @@
 #'   \item{SUBCLASS}{LandIQ subclass code.}
 #'   \item{subclass_name}{LandIQ subclass name.}
 #' }
-#' @source See `inst/extdata/landiq_crop_mapping_codes.tsv`.
+#' @source California Department of Water Resources. (2023). Statewide Crop Mapping—California 
+#' Natural Resources Agency Open Data. Metadata retrieved from https://data.cnra.ca.gov/dataset/statewide-crop-mapping and manually extracted into `data-raw/landiq_crop_mapping_codes.tsv`.
 "landiq_crop_mapping_codes"
 
-#' Lookup between LandIQ codes and BISm crop numbers
-#'
-#' Crosswalk between LandIQ class/subclass codes and BISm crop identifiers.
-#' Unmatched crops have missing LandIQ fields.
-#'
-#' @format ## `landiq_bsim_lookup`
-#' A data frame with 66 rows and 3 columns:
-#' \describe{
-#'   \item{landiq_class}{LandIQ class code.}
-#'   \item{landiq_subclass}{LandIQ subclass code.}
-#'   \item{bsim_crop_number}{BISm crop number.}
-#' }
-#' @source Derived from `inst/extdata/landiq_bsim_lookup.csv`.
-"landiq_bsim_lookup"
-
-
-
 #' BIS crop coefficients by crop
-#
-# Crop coefficient (Kc) schedules extracted from the Basic Irrigation Scheduling
-# (BIS) Excel workbook (Snyder et. al., 2014).
-# The dataset is a direct export of the workbook's `CropRef` worksheet, with columns renamed.
-# This dataset provides the information needed to reconstruct a stage-based daily Kc curve when
-# combined with grass-reference evapotranspiration (ETo), such as that provided
-# by CIMIS (California Department of Water Resources, 2025).
+#'
+#' Crop and growth stage specific coefficients (Kc) from the Basic Irrigation Scheduling
+#' (BIS) Excel workbook (Snyder et. al., 2014).
+#' The dataset is an export of the BISm.xlsx workbook's `CropRef` worksheet, with columns renamed
+#' and columns added that map to LandIQ CADWR land use dataset 
+#' (\code{\link{landiq_crop_mapping_codes}}; California Department of Water Resources, 2023).
+#' This dataset provides the information needed to reconstruct a stage-based daily Kc curve when
+#' combined with grass-reference evapotranspiration (ETo), such as that provided
+#' by CIMIS (California Department of Water Resources, 2025).
 #
 #' @format A data frame with one row per crop and the following columns:
 #' \describe{
@@ -167,6 +153,9 @@
 #'   \item{planting_day}{Representative planting day used by BIS.}
 #'   \item{harvest_month}{Representative harvest month used by BIS.}
 #'   \item{harvest_day}{Representative harvest day used by BIS.}
+#'   \item{landiq_class}{LandIQ class code matched by BISm crop number.}
+#'   \item{landiq_subclass}{LandIQ subclass code matched by BISm crop number.}
+#'   \item{landiq_subclass_name}{LandIQ subclass name matched by BISm crop number.}
 #' }
 #'
 #' @details
@@ -195,12 +184,6 @@
 #'   ground cover during C-D, and declines during D-E toward leaf drop or the
 #'   first hard freeze.
 #' }
-#'
-#' This dataset represents the tabulated stage coefficients and timing parameters
-#' from the BIS `CropRef` worksheet only. Additional components of the full
-#' BIS model (e.g., bare-soil evaporation, irrigation-frequency adjustments,
-#' immaturity corrections, and cover-crop effects) are not encoded here and must
-#' be handled separately if required.
 #'
 #' @source
 #' Snyder, R., Orang, M., Bali, K., Eching, S., Zaccaria, D. (2014).

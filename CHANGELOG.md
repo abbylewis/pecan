@@ -12,9 +12,9 @@ For more information about this file see also [Keep a Changelog](http://keepacha
 - Add function `PEcAn.MA::meta_analysis_standalone` to run meta-analysis without database or file IO.
 - Added Demo 03: Meta Analysis Quarto notebook (`documentation/tutorials/Demo_03_Meta_Analysis/meta_analysis.qmd`) to demonstrate how to perform Bayesian meta-analysis and visualize posterior distributions using pre-generated trait data.
 - Added datasets to `PEcAn.data.land` 
-  *  `bism_kc_by_crop` dataset containing BISm crop coefficient schedules and stage timing references for use in ET estimation.
   *  `landiq_crop_mapping_codes` dataset mapping LandIQ crop classification codes to human-readable crop names.
-  * `landiq_bsim_lookup` dataset mapping LandIQ crop classification codes to BISm crop numbers.
+  *  `bism_kc_by_crop` dataset containing BISm crop coefficient schedules and stage timing references for use in ET estimation, including columns that map to LandIQ class and subclass.
+
 
 ### Fixed
 

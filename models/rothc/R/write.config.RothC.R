@@ -160,47 +160,7 @@ write.config.RothC <- function(defaults, trait.values, settings, run.id) {
   met_in <- utils::read.table(met_path, header = TRUE)
   n_met <- nrow(met_in)
 
-  ## Soil parameters
-  soil_list <- PEcAn.data.land::pool_ic_netcdf2list(
-    settings$run$inputs$soil_physics$path
-  )
-  soil_params <- soil_list$vals |>
-    as.data.frame() |>
-    # netCDF metadata and PEcAn.data.land::soil.units("soil_depth") both
-    # say depth should be meters, but the gSSURGO files I've checked are in cm.
-    # TODO: fix either code or unit labels upstream,
-    # and check that they are consistent with other sources
-    # TODO 2: Assumes depth is given to bottom of layer -- is that correct?
-    dplyr::mutate(depth_cm = soil_list$dims$depth) |>
-    # TODO this drops layers that extend past bottom
-    # (eg with depth=23 and 0-10/10-30 layering, would use only 0-10)
-    # Consider rescaling partial layers
-    # (Or throwing an error on mismatch and making everyone generate their soil
-    #  files with layers that match model depth?)
-    dplyr::filter(.data$depth_cm <= model_depth_cm) |>
-    dplyr::summarize(
-      # TODO consider weighting by layer thickness?
-      depth_cm = max(.data$depth_cm),
-      clay_pct = .data$fraction_of_clay_in_soil |>
-        mean() |>
-        PEcAn.utils::ud_convert("1", "%"),
-      silt_pct = .data$fraction_of_silt_in_soil |>
-        mean() |>
-        PEcAn.utils::ud_convert("1", "%"),
-      bulkdens_g_cm3 = .data$soil_bulk_density |>
-        mean() |>
-        PEcAn.utils::ud_convert("kg m-3", "g cm-3"),
-      org_C_pct = .data$soil_organic_carbon_stock |>
-        sum() |>
-        PEcAn.utils::ud_convert("kg m-2", "g cm-2") |>
-        (\(x) x / (.data$depth_cm * .data$bulkdens_g_cm3))() |>
-        PEcAn.utils::ud_convert("1", "%"),
-      iom_tC_ha = .data$soil_organic_carbon_stock |>
-        sum() |>
-        PEcAn.utils::ud_convert("kg m-2", "t ha-1") |>
-        # Approximation from Falloon et al. 1998, 10.1016/S0038-0717(97)00256-3
-        (\(x) 0.049 * x^1.139)()
-    )
+  soil_params <- read_soil_physics(settings$run$inputs$soil_physics$path)
 
   ## Build string from soil params
   ## (plus number of timesteps, weirdly snuck into the middle)

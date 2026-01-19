@@ -39,16 +39,12 @@ call_biocro_0.9 <- function(WetDat, genus, year_in_run,
   )
   if (!biocro_checks_doy && min(WetDat[, "doy"]) > 1) {
     n_unique_doy <- length(unique(WetDat[, "doy"]))
-    hours_per_day <- nrow(WetDat) / n_unique_doy / length(unique(WetDat[, "year"]))
-    if (hours_per_day < 1 || !is.finite(hours_per_day)) hours_per_day <- 24
-    
-    n_days <- n_unique_doy
     
     if (!is.null(day1)) {
       day1 <- 1
     }
     if (!is.null(dayn)) {
-      dayn <- n_days
+      dayn <- n_unique_doy
     }
   }
 

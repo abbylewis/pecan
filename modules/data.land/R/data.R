@@ -204,6 +204,5 @@
 #' data(bism_kc_by_crop)
 #' head(bism_kc_by_crop)
 #'
-#' @export
 #' @keywords datasets
 "bism_kc_by_crop"

@@ -8,6 +8,7 @@
 ##' @param eto numeric vector of reference evapotranspiration
 ##' @param kc numeric vector of crop coefficients
 ##' @return numeric vector of crop evapotranspiration
+##' @importFrom rlang .data .env
 ##' @export
 ##'
 eto_to_etc <- function(eto, kc) {

@@ -19,11 +19,12 @@
     secondary_cf,
     vars,
     out_file,
-    align_time = TRUE
+    align_time = FALSE
   ) {
-  # TODO (#3605): Implement time-axis validation and alignment between
-  # primary and secondary CF files (e.g. using cf2datetime() and logic
-  # from align_met.R). This is intentionally deferred to a follow-up PR.
+
+  # TODO(#3605): align CF time axes using PEcAn.utils::cf2datetime()
+  # TODO(#3605): error on non-overlapping time axes
+  # TODO(#3605): consider aggregation/repeat logic in future PR
 
   # ---- open inputs (read-only)
   nc_primary <- ncdf4::nc_open(primary_cf)
@@ -31,6 +32,55 @@
 
   nc_secondary <- ncdf4::nc_open(secondary_cf)
   on.exit(ncdf4::nc_close(nc_secondary), add = TRUE)
+
+    # ---- extract and align CF time axes (minimal, non-resampling)
+  if (align_time) {
+
+    # ---- dependency guard (CI-safe)
+    if (!requireNamespace("PEcAn.utils", quietly = TRUE)) {
+      stop(
+        "align_time = TRUE requires the PEcAn.utils package, which is not installed"
+      )
+    }
+
+    # ---- validate CF time variable existence
+    if (!("time" %in% names(nc_primary$var))) {
+      stop("Primary CF file does not contain a 'time' variable")
+    }
+
+    if (!("time" %in% names(nc_secondary$var))) {
+      stop("Secondary CF file does not contain a 'time' variable")
+    }
+
+    # Extract CF time values + units
+    primary_time_vals <- ncdf4::ncvar_get(nc_primary, "time")
+    primary_time_unit <- ncdf4::ncatt_get(nc_primary, "time", "units")$value
+
+    secondary_time_vals <- ncdf4::ncvar_get(nc_secondary, "time")
+    secondary_time_unit <- ncdf4::ncatt_get(nc_secondary, "time", "units")$value
+
+    # Convert to POSIXct using PEcAn.utils helper
+    primary_time <- PEcAn.utils::cf2datetime(
+      primary_time_vals,
+      primary_time_unit
+    )
+
+    secondary_time <- PEcAn.utils::cf2datetime(
+      secondary_time_vals,
+      secondary_time_unit
+    )
+
+    # Find overlapping timestamps
+    common_time <- intersect(primary_time, secondary_time)
+
+    if (length(common_time) == 0) {
+      stop("No overlapping CF time values between primary_cf and secondary_cf")
+    }
+
+    # Indices for subsetting variables
+    primary_idx   <- match(common_time, primary_time)
+    secondary_idx <- match(common_time, secondary_time)
+  }
 
 
   # TODO (#3605): Replace copy-and-modify approach with explicit
@@ -49,8 +99,13 @@
       next
     }
 
-    primary_vals  <- ncdf4::ncvar_get(nc_primary, v)
+    primary_vals   <- ncdf4::ncvar_get(nc_primary, v)
     secondary_vals <- ncdf4::ncvar_get(nc_secondary, v)
+
+    if (align_time) {
+      primary_vals   <- primary_vals[primary_idx, drop = FALSE]
+      secondary_vals <- secondary_vals[secondary_idx, drop = FALSE]
+    }
 
     # only replace NA values
     replace_idx <- is.na(primary_vals) & !is.na(secondary_vals)

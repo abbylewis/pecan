@@ -8,20 +8,29 @@ nc_roundtrip <- function(depth = c(15, 30, 60), # cm
                          bulk = 1350, # kg m-3
                          oc = 2, # kg m-2
                          model_depth = 30) { # cm
-  nc <- withr::local_tempfile()
+  with_mocked_bindings(
+    {
+      read_soil_physics("path/ignored", model_depth = model_depth)
+    },
+    netcdf2df = function(...) {
+      dat <- data.frame(
+        depth = PEcAn.utils::ud_convert(depth, "cm", "m"),
+        fraction_of_clay_in_soil = clay,
+        fraction_of_silt_in_soil = silt,
+        soil_bulk_density = bulk,
+        soil_organic_carbon_stock = oc
+      )
+      attr(dat, "units") <- c(
+        depth = "meters",
+        fraction_of_clay_in_soil = "1",
+        fraction_of_silt_in_soil = "1",
+        soil_bulk_density = "kg m-3",
+        soil_organic_carbon_stock = "kg m-2"
+      )
 
-  PEcAn.data.land::soil2netcdf(
-    soil.data = data.frame(
-      soil_depth = PEcAn.utils::ud_convert(depth, "cm", "m"),
-      fraction_of_clay_in_soil = clay,
-      fraction_of_silt_in_soil = silt,
-      soil_bulk_density = bulk,
-      soil_organic_carbon_stock = oc
-    ),
-    new.file = nc
+      dat
+    }
   )
-
-  read_soil_physics(nc, model_depth = model_depth)
 }
 
 test_that("one layer", {

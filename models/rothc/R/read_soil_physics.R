@@ -19,26 +19,29 @@
 #' @importFrom rlang .data .env
 #'
 read_soil_physics <- function(path, model_depth = 23) {
-  soil_list <- PEcAn.utils::netcdf2df(path)
+  soil_vals <- netcdf2df(path)
+  soil_units <- as.list(attr(soil_vals, "units"))
 
   # Input is documented to be in meters,
   # but providing cm instead seems to be a _very_ common error;
   # might as well try to handle it here
-  if (all(soil_list$dims$depth < 10)) {
-    depth_cm <- PEcAn.utils::ud_convert(soil_list$dims$depth, "m", "cm")
-  } else {
+  if (tolower(soil_units$depth) %in% c("m", "meters")
+      && any(soil_vals$depth >= 10)) {
     PEcAn.logger::logger.warn(
-      "Soil depths should be in meters, but found values >= 10",
+      "Soil depths reported to be in meters, but found values >= 10",
       "in file", path,
       "Assuming these are mislabeled cm and treating them as such."
     )
-    depth_cm <- soil_list$dims$depth
+    soil_units$depth <- "cm"
   }
-  soil_list$vals |>
-    as.data.frame() |>
-    # TODO: Assumes depth is given to bottom of layer -- is that correct?
-    dplyr::mutate(depth_cm = .env$depth_cm) |>
-    # TODO this drops layers that extend past bottom
+
+  soil_vals |>
+    dplyr::mutate(
+      depth_cm = .data$depth |>
+        PEcAn.utils::ud_convert(soil_units$depth, "cm")
+    ) |>
+    # TODO 1: Assumes depth is given to bottom of layer -- is that correct?
+    # TODO 2: this drops layers that extend past bottom
     # (eg with depth=23 and 0-10/10-30 layering, would use only 0-10)
     # Consider rescaling partial layers
     # (Or throwing an error on mismatch and making everyone generate their soil
@@ -49,22 +52,32 @@ read_soil_physics <- function(path, model_depth = 23) {
       depth_cm = max(.data$depth_cm),
       clay_pct = .data$fraction_of_clay_in_soil |>
         mean() |>
-        PEcAn.utils::ud_convert("1", "%"),
+        PEcAn.utils::ud_convert(soil_units$fraction_of_clay_in_soil, "%"),
       silt_pct = .data$fraction_of_silt_in_soil |>
         mean() |>
-        PEcAn.utils::ud_convert("1", "%"),
+        PEcAn.utils::ud_convert(soil_units$fraction_of_silt_in_soil, "%"),
       bulkdens_g_cm3 = .data$soil_bulk_density |>
         mean() |>
-        PEcAn.utils::ud_convert("kg m-3", "g cm-3"),
+        PEcAn.utils::ud_convert(soil_units$soil_bulk_density, "g cm-3"),
       org_C_pct = .data$soil_organic_carbon_stock |>
         sum() |>
-        PEcAn.utils::ud_convert("kg m-2", "g cm-2") |>
+        PEcAn.utils::ud_convert(
+          soil_units$soil_organic_carbon_stock,
+          "g cm-2"
+        ) |>
         (\(x) x / (.data$depth_cm * .data$bulkdens_g_cm3))() |>
         PEcAn.utils::ud_convert("1", "%"),
       iom_tC_ha = .data$soil_organic_carbon_stock |>
         sum() |>
-        PEcAn.utils::ud_convert("kg m-2", "t ha-1") |>
+        PEcAn.utils::ud_convert(
+          soil_units$soil_organic_carbon_stock,
+          "t ha-1"
+        ) |>
         # Approximation from Falloon et al. 1998, 10.1016/S0038-0717(97)00256-3
         (\(x) 0.049 * x^1.139)()
     )
 }
+
+# an internal wrapper to allow stubbing the function out under test
+# without affecting code outside the package.
+netcdf2df <- PEcAn.utils::netcdf2df

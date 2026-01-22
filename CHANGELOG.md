@@ -9,6 +9,8 @@ For more information about this file see also [Keep a Changelog](http://keepacha
 ## Unreleased
 
 ### Added
+- New function `PEcAn.utils::netcdf2df()` flattens all dims and vars of a netCDF into a dataframe,
+    with units attached as an attribute.
 - New package `PEcAn.RothC` runs the RothC soil carbon model.
 - Add function `PEcAn.MA::meta_analysis_standalone` to run meta-analysis without database or file IO.
 - Added Demo 03: Meta Analysis Quarto notebook (`documentation/tutorials/Demo_03_Meta_Analysis/meta_analysis.qmd`) to demonstrate how to perform Bayesian meta-analysis and visualize posterior distributions using pre-generated trait data.

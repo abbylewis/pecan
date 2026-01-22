@@ -19,7 +19,7 @@
 #' @importFrom rlang .data .env
 #'
 read_soil_physics <- function(path, model_depth = 23) {
-  soil_list <- PEcAn.data.land::pool_ic_netcdf2list(path)
+  soil_list <- PEcAn.utils::netcdf2df(path)
 
   # Input is documented to be in meters,
   # but providing cm instead seems to be a _very_ common error;

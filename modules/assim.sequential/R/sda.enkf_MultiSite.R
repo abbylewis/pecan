@@ -351,8 +351,6 @@ sda.enkf.multisite <- function(settings,
       return(mis.match.table)
     }
     
-    # find a site that has all registered inputs except for the parameter field.
-    if (all(names.sampler %in% names.site.input)) {}
     # get the joint input design.
     input_design <- PEcAn.uncertainty::generate_joint_ensemble_design(settings = settings[[1]], 
                                                                       ensemble_samples = ensemble.samples, 

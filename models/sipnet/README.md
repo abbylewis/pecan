@@ -28,10 +28,10 @@ PEcAn.SIPNET is the PEcAn interface package that enables SIPNET integration with
 - Converts PEcAn-standard inputs to SIPNET format
 - Manages SIPNET model configuration and execution
 - Converts SIPNET outputs to netCDF in PEcAn standard format
-- Enables data assimilation, sensitivity analysis, and ensemble runs
+- Enables data assimilation, sensitivity analysis, and ensemble runs within the PEcAn modeling framework
 
 **Getting Started:**
-- [Demo 1: Basic PEcAn Run](https://pecanproject.github.io/pecan-documentation/develop/basic-users-guide.html)
+- [Demo 1: Basic PEcAn Run](https://pecanproject.github.io/pecan-documentation/develop/rendered-demo-notebooks/run_pecan.html)
 - [SIPNET in the PEcAn Book](https://pecanproject.github.io/pecan-documentation/develop/models-sipnet.html)
 
 ## Installation
@@ -72,5 +72,5 @@ To use PEcAn.SIPNET, you also need the SIPNET model executable installed on your
 ## Learn More
 
 - **PEcAn Project:** https://pecanproject.github.io
-- **Tutorials:** https://pecanproject.github.io/tutorials.html
+- **Tutorials:** https://pecanproject.github.io/tutorials/
 - **SIPNET Repository:** https://github.com/PecanProject/sipnet

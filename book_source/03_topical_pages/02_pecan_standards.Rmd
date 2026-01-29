@@ -1,4 +1,5 @@
 # PEcAn standard formats {#pecan-standards}
+
 PEcAn relies on standardized data formats to ensure reproducibility, interoperability, and consistency across models, sites, and workflows. These standards define how inputs, internal representations, and outputs are structured throughout the PEcAn workflows.
 
 **In this chapter**

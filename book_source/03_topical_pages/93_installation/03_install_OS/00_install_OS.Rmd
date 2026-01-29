@@ -1,7 +1,5 @@
 ## OS Specific Installations {#osinstall}
 
-PEcAn installation steps vary depending on your operating system. Follow the instructions for your OS below, then see the sections on installing models and data to complete your setup.
-
 - [Ubuntu](#ubuntu)
 - [CentOS](#centosredhat)
 - [OSX](#macosx)

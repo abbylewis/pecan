@@ -21,14 +21,21 @@
 ##' @author Rob Kooper, Betsy Cowdery
 ##' @examples
 ##' \dontrun{
+##'   siteid <- 1
+##'   startdate <- as.Date("2000-01-01")
+##'   enddate <- as.Date("2001-01-01")
+##'   dbcon <- NULL  # database connection
+##'
 ##'   dbfile.input.insert(
 ##'     in.path = 'trait.data.Rdata',
-##'     in.prefix = siteid,
+##'     in.prefix = 'trait.data',
+##'     siteid = siteid,
 ##'     startdate = startdate,
 ##'     enddate = enddate,
 ##'     mimetype = 'application/x-RData',
 ##'     formatname = 'traits',
-##'     con = dbcon)
+##'     con = dbcon
+##'   )
 ##' }
 dbfile.input.insert <- function(in.path, in.prefix, siteid, startdate, enddate, mimetype, formatname,
                                 parentid = NA, con, hostname = PEcAn.remote::fqdn(), allow.conflicting.dates = FALSE, ens = FALSE) {
@@ -225,7 +232,12 @@ dbfile.input.insert <- function(in.path, in.prefix, siteid, startdate, enddate, 
 ##' @export
 ##' @author Rob Kooper, Tony Gardella, Hamze Dokoohaki
 ##' @examples
-##' \dontrun{
+##' \donttest{
+##'   siteid <- 1
+##'   startdate <- as.Date("2000-01-01")
+##'   enddate <- as.Date("2001-01-01")
+##'   dbcon <- NULL  # db connection
+##'
 ##'   dbfile.input.check(siteid, startdate, enddate, 'application/x-RData', 'traits', dbcon)
 ##' }
 dbfile.input.check <- function(siteid, startdate = NULL, enddate = NULL, mimetype, formatname, parentid = NA,
@@ -374,6 +386,9 @@ dbfile.input.check <- function(siteid, startdate = NULL, enddate = NULL, mimetyp
 ##' @export
 ##' @examples
 ##' \dontrun{
+##'   pft <- "temp_pft"
+##'   dbcon = NULL  # db connection
+##'
 ##'   dbfile.posterior.insert('trait.data.Rdata', pft, 'application/x-RData', 'traits', dbcon)
 ##' }
 dbfile.posterior.insert <- function(filename, pft, mimetype, formatname, con, hostname = PEcAn.remote::fqdn()) {
@@ -440,7 +455,10 @@ dbfile.posterior.insert <- function(filename, pft, mimetype, formatname, con, ho
 ##' @author Rob Kooper
 ##' @export
 ##' @examples
-##' \dontrun{
+##' \donttest{
+##'   pft <- "temp_pft"
+##'   dbcon = NULL  # db connection
+##'
 ##'   dbfile.posterior.check(pft, 'application/x-RData', 'traits', dbcon)
 ##' }
 dbfile.posterior.check <- function(pft, mimetype, formatname, con, hostname = PEcAn.remote::fqdn()) {
@@ -495,7 +513,15 @@ dbfile.posterior.check <- function(pft, mimetype, formatname, con, hostname = PE
 ##' @export
 ##' @examples
 ##' \dontrun{
-##'   dbfile.insert('somefile.txt', 'Input', 7, dbcon)
+##'   dbcon <- NULL  # db connection
+##'
+##'   dbfile.insert(
+##'     in.path = "/data/files",
+##'     in.prefix = "somefile.txt",
+##'     type = "Input",
+##'     id = 7,
+##'     con = dbcon
+##'   )
 ##' }
 dbfile.insert <- function(in.path, in.prefix, type, id, con, reuse = TRUE, hostname = PEcAn.remote::fqdn()) {
   hostname <- default_hostname(hostname)
@@ -573,8 +599,12 @@ dbfile.insert <- function(in.path, in.prefix, type, id, con, reuse = TRUE, hostn
 ##' @author Rob Kooper, Alexey Shiklomanov
 ##' @export
 ##' @examples
-##' \dontrun{
-##'   dbfile.check("Input", 7, dbcon)
+##' \donttest{
+##'   type <- "Input"
+##'   container.id <- 7
+##'   dbcon <- NULL  # db connection
+##'
+##'   dbfile.check(type, container.id, dbcon)
 ##' }
 dbfile.check <- function(type, container.id, con,
                          hostname = PEcAn.remote::fqdn(),
@@ -628,8 +658,12 @@ dbfile.check <- function(type, container.id, con,
 ##' @author Rob Kooper
 ##' @export
 ##' @examples
-##' \dontrun{
-##'   dbfile.file('Input', 7, dbcon)
+##' \donttest{
+##'   type <- "Input"
+##'   id <- 7
+##'   dbcon <- NULL  # db connection
+##'
+##'   dbfile.file(type, id, dbcon)
 ##' }
 dbfile.file <- function(type, id, con, hostname = PEcAn.remote::fqdn()) {
   hostname <- default_hostname(hostname)
@@ -652,8 +686,12 @@ dbfile.file <- function(type, id, con, hostname = PEcAn.remote::fqdn()) {
 ##' @author Rob Kooper
 ##' @export
 ##' @examples
-##' \dontrun{
-##'   dbfile.id('Model', '/usr/local/bin/sipnet', dbcon)
+##' \donttest{
+##'   type <- "Model"
+##'   file <- "/usr/local/bin/sipnet"
+##'   dbcon <- NULL  # db connection
+##'
+##'   dbfile.id(type, file, dbcon)
 ##' }
 dbfile.id <- function(type, file, con, hostname = PEcAn.remote::fqdn()) {
   hostname <- default_hostname(hostname)
@@ -708,11 +746,11 @@ dbfile.id <- function(type, file, con, hostname = PEcAn.remote::fqdn()) {
 ##' @examples
 ##' \dontrun{
 ##'   dbfile.move(
-##'   old.dir = "/fs/data3/kzarada/pecan.data/dbfiles/NOAA_GEFS_site_0-676",
-##'   new.dir = '/projectnb/dietzelab/pecan.data/dbfiles/NOAA_GEFS_site_0-676'
-##'   file.type= clim,
-##'   siteid = 676,
-##'   register = TRUE
+##'     old.dir = "/fs/data3/kzarada/pecan.data/dbfiles/NOAA_GEFS_site_0-676",
+##'     new.dir = "/projectnb/dietzelab/pecan.data/dbfiles/NOAA_GEFS_site_0-676",
+##'     file.type= "clim",
+##'     siteid = 676,
+##'     register = TRUE
 ##'   )
 ##' }
 

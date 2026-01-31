@@ -27,7 +27,7 @@
 #' \dontrun{
 #' ## bash shell:
 #' ## example workflow.R and pecan.xml files in pecan/tests
-#' R --vanilla -- --settings path/to/mypecan.xml < workflow.R
+#' ## R --vanilla -- --settings path/to/mypecan.xml < workflow.R
 #'
 #' ## R:
 #'

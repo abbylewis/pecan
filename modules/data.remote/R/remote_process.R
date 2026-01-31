@@ -293,17 +293,17 @@ remote_process <- function(settings) {
 ##' @param out_process_data variable name requested for the processed file, NULL by default
 ##' @return remotedata_file_names
 ##' @examples
-##' \dontrun{
 ##' remotedata_file_names <- construct_remotedata_filename(
 ##'   source="gee",
 ##'   collection="s2",
 ##'   siteid="0-721",
-##'   scale=10.0
-##'   projection=NULL
+##'   scale=10.0,
+##'   projection=NULL,
 ##'   qc=1.0,
 ##'   algorithm="snap",
-##'   out_process_data="lai")
-##' }
+##'   out_process_data="lai"
+##' )
+##' remotedata_file_names
 ##' @author Ayush Prasad
 construct_remotedata_filename <-
   function(source,
@@ -489,7 +489,7 @@ read_remote_registry <- function(source, collection){
 ##'   out_get_data,
 ##'   algorithm,
 ##'   out_process_data,
-##'   overwrite
+##'   overwrite,
 ##'   dbcon)
 ##' }
 ##' @author Ayush Prasad
@@ -862,7 +862,7 @@ remotedata_db_check <-
 ##'   write_pro_start,
 ##'   write_pro_end,
 ##'   raw_check,
-##'   pro_check
+##'   pro_check,
 ##'   raw_mimetype,
 ##'   raw_formatname,
 ##'   pro_mimetype,

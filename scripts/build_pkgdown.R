@@ -131,9 +131,9 @@ writeLines(
 
 build_warns <- purrr::map_lgl(build_results, \(x) length(x$warnings) > 0)
 if (any(build_warns)) {
-  logger("⚠️ Warnings found in package(s)", packages[build_warn], ":")
-  purrr::map(build_results[build_warn], "warnings") |>
-    purr::walk(rlang::warn)
+  logger("⚠️ Warnings found in package(s)", packages[build_warns], ":")
+  purrr::map(build_results[build_warns], "warnings") |>
+    purrr::walk(rlang::warn)
 }
 
 build_err <- purrr::map_lgl(build_results, \(x) !is.null(x$error))

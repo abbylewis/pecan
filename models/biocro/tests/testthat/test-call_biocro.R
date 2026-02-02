@@ -123,9 +123,6 @@ test_that("call_biocro_0.9 adjusts day1 and dayn when weather is not a whole yea
   expect_equal(mockery::mock_args(biomock)[[3]]$dayn, 4)
 })
 
-
-
-
 test_that("adjustments to day1 and dayn work right with live biocro calls", {
   skip_if_not_installed("BioCro")
   skip_if_not(packageVersion("BioCro") == "0.95")

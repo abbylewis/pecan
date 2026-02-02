@@ -1,6 +1,6 @@
 # PEcAn.BIOCRO 1.7.5.9000
 
-* Fixed `call_biocro_0.9` crash by enforcing single-year weather data input (#3787)
+* Fixed a crash when using BioCro 0.9x by enforcing single-year weather data input (#3787)
 
 # PEcAn.BIOCRO 1.7.5
 

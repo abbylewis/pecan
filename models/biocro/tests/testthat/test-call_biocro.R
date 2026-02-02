@@ -145,7 +145,75 @@ test_that("call_biocro_0.9 throws error for multi-year data", {
   )
 })
 
+test_that("adjustments to day1 and dayn work right with live biocro calls", {
+  skip_if_not_installed("BioCro")
+  skip_if_not(packageVersion("BioCro") == "0.95")
 
+  met_2004 <- read.csv("data/US-Bo1.2004.csv") |>
+    dplyr::filter(doy <= 365) # final timepoint is labeled 366, biocro complains
+
+  call_with <- function(met) {
+    PEcAn.BIOCRO:::call_biocro_0.9(
+      WetDat = met,
+      config = config,
+      genus = "Miscanthus",
+      year_in_run = 1,
+      HarvestedYield = 1
+    )$tmp.result
+  }
+
+  # Whole year
+  expect_equal(length(call_with(met_2004)$LAI), 365 * 24)
+
+  # Q2 data, real DOY
+  met_q2_2004 <- met_2004[met_2004$doy %in% 91:180, ]
+  res_q2 <- call_with(met_q2_2004)
+  expect_equal(length(res_q2$LAI), 90 * 24)
+
+  # Q2 data, labeled as if starting DOY 1
+  # If day1/dayn rescaling work right, should give identical growth
+  res_q2_d1 <- call_with(met_q2_2004 |> dplyr::mutate(doy = doy - 90))
+  expect_equal(
+    res_q2 |> purrr::discard_at("doy"),
+    res_q2_d1 |> purrr::discard_at("doy")
+  )
+
+  # two whole years
+  expect_error(
+    call_with(
+      dplyr::bind_rows(
+        met_2004,
+        met_2004 |> dplyr::mutate(year = 2005, Temp = 1)
+      )
+    ),
+    "must contain only one year"
+  )
+
+  # Multiple years starting with partial year
+  expect_error(
+    call_with(
+      dplyr::bind_rows(
+        met_2004 |> dplyr::filter(doy %in% 91:300),
+        met_2004 |>
+          dplyr::mutate(year = 2005)
+      )
+    ),
+    "must contain only one year"
+  )
+
+  # Multiple years, all partial
+  expect_error(
+    call_with(
+      dplyr::bind_rows(
+        met_2004 |> dplyr::filter(doy %in% 91:200),
+        met_2004 |>
+          dplyr::filter(doy %in% 91:300) |>
+          dplyr::mutate(year = 2005)
+      )
+    ),
+    "must contain only one year"
+  )
+})
 
 test_that("call_biocro_1 passes expected arguments", {
   # stub out BioCro::Gro

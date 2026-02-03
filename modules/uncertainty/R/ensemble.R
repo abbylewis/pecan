@@ -549,6 +549,7 @@ write.ensemble.configs <- function(input_design , ensemble.size, defaults, ensem
 #'
 #' @examples
 #' \dontrun{
+#'   settings <- PEcAn.settings::read.settings("pecan.xml")
 #'   input.ens.gen(
 #'     settings, 
 #'     ensemble_size = 50,

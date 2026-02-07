@@ -10,7 +10,7 @@
 ##' @author David LeBauer
 ##' @examples
 ##' \dontrun{
-##'   con <- db.open(...) 
+##'   con <- db.open(list(host = "postgres", user = "bety", password = "carya")) 
 ##'   query.pft_species("ebifarm.pavi", con = con)
 ##' }
 query.pft_species <- function(pft, modeltype = NULL, con) {

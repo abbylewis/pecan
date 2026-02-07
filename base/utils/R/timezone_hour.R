@@ -5,7 +5,6 @@
 #' @param timezone to be converted
 #' @return hours offset of the timezone
 #' @examples
-#' \dontrun{
 #' timezone_hour('America/New_York')
 #' }
 #' @export

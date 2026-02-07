@@ -17,7 +17,7 @@
 ##' @export query.trait.data
 ##' @examples
 ##' \dontrun{
-##'   con <- db.open(...)
+##'   con <- db.open(list(host = "postgres", user = "bety", password = "carya"))
 ##'   query.trait.data("Vcmax", "938", con = con)
 ##' }
 ##' @author David LeBauer, Carl Davidson, Shawn Serbin

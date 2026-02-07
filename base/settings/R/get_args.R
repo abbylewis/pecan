@@ -7,7 +7,10 @@
 #' @export
 #'
 #' @examples
-#' \dontrun{./web/workflow.R -h}
+#' \dontrun{
+#' ## bash:  
+#' ## ./web/workflow.R -s
+#' }
 get_args <- function() {
   option_list <- list(
     optparse::make_option(

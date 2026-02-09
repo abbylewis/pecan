@@ -11,7 +11,7 @@
 ##' @param site list
 ##' @param vars column names to return. If NULL, returns all columns
 ##' 
-##' @return dat, a data.frame with the processed data of the .csv file
+##' @return a data frame with the processed data of the .csv file
 ##' 
 ##' @author Betsy Cowdery
 ##' @export

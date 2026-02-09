@@ -1,12 +1,3 @@
-
-
-## TO DO: not yet updated for PEPRMT
-
-
-
-
-
-
 ##' Writes a PEPRMT config file.
 ##'
 ##' Requires a pft xml object, a list of trait values for a single PEPRMT run,
@@ -20,7 +11,7 @@
 ##' @param run.id id of run
 ##' @return configuration file for PEPRMT for given run
 ##' @export
-##' @author Rob Kooper
+##' @author Rob Kooper, edited by Abby Lewis
 ##-------------------------------------------------------------------------------------------------#
 write.config.PEPRMT <- function(defaults, trait.values, settings, run.id) {
   PEcAn.logger::logger.severe("NOT IMPLEMENTED")

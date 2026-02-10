@@ -1,5 +1,7 @@
 # PEcAn.LDNDC 1.0.2.9000
 
+* Removed `tests/Rcheck_reference.log`, which was used to ignore historic check messages that have now been fixed.
+
 
 
 # PEcAn.LDNDC 1.0.2

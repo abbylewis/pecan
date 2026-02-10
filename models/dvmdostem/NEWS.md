@@ -1,5 +1,7 @@
 # PEcAn.dvmdostem 1.7.5.9000
 
+* Removed `tests/Rcheck_reference.log`, which was used to ignore historic check messages that have now been fixed.
+
 
 
 # PEcAn.dvmdostem 1.7.5

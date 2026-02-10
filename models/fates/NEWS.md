@@ -1,5 +1,7 @@
 # PEcAn.FATES 1.8.1.9000
 
+* Removed `tests/Rcheck_reference.log`, which was used to ignore historic check messages that have now been fixed.
+
 
 
 # PEcAn.FATES 1.8.1

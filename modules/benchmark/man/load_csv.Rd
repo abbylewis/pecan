@@ -17,12 +17,12 @@ load_csv(data.path, format, site, vars = NULL)
                           of utils::read.csv
   }}
 
-\item{site}{list}
+\item{site}{list, currently ignored}
 
 \item{vars}{column names to return. If NULL, returns all columns}
 }
 \value{
-\code{dat}, a data.frame with the processed data of the .csv file
+a data frame with the processed data of the .csv file
 }
 \description{
 load_csv

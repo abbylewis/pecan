@@ -13,7 +13,7 @@
 
 ## Changed
 
-* Package `traits`, used by `match_pft()` and `match_species_id()` only when no local database connection is provided, is now suggested rather than required.
+* Package `traits`, used by `match_pft()` and `match_species_id()` only when no database connection is provided, is now suggested rather than required.
 
 
 # PEcAn.data.land 1.9.0

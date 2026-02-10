@@ -17,6 +17,7 @@ Imports:
     lubridate (>= 1.6.0),
     ncdf4 (>= 1.15),
     PEcAn.utils
+    readr
 Suggests:
     testthat (>= 1.0.2)
 #SystemRequirements: dalec

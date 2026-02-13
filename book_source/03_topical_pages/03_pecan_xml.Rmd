@@ -446,7 +446,7 @@ CF-compliant NetCDF files used by PEcAn.
 
 Soil inputs are handled through the `PEcAn.data.land` module.
 For full technical details, see the
-[PEcAn.data.land package documentation](https://pecan.ncsa.illinois.edu/pkgdocs/PEcAn.data.land/).
+[PEcAn.data.land package documentation](https://pecanproject.github.io/package-documentation/develop/PEcAn.data.land/)
 
 In practice, most PEcAn workflows do not rely on automated soil data
 processing at runtime. Instead, users typically preprocess soil data
@@ -462,7 +462,7 @@ preprocessed soil inputs rather than to trigger on-the-fly data
 processing.
 
 Note that some models reference soil inputs using the `<soil>` tag,
-while others use `<soilphysics>`. This inconsistency is historical and
+while others use `<soil_physics>`. This inconsistency is historical and
 can cause confusion; a future harmonization of these tags would be
 beneficial.
 

@@ -29,6 +29,6 @@ Copyright: Authors
 LazyLoad: yes
 LazyData: FALSE
 Encoding: UTF-8
-RoxygenNote: 7.3.2
+RoxygenNote: 7.3.3
 LinkingTo: Rcpp
 X-schema.org-keywords: LPJ-GUESS, ecosystem-modeling

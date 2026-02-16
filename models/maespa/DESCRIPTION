@@ -32,6 +32,5 @@ License: BSD_3_clause + file LICENSE
 Copyright: Authors
 LazyData: FALSE
 Encoding: UTF-8
-RoxygenNote: 7.3.2
+RoxygenNote: 7.3.3
 X-schema.org-keywords: MAESPA, ecosystem-modeling
-

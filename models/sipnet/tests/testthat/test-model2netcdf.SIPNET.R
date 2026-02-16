@@ -1,4 +1,4 @@
-test_that("model2netcdf.SIPNET produces valid netCDF from v2 output with GHG fluxes", {
+test_that("model2netcdf.SIPNET produces netCDF from v2 output with GHG fluxes", {
   outdir <- withr::local_tempdir(pattern = "sipnet_out_")
   rundir <- withr::local_tempdir(pattern = "sipnet_run_")
 

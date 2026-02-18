@@ -5,11 +5,7 @@ setup_sipnet_test <- function(sipnet_dat, delete.raw = FALSE) {
   dir.create(outdir, recursive = TRUE)
   dir.create(rundir, recursive = TRUE)
 
-  writeLines(
-    c("plantWoodInit\t30000",
-      "leafCSpWt\t32"),
-    file.path(rundir, "sipnet.param")
-  )
+  writeLines("leafCSpWt\t32", file.path(rundir, "sipnet.param"))
 
   out_path <- file.path(outdir, "sipnet.out")
   writeLines("Notes: units in g/m2 per timestep; water in cm", out_path)
@@ -64,9 +60,9 @@ test_that("model2netcdf.SIPNET converts v2 output including N2O and CH4 fluxes",
   expect_true("CH4_flux" %in% vars)
   expect_true(all(c("GPP", "NEE", "TotalResp", "TotSoilCarb") %in% vars))
 
-  n2o <- as.numeric(ncdf4::ncvar_get(nc, "N2O_flux"))
-  ch4 <- as.numeric(ncdf4::ncvar_get(nc, "CH4_flux"))
-  gpp <- as.numeric(ncdf4::ncvar_get(nc, "GPP"))
+  n2o <- as.vector(ncdf4::ncvar_get(nc, "N2O_flux"))
+  ch4 <- as.vector(ncdf4::ncvar_get(nc, "CH4_flux"))
+  gpp <- as.vector(ncdf4::ncvar_get(nc, "GPP"))
 
   expect_equal(n2o, rep(0.002 * 1e-3 / ts_s, n), tolerance = 1e-12)
   expect_equal(ch4, rep(0.001 * 1e-3 / ts_s, n), tolerance = 1e-12)

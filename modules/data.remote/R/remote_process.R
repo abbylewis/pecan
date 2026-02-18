@@ -293,6 +293,7 @@ remote_process <- function(settings) {
 ##' @param out_process_data variable name requested for the processed file, NULL by default
 ##' @return remotedata_file_names
 ##' @examples
+##' \dontrun{
 ##' remotedata_file_names <- construct_remotedata_filename(
 ##'   source="gee",
 ##'   collection="s2",

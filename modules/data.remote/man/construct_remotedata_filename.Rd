@@ -39,6 +39,7 @@ remotedata_file_names
 construct remotedata module file names
 }
 \examples{
+\dontrun{
 remotedata_file_names <- construct_remotedata_filename(
   source="gee",
   collection="s2",
@@ -50,6 +51,7 @@ remotedata_file_names <- construct_remotedata_filename(
   out_process_data="lai"
 )
 remotedata_file_names
+}
 }
 \author{
 Ayush Prasad

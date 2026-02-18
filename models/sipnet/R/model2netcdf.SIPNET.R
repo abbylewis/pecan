@@ -168,7 +168,8 @@ model2netcdf.SIPNET <- function(outdir, sitelat, sitelon, start_date, end_date, 
     output[["litter_mass_content_of_water"]] <- (sub.sipnet.output$litterWater * 10) # Litter water kgW/m2
     #calculate LAI for standard output
     # LAI = plantLeafC / leafCSpWt
-    # both are in carbon units, so cFracLeaf is not needed.
+    # both operands are in carbon units (gC/m2 and gC/m2_leaf),
+    # so no carbon fraction conversion (e.g. cFracLeaf) is needed.
     param <- utils::read.table(file.path(gsub(pattern = "/out/",
                                               replacement = "/run/", x = outdir),
                                          "sipnet.param"), stringsAsFactors = FALSE)

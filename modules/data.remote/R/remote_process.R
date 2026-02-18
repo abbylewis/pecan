@@ -304,6 +304,7 @@ remote_process <- function(settings) {
 ##'   out_process_data="lai"
 ##' )
 ##' remotedata_file_names
+##' }
 ##' @author Ayush Prasad
 construct_remotedata_filename <-
   function(source,

@@ -39,10 +39,10 @@ run.write.configs <- function(settings, ensemble.size, input_design, write = TRU
   }
                               
   ## Skip database connection if settings$database is NULL or write is False
-  if (!isTRUE(write) && is.null(settings$database)) {
+  if (!isTRUE(write) && (is.null(settings$database) || is.null(settings$database$bety))) {
     PEcAn.logger::logger.info("Not writing this run to database, so database connection skipped")
     con <- NULL # Set con to NULL to avoid errors in subsequent code
-  } else if (is.null(settings$database)) {
+  } else if (is.null(settings$database) || is.null(settings$database$bety)) {
     PEcAn.logger::logger.error(
       "Database is NULL but writing is enabled. Provide valid database settings in pecan.xml."
     )

@@ -45,10 +45,10 @@ run.write.configs <- function(settings, ensemble.size, input_design, write = TRU
   # settings$database$dbfiles into.
   # Checking only for Bety parameters prevents the dbfiles entry from causing
   # undesired connection attempts. 
-  if (!isTRUE(write) && (is.null(settings$database) || is.null(settings$database$bety))) {
+  if (!isTRUE(write) && is.null(settings$database$bety)) {
     PEcAn.logger::logger.info("Not writing this run to database, so database connection skipped")
     con <- NULL # Set con to NULL to avoid errors in subsequent code
-  } else if (is.null(settings$database) || is.null(settings$database$bety)) {
+  } else if (is.null(settings$database$bety)) {
     PEcAn.logger::logger.error(
       "Database is NULL but writing is enabled. Provide valid database settings in pecan.xml."
     )

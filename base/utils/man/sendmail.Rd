@@ -22,8 +22,10 @@ nothing
 Sends email. This assumes the program sendmail is installed.
 }
 \examples{
-\dontrun{
-sendmail('bob@example.com', 'joe@example.com', 'Hi', 'This is R.')
+\donttest{
+if (interactive()) {
+  sendmail('bob@example.com', 'joe@example.com', 'Hi', 'This is R.')
+}
 }
 }
 \author{

@@ -9,8 +9,10 @@
 #' @return nothing
 #' @export
 #' @examples
-#' \dontrun{
-#' sendmail('bob@@example.com', 'joe@@example.com', 'Hi', 'This is R.')
+#' \donttest{
+#' if (interactive()) {
+#'   sendmail('bob@@example.com', 'joe@@example.com', 'Hi', 'This is R.')
+#' }
 #' }
 sendmail <- function(from, to, subject, body) {
   if (is.null(to)) {

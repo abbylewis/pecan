@@ -29,11 +29,6 @@ jobs:
         Rscript \
           -e 'repos <- c(getOption("repos"), sub(r"(\d{4}-\d{2}-\d{2})", "latest", getOption("repos")))' \
           -e 'remotes::install_version("bookdown", ">= 0.31", dependencies = TRUE, upgrade = FALSE, repos = repos)'
-    # copy files
-    - name: copy extfiles
-      run: |
-        mkdir -p book_source/extfiles
-        cp -f documentation/tutorials/01_Demo_Basic_Run/extfiles/* book_source/extfiles
     # compile PEcAn code
     - name: build needed modules
       run: |

@@ -130,8 +130,8 @@ test_that("adjustments to day1 and dayn work right with live biocro calls", {
   met_2004 <- read.csv("data/US-Bo1.2004.csv") |>
     dplyr::filter(doy <= 365) # final timepoint is labeled 366, biocro complains
 
-  full_config <- config
-  full_config$pft <- modifyList(full_config$pft, list(
+  live_config <- list(pft = list(
+    name="fake_pft",
     phenoParms=list(
       tp1=562, tp2=1312, tp3=2063, tp4=2676, tp5=3211, tp6=7000,
       kStem1=0.37, kLeaf1=0.33, kRoot1=0.3, kRhizome1=-0.0008,
@@ -141,6 +141,7 @@ test_that("adjustments to day1 and dayn work right with live biocro calls", {
       kStem5=0.63, kLeaf5=0.01, kRoot5=0.01, kRhizome5=0.35,
       kStem6=0.63, kLeaf6=0.01, kRoot6=0.01, kRhizome6=0.35,
       kGrain6=0),
+    canopyControl=list(a=1, b=2, c=3),
     soilControl=list(
       FieldC=-1, WiltP=-1, phi1=0.01, phi2=10,
       soilDepth=1, iWatCont=0.32, soilType=6, soilLayers=1,
@@ -154,12 +155,14 @@ test_that("adjustments to day1 and dayn work right with live biocro calls", {
     photoParms=list(
       vmax=39, alpha=0.04, kparm=0.7, theta=0.83, beta=0.93,
       Rd=0.8, Catm=400, b0=0.01, b1=3, ws=1,
-      UPPERTEMP=37.5, LOWERTEMP=3)))
+      UPPERTEMP=37.5, LOWERTEMP=3),
+    parameters=list(aa=1, bb=2, cc=3),
+    initial_values=list(Root=10, Leaf=3, Stem=20)))
 
   call_with <- function(met) {
     PEcAn.BIOCRO:::call_biocro_0.9(
       WetDat = met,
-      config = full_config,
+      config = live_config,
       genus = "Miscanthus",
       year_in_run = 1,
       HarvestedYield = 1

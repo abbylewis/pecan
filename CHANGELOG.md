@@ -15,7 +15,9 @@ For more information about this file see also [Keep a Changelog](http://keepacha
 - Added datasets to `PEcAn.data.land` 
   *  `landiq_crop_mapping_codes` dataset mapping LandIQ crop classification codes to human-readable crop names.
   *  `bism_kc_by_crop` dataset containing BISm crop coefficient schedules and stage timing references for use in ET estimation, including columns that map to LandIQ class and subclass.
-
+  *  `n_application_rate_data` dataset with recommended N application rates for 33 California crops.
+  *  `compost_amendment_data` dataset with properties of 32 organic amendment materials.
+- Added lookup functions to `PEcAn.data.land`: `look_up_n_application_rate()` and `look_up_compost_amendment()` for querying crop-specific fertilization and compost data.
 
 ### Fixed
 

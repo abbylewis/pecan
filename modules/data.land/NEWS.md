@@ -14,6 +14,7 @@
 ## Changed
 
 * Package `traits`, used by `match_pft()` and `match_species_id()` only when no database connection is provided, is now suggested rather than required.
+* Updated `validate_events_json()` to use events schema v0.1.1 by default. The previous default v0.1.0 is still available by setting `schema_version="0.1.0"`.
 
 
 # PEcAn.data.land 1.9.0

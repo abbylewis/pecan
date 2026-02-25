@@ -1,9 +1,9 @@
 #!/usr/bin/env Rscript
 
-# Build the compost_amendment_data packaged dataset from the harmonized
-# compost CSV produced by the fertilization harmonization script in geo.
+# Build the ca_compost_amendment packaged dataset from the harmonized
+# compost CSV produced by the fertilization harmonization script.
 
-compost_amendment_data <- readr::read_csv(
+ca_compost_amendment <- readr::read_csv(
   file.path("data-raw", "compost_amendments.csv"),
   col_types = readr::cols(
     material             = readr::col_character(),
@@ -20,11 +20,11 @@ compost_amendment_data <- readr::read_csv(
     total_c_max_lbs_acre = readr::col_double(),
     total_n_min_lbs_acre = readr::col_double(),
     total_n_max_lbs_acre = readr::col_double(),
-    total_c_min_kg_m2    = readr::col_double(),
-    total_c_max_kg_m2    = readr::col_double(),
-    total_n_min_kg_m2    = readr::col_double(),
-    total_n_max_kg_m2    = readr::col_double()
+    total_c_min_kg_ha    = readr::col_double(),
+    total_c_max_kg_ha    = readr::col_double(),
+    total_n_min_kg_ha    = readr::col_double(),
+    total_n_max_kg_ha    = readr::col_double()
   )
 )
 
-usethis::use_data(compost_amendment_data, overwrite = TRUE)
+usethis::use_data(ca_compost_amendment, overwrite = TRUE)

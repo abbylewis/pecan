@@ -1,34 +1,34 @@
-pft_group,crop,min_n_lbs_acre,max_n_lbs_acre,source,min_n_kg_m2,max_n_kg_m2
-woody,Avocado,67,100,https://escholarship.org/uc/item/5mk2q1sm,0.007509694999999999,0.0112085
-row,"Bean, dry",86,116,https://escholarship.org/uc/item/5mk2q1sm,0.00963931,0.013001859999999999
-row,Broccoli,100,240,https://escholarship.org/uc/item/5mk2q1sm; CDFA-FREP & UC Davis,0.0112085,0.026900399999999998
-row,Carrot,100,250,https://escholarship.org/uc/item/5mk2q1sm,0.0112085,0.028021249999999998
-row,Celery,200,275,https://escholarship.org/uc/item/5mk2q1sm,0.022417,0.030823375
-row,Corn,150,275,https://escholarship.org/uc/item/5mk2q1sm,0.016812749999999998,0.030823375
-row,"Corn, sweet",100,200,https://escholarship.org/uc/item/5mk2q1sm,0.0112085,0.022417
-row,Cotton,100,200,https://escholarship.org/uc/item/5mk2q1sm,0.0112085,0.022417
-woody,"Grape, raisin",20,60,https://escholarship.org/uc/item/5mk2q1sm,0.0022417,0.0067250999999999995
-woody,Grapevines,20,60,Meyer et al. 2007. Pub. 8296,0.0022417,0.0067250999999999995
-row,Lettuce,170,220,https://escholarship.org/uc/item/5mk2q1sm,0.01905445,0.0246587
-row,"Melon, cantaloupe",80,150,https://escholarship.org/uc/item/5mk2q1sm,0.0089668,0.016812749999999998
-row,"Melon, watermelon",0,160,https://escholarship.org/uc/item/5mk2q1sm,0,0.0179336
-row,Melons (mixed),100,150,https://escholarship.org/uc/item/5mk2q1sm,0.0112085,0.016812749999999998
-woody,Nectarine,100,150,https://escholarship.org/uc/item/5mk2q1sm,0.0112085,0.016812749999999998
-row,Oats,50,120,https://escholarship.org/uc/item/5mk2q1sm,0.00560425,0.013450199999999999
-row,Onion,100,400,https://escholarship.org/uc/item/5mk2q1sm,0.0112085,0.044834
-woody,"Peach, bell",180,240,https://escholarship.org/uc/item/5mk2q1sm,0.0201753,0.026900399999999998
-woody,"Peach, chili",150,200,https://escholarship.org/uc/item/5mk2q1sm,0.016812749999999998,0.022417
-woody,"Peach, cling",50,100,https://escholarship.org/uc/item/5mk2q1sm,0.00560425,0.0112085
-woody,"Peach, free",50,100,https://escholarship.org/uc/item/5mk2q1sm,0.00560425,0.0112085
-row,"Pepper, bell",180,240,https://escholarship.org/uc/item/5mk2q1sm,0.0201753,0.026900399999999998
-row,"Pepper, chili",150,200,https://escholarship.org/uc/item/5mk2q1sm,0.016812749999999998,0.022417
-woody,Pistachios,100,225,https://escholarship.org/uc/item/5mk2q1sm,0.0112085,0.025219125
-woody,"Plums, dried",0,100,https://escholarship.org/uc/item/5mk2q1sm,0,0.0112085
-woody,"Plums, fresh",110,150,https://escholarship.org/uc/item/5mk2q1sm,0.01232935,0.016812749999999998
-rice,Rice,110,145,https://escholarship.org/uc/item/5mk2q1sm,0.01232935,0.016252324999999998
-row,Safflower,100,150,https://escholarship.org/uc/item/5mk2q1sm,0.0112085,0.016812749999999998
-row,Strawberry,150,300,https://escholarship.org/uc/item/5mk2q1sm,0.016812749999999998,0.033625499999999996
-row,"Tomatoes, fresh market",125,350,https://escholarship.org/uc/item/5mk2q1sm,0.014010624999999999,0.03922975
-row,"Tomatoes, processing",100,150,https://escholarship.org/uc/item/5mk2q1sm,0.0112085,0.016812749999999998
-woody,Walnuts,150,200,https://escholarship.org/uc/item/5mk2q1sm,0.016812749999999998,0.022417
-row,Wheat,100,240,https://escholarship.org/uc/item/5mk2q1sm,0.0112085,0.026900399999999998
+pft_group,crop,min_n_lbs_acre,max_n_lbs_acre,source,min_n_kg_ha,max_n_kg_ha
+woody,Avocado,67,100,https://escholarship.org/uc/item/5mk2q1sm,75.1,112.1
+row,"Bean, dry",86,116,https://escholarship.org/uc/item/5mk2q1sm,96.4,130
+row,Broccoli,100,240,https://escholarship.org/uc/item/5mk2q1sm; CDFA-FREP & UC Davis,112.1,269
+row,Carrot,100,250,https://escholarship.org/uc/item/5mk2q1sm,112.1,280.2
+row,Celery,200,275,https://escholarship.org/uc/item/5mk2q1sm,224.2,308.2
+row,Corn,150,275,https://escholarship.org/uc/item/5mk2q1sm,168.1,308.2
+row,"Corn, sweet",100,200,https://escholarship.org/uc/item/5mk2q1sm,112.1,224.2
+row,Cotton,100,200,https://escholarship.org/uc/item/5mk2q1sm,112.1,224.2
+woody,"Grape, raisin",20,60,https://escholarship.org/uc/item/5mk2q1sm,22.4,67.3
+woody,Grapevines,20,60,Meyer et al. 2007. Pub. 8296,22.4,67.3
+row,Lettuce,170,220,https://escholarship.org/uc/item/5mk2q1sm,190.5,246.6
+row,"Melon, cantaloupe",80,150,https://escholarship.org/uc/item/5mk2q1sm,89.7,168.1
+row,"Melon, watermelon",0,160,https://escholarship.org/uc/item/5mk2q1sm,0,179.3
+row,Melons (mixed),100,150,https://escholarship.org/uc/item/5mk2q1sm,112.1,168.1
+woody,Nectarine,100,150,https://escholarship.org/uc/item/5mk2q1sm,112.1,168.1
+row,Oats,50,120,https://escholarship.org/uc/item/5mk2q1sm,56,134.5
+row,Onion,100,400,https://escholarship.org/uc/item/5mk2q1sm,112.1,448.3
+woody,"Peach, bell",180,240,https://escholarship.org/uc/item/5mk2q1sm,201.8,269
+woody,"Peach, chili",150,200,https://escholarship.org/uc/item/5mk2q1sm,168.1,224.2
+woody,"Peach, cling",50,100,https://escholarship.org/uc/item/5mk2q1sm,56,112.1
+woody,"Peach, free",50,100,https://escholarship.org/uc/item/5mk2q1sm,56,112.1
+row,"Pepper, bell",180,240,https://escholarship.org/uc/item/5mk2q1sm,201.8,269
+row,"Pepper, chili",150,200,https://escholarship.org/uc/item/5mk2q1sm,168.1,224.2
+woody,Pistachios,100,225,https://escholarship.org/uc/item/5mk2q1sm,112.1,252.2
+woody,"Plums, dried",0,100,https://escholarship.org/uc/item/5mk2q1sm,0,112.1
+woody,"Plums, fresh",110,150,https://escholarship.org/uc/item/5mk2q1sm,123.3,168.1
+rice,Rice,110,145,https://escholarship.org/uc/item/5mk2q1sm,123.3,162.5
+row,Safflower,100,150,https://escholarship.org/uc/item/5mk2q1sm,112.1,168.1
+row,Strawberry,150,300,https://escholarship.org/uc/item/5mk2q1sm,168.1,336.3
+row,"Tomatoes, fresh market",125,350,https://escholarship.org/uc/item/5mk2q1sm,140.1,392.3
+row,"Tomatoes, processing",100,150,https://escholarship.org/uc/item/5mk2q1sm,112.1,168.1
+woody,Walnuts,150,200,https://escholarship.org/uc/item/5mk2q1sm,168.1,224.2
+row,Wheat,100,240,https://escholarship.org/uc/item/5mk2q1sm,112.1,269

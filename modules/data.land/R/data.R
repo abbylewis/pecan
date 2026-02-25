@@ -207,11 +207,12 @@
 #' @keywords datasets
 "bism_kc_by_crop"
 
-#' Recommended N application rates by crop
+#' California recommended N application rates by crop
 #'
-#' Crop specific recommended nitrogen fertilizer application rates for
+#' Crop-specific recommended nitrogen fertilizer application rates for
 #' California agriculture, based on CDFA-FREP guidelines and UC ANR
 #' publications. Contains total-season rates (not per-stage breakdowns).
+#' Developed specifically for California agricultural crops.
 #'
 #' @format A tibble with one row per crop and the following columns:
 #' \describe{
@@ -223,20 +224,24 @@
 #'   \item{max_n_lbs_acre}{\code{numeric}. Maximum recommended N rate
 #'     (lbs N/acre).}
 #'   \item{source}{\code{character}. Publication source for the rate.}
-#'   \item{min_n_kg_m2}{\code{numeric}. Minimum N rate in SI units
-#'     (kg N/m\eqn{^2}). Conversion: 1 lb/acre = 1.12085e-4 kg/m\eqn{^2}.}
-#'   \item{max_n_kg_m2}{\code{numeric}. Maximum N rate in SI units
-#'     (kg N/m\eqn{^2}).}
+#'   \item{min_n_kg_ha}{\code{numeric}. Minimum N rate in SI units
+#'     (kg N/ha). Conversion: 1 lb/acre = 1.12085 kg/ha.}
+#'   \item{max_n_kg_ha}{\code{numeric}. Maximum N rate in SI units
+#'     (kg N/ha).}
 #' }
 #'
-#' @seealso \code{\link{look_up_n_application_rate}}
-"n_application_rate_data"
+#' @seealso \code{\link{get_ca_n_rate}} for looking up rates by crop name.
+#'   \code{\link{look_up_fertilizer_components}} for fertilizer nutrient
+#'   composition (N/C fractions) from the SWAT/DayCent database.
+"ca_n_application_rate"
 
-#' Organic amendment (compost) properties
+#' California organic amendment (compost) properties
 #'
 #' Properties of organic amendment materials used in California agriculture,
 #' including C:N ratios, carbon and nitrogen content, plant-available nitrogen
-#' (PAN), and application rates.
+#' (PAN), and application rates. Data sourced from NRCS Practice Standard 808
+#' and CDFA Healthy Soils Program guidelines. Developed specifically for
+#' California agricultural contexts.
 #'
 #' @format A tibble with one row per amendment material and the following
 #'   columns:
@@ -255,11 +260,14 @@
 #'     Total carbon applied (lbs C/acre).}
 #'   \item{total_n_min_lbs_acre, total_n_max_lbs_acre}{\code{numeric}.
 #'     Total nitrogen applied (lbs N/acre).}
-#'   \item{total_c_min_kg_m2, total_c_max_kg_m2}{\code{numeric}.
-#'     Total carbon in SI units (kg C/m\eqn{^2}).}
-#'   \item{total_n_min_kg_m2, total_n_max_kg_m2}{\code{numeric}.
-#'     Total nitrogen in SI units (kg N/m\eqn{^2}).}
+#'   \item{total_c_min_kg_ha, total_c_max_kg_ha}{\code{numeric}.
+#'     Total carbon in SI units (kg C/ha).}
+#'   \item{total_n_min_kg_ha, total_n_max_kg_ha}{\code{numeric}.
+#'     Total nitrogen in SI units (kg N/ha).}
 #' }
 #'
-#' @seealso \code{\link{look_up_compost_amendment}}
-"compost_amendment_data"
+#' @seealso \code{\link{get_ca_compost_amendment}} for looking up amendments
+#'   by material name. \code{\link{look_up_fertilizer_components}} for
+#'   fertilizer nutrient composition (N/C fractions) from the SWAT/DayCent
+#'   database.
+"ca_compost_amendment"

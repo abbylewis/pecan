@@ -206,3 +206,60 @@
 #'
 #' @keywords datasets
 "bism_kc_by_crop"
+
+#' Recommended N application rates by crop
+#'
+#' Crop specific recommended nitrogen fertilizer application rates for
+#' California agriculture, based on CDFA-FREP guidelines and UC ANR
+#' publications. Contains total-season rates (not per-stage breakdowns).
+#'
+#' @format A tibble with one row per crop and the following columns:
+#' \describe{
+#'   \item{pft_group}{\code{character}. Plant functional type group
+#'     (e.g. "row", "woody", "rice", "hay").}
+#'   \item{crop}{\code{character}. Crop name as given in the source.}
+#'   \item{min_n_lbs_acre}{\code{numeric}. Minimum recommended N rate
+#'     (lbs N/acre).}
+#'   \item{max_n_lbs_acre}{\code{numeric}. Maximum recommended N rate
+#'     (lbs N/acre).}
+#'   \item{source}{\code{character}. Publication source for the rate.}
+#'   \item{min_n_kg_m2}{\code{numeric}. Minimum N rate in SI units
+#'     (kg N/m\eqn{^2}). Conversion: 1 lb/acre = 1.12085e-4 kg/m\eqn{^2}.}
+#'   \item{max_n_kg_m2}{\code{numeric}. Maximum N rate in SI units
+#'     (kg N/m\eqn{^2}).}
+#' }
+#'
+#' @seealso \code{\link{look_up_n_application_rate}}
+"n_application_rate_data"
+
+#' Organic amendment (compost) properties
+#'
+#' Properties of organic amendment materials used in California agriculture,
+#' including C:N ratios, carbon and nitrogen content, plant-available nitrogen
+#' (PAN), and application rates.
+#'
+#' @format A tibble with one row per amendment material and the following
+#'   columns:
+#' \describe{
+#'   \item{material}{\code{character}. Amendment material name.}
+#'   \item{cn_min, cn_max, cn_avg}{\code{numeric}. Carbon-to-nitrogen ratio
+#'     range and average.}
+#'   \item{c_pct}{\code{numeric}. Assumed carbon content (percent).}
+#'   \item{n_pct}{\code{numeric}. Total nitrogen content (percent).}
+#'   \item{pan_pct}{\code{numeric}. Plant-available nitrogen after 4 weeks
+#'     (percent). Negative values indicate N immobilization.}
+#'   \item{n_class}{\code{character}. "LOWER" or "HIGHER" N content class.}
+#'   \item{app_rate_min, app_rate_max}{\code{numeric}. Application rate range
+#'     (lbs/acre).}
+#'   \item{total_c_min_lbs_acre, total_c_max_lbs_acre}{\code{numeric}.
+#'     Total carbon applied (lbs C/acre).}
+#'   \item{total_n_min_lbs_acre, total_n_max_lbs_acre}{\code{numeric}.
+#'     Total nitrogen applied (lbs N/acre).}
+#'   \item{total_c_min_kg_m2, total_c_max_kg_m2}{\code{numeric}.
+#'     Total carbon in SI units (kg C/m\eqn{^2}).}
+#'   \item{total_n_min_kg_m2, total_n_max_kg_m2}{\code{numeric}.
+#'     Total nitrogen in SI units (kg N/m\eqn{^2}).}
+#' }
+#'
+#' @seealso \code{\link{look_up_compost_amendment}}
+"compost_amendment_data"

@@ -45,12 +45,13 @@ look_up_n_application_rate <- function(
     PEcAn.logger::logger.warn(
       "No N application rate found for crop '", crop, "'"
     )
-    return(tibble::tibble(
+    return(data.frame(
       pft_group = character(),
       crop = character(),
-      min_n = double(),
-      max_n = double(),
-      source = character()
+      min_n = numeric(),
+      max_n = numeric(),
+      source = character(),
+      stringsAsFactors = FALSE
     ))
   }
 
@@ -108,11 +109,12 @@ look_up_compost_amendment <- function(material, n_class = NULL) {
     PEcAn.logger::logger.warn(
       "No compost amendment found for material '", material, "'"
     )
-    return(tibble::tibble(
-      material = character(), cn_avg = double(), c_pct = double(),
-      n_pct = double(), pan_pct = double(), n_class = character(),
-      total_c_min_kg_m2 = double(), total_c_max_kg_m2 = double(),
-      total_n_min_kg_m2 = double(), total_n_max_kg_m2 = double()
+    return(data.frame(
+      material = character(), cn_avg = numeric(), c_pct = numeric(),
+      n_pct = numeric(), pan_pct = numeric(), n_class = character(),
+      total_c_min_kg_m2 = numeric(), total_c_max_kg_m2 = numeric(),
+      total_n_min_kg_m2 = numeric(), total_n_max_kg_m2 = numeric(),
+      stringsAsFactors = FALSE
     ))
   }
 

@@ -9,6 +9,7 @@
 #' etc.) are coordinated across runs. Ensemble designs typically use random or
 #' quasi-random sampling, while SA designs hold non-parameter inputs constant
 #' (OAT methodology).
+#'
 #' @param settings a PEcAn Settings or MultiSettings object
 #' @param overwrite logical: Replace config files if they already exist?
 #' @param input_design Optional. Input design data.frame linking parameter draws

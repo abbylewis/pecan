@@ -2,7 +2,7 @@
 #'
 #' Returns recommended nitrogen application rate ranges for California crops,
 #' based on CDFA-FREP guidelines and UC ANR publications. Rates are provided
-#' in both imperial (lbs N/acre) and SI (kg N/ha) units.
+#' in both imperial (lbs N/acre) and SI (g N/m2) units.
 #'
 #' Matching is case-insensitive. Exact matches are returned directly.
 #' If no exact match is found, partial matching is used to suggest
@@ -11,7 +11,7 @@
 #' @param crop Character string. Crop name to look up.
 #' @param pft_group Optional character string. Filter results to a specific
 #'   plant functional type group (e.g. "row", "woody", "rice").
-#' @param unit Character, one of "kg_ha" (default) or "lbs_acre". Controls
+#' @param unit Character, one of "g_m2" (default) or "lbs_acre". Controls
 #'   which columns appear as `min_n` and `max_n` in the output.
 #'
 #' @return A data frame with columns: `pft_group`, `crop`, `min_n`, `max_n`,
@@ -23,16 +23,16 @@
 #'   [ca_n_application_rate] for the underlying dataset.
 #'
 #' @examples
-#' get_ca_n_rate("Tomatoes, Processing")
-#' get_ca_n_rate("corn")
-#' get_ca_n_rate("wheat", unit = "lbs_acre")
-#' get_ca_n_rate("pistachio", pft_group = "woody")
+#' look_up_ca_n_rate("Tomatoes, Processing")
+#' look_up_ca_n_rate("corn")
+#' look_up_ca_n_rate("wheat", unit = "lbs_acre")
+#' look_up_ca_n_rate("pistachio", pft_group = "woody")
 #'
 #' @export
-get_ca_n_rate <- function(
+look_up_ca_n_rate <- function(
     crop,
     pft_group = NULL,
-    unit = c("kg_ha", "lbs_acre")
+    unit = c("g_m2", "lbs_acre")
 ) {
   unit <- match.arg(unit)
 
@@ -48,7 +48,6 @@ get_ca_n_rate <- function(
     dplyr::filter(tolower(.data$crop) == tolower(crop))
 
   # if no exact match, try partial and suggest
-
   if (nrow(result) == 0) {
     partial <- dat |>
       dplyr::filter(grepl(tolower(crop), tolower(.data$crop), fixed = TRUE))
@@ -74,13 +73,13 @@ get_ca_n_rate <- function(
     ))
   }
 
-  if (unit == "kg_ha") {
+  if (unit == "g_m2") {
     result |>
       dplyr::transmute(
         .data$pft_group,
         .data$crop,
-        min_n = .data$min_n_kg_ha,
-        max_n = .data$max_n_kg_ha,
+        min_n = .data$min_n_g_m2,
+        max_n = .data$max_n_g_m2,
         .data$source
       )
   } else {
@@ -110,8 +109,8 @@ get_ca_n_rate <- function(
 #' @param n_class Optional, one of "LOWER" or "HIGHER". Filter by N class.
 #'
 #' @return A data frame with columns: `material`, `cn_avg`, `c_pct`, `n_pct`,
-#'   `pan_pct`, `n_class`, `total_c_min_kg_ha`, `total_c_max_kg_ha`,
-#'   `total_n_min_kg_ha`, `total_n_max_kg_ha`.
+#'   `pan_pct`, `n_class`, `total_c_min_g_m2`, `total_c_max_g_m2`,
+#'   `total_n_min_g_m2`, `total_n_max_g_m2`.
 #'   Returns an empty data frame (with a warning) if no match is found.
 #'
 #' @seealso [look_up_fertilizer_components()] for fertilizer nutrient
@@ -119,11 +118,11 @@ get_ca_n_rate <- function(
 #'   [ca_compost_amendment] for the underlying dataset.
 #'
 #' @examples
-#' get_ca_compost_amendment("Cow manure")
-#' get_ca_compost_amendment("Poultry litter", n_class = "HIGHER")
+#' look_up_ca_compost_amendment("Cow manure")
+#' look_up_ca_compost_amendment("Poultry litter", n_class = "HIGHER")
 #'
 #' @export
-get_ca_compost_amendment <- function(material, n_class = NULL) {
+look_up_ca_compost_amendment <- function(material, n_class = NULL) {
   dat <- PEcAn.data.land::ca_compost_amendment
 
   if (!is.null(n_class)) {
@@ -154,8 +153,8 @@ get_ca_compost_amendment <- function(material, n_class = NULL) {
     return(data.frame(
       material = character(), cn_avg = numeric(), c_pct = numeric(),
       n_pct = numeric(), pan_pct = numeric(), n_class = character(),
-      total_c_min_kg_ha = numeric(), total_c_max_kg_ha = numeric(),
-      total_n_min_kg_ha = numeric(), total_n_max_kg_ha = numeric(),
+      total_c_min_g_m2 = numeric(), total_c_max_g_m2 = numeric(),
+      total_n_min_g_m2 = numeric(), total_n_max_g_m2 = numeric(),
       stringsAsFactors = FALSE
     ))
   }
@@ -163,7 +162,7 @@ get_ca_compost_amendment <- function(material, n_class = NULL) {
   result |>
     dplyr::select(
       "material", "cn_avg", "c_pct", "n_pct", "pan_pct", "n_class",
-      "total_c_min_kg_ha", "total_c_max_kg_ha",
-      "total_n_min_kg_ha", "total_n_max_kg_ha"
+      "total_c_min_g_m2", "total_c_max_g_m2",
+      "total_n_min_g_m2", "total_n_max_g_m2"
     )
 }

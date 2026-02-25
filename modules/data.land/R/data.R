@@ -224,13 +224,13 @@
 #'   \item{max_n_lbs_acre}{\code{numeric}. Maximum recommended N rate
 #'     (lbs N/acre).}
 #'   \item{source}{\code{character}. Publication source for the rate.}
-#'   \item{min_n_kg_ha}{\code{numeric}. Minimum N rate in SI units
-#'     (kg N/ha). Conversion: 1 lb/acre = 1.12085 kg/ha.}
-#'   \item{max_n_kg_ha}{\code{numeric}. Maximum N rate in SI units
-#'     (kg N/ha).}
+#'   \item{min_n_g_m2}{\code{numeric}. Minimum N rate in SI units
+#'     (g N/m\eqn{^2}). Conversion: 1 lb/acre = 0.112085 g/m\eqn{^2}.}
+#'   \item{max_n_g_m2}{\code{numeric}. Maximum N rate in SI units
+#'     (g N/m\eqn{^2}).}
 #' }
 #'
-#' @seealso \code{\link{get_ca_n_rate}} for looking up rates by crop name.
+#' @seealso \code{\link{look_up_ca_n_rate}} for looking up rates by crop name.
 #'   \code{\link{look_up_fertilizer_components}} for fertilizer nutrient
 #'   composition (N/C fractions) from the SWAT/DayCent database.
 "ca_n_application_rate"
@@ -260,14 +260,14 @@
 #'     Total carbon applied (lbs C/acre).}
 #'   \item{total_n_min_lbs_acre, total_n_max_lbs_acre}{\code{numeric}.
 #'     Total nitrogen applied (lbs N/acre).}
-#'   \item{total_c_min_kg_ha, total_c_max_kg_ha}{\code{numeric}.
-#'     Total carbon in SI units (kg C/ha).}
-#'   \item{total_n_min_kg_ha, total_n_max_kg_ha}{\code{numeric}.
-#'     Total nitrogen in SI units (kg N/ha).}
+#'   \item{total_c_min_g_m2, total_c_max_g_m2}{\code{numeric}.
+#'     Total carbon in SI units (g C/m\eqn{^2}).}
+#'   \item{total_n_min_g_m2, total_n_max_g_m2}{\code{numeric}.
+#'     Total nitrogen in SI units (g N/m\eqn{^2}).}
 #' }
 #'
-#' @seealso \code{\link{get_ca_compost_amendment}} for looking up amendments
-#'   by material name. \code{\link{look_up_fertilizer_components}} for
-#'   fertilizer nutrient composition (N/C fractions) from the SWAT/DayCent
-#'   database.
+#' @seealso \code{\link{look_up_ca_compost_amendment}} for looking up
+#'   amendments by material name.
+#'   \code{\link{look_up_fertilizer_components}} for fertilizer nutrient
+#'   composition (N/C fractions) from the SWAT/DayCent database.
 "ca_compost_amendment"

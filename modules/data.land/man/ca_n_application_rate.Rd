@@ -15,10 +15,10 @@ A tibble with one row per crop and the following columns:
   \item{max_n_lbs_acre}{\code{numeric}. Maximum recommended N rate
     (lbs N/acre).}
   \item{source}{\code{character}. Publication source for the rate.}
-  \item{min_n_kg_ha}{\code{numeric}. Minimum N rate in SI units
-    (kg N/ha). Conversion: 1 lb/acre = 1.12085 kg/ha.}
-  \item{max_n_kg_ha}{\code{numeric}. Maximum N rate in SI units
-    (kg N/ha).}
+  \item{min_n_g_m2}{\code{numeric}. Minimum N rate in SI units
+    (g N/m\eqn{^2}). Conversion: 1 lb/acre = 0.112085 g/m\eqn{^2}.}
+  \item{max_n_g_m2}{\code{numeric}. Maximum N rate in SI units
+    (g N/m\eqn{^2}).}
 }
 }
 \usage{
@@ -31,7 +31,7 @@ publications. Contains total-season rates (not per-stage breakdowns).
 Developed specifically for California agricultural crops.
 }
 \seealso{
-\code{\link{get_ca_n_rate}} for looking up rates by crop name.
+\code{\link{look_up_ca_n_rate}} for looking up rates by crop name.
   \code{\link{look_up_fertilizer_components}} for fertilizer nutrient
   composition (N/C fractions) from the SWAT/DayCent database.
 }

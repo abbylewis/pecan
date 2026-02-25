@@ -20,10 +20,10 @@ ca_compost_amendment <- readr::read_csv(
     total_c_max_lbs_acre = readr::col_double(),
     total_n_min_lbs_acre = readr::col_double(),
     total_n_max_lbs_acre = readr::col_double(),
-    total_c_min_kg_ha    = readr::col_double(),
-    total_c_max_kg_ha    = readr::col_double(),
-    total_n_min_kg_ha    = readr::col_double(),
-    total_n_max_kg_ha    = readr::col_double()
+    total_c_min_g_m2    = readr::col_double(),
+    total_c_max_g_m2    = readr::col_double(),
+    total_n_min_g_m2    = readr::col_double(),
+    total_n_max_g_m2    = readr::col_double()
   )
 )
 

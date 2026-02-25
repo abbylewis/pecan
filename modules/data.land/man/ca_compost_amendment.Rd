@@ -22,10 +22,10 @@ A tibble with one row per amendment material and the following
     Total carbon applied (lbs C/acre).}
   \item{total_n_min_lbs_acre, total_n_max_lbs_acre}{\code{numeric}.
     Total nitrogen applied (lbs N/acre).}
-  \item{total_c_min_kg_ha, total_c_max_kg_ha}{\code{numeric}.
-    Total carbon in SI units (kg C/ha).}
-  \item{total_n_min_kg_ha, total_n_max_kg_ha}{\code{numeric}.
-    Total nitrogen in SI units (kg N/ha).}
+  \item{total_c_min_g_m2, total_c_max_g_m2}{\code{numeric}.
+    Total carbon in SI units (g C/m\eqn{^2}).}
+  \item{total_n_min_g_m2, total_n_max_g_m2}{\code{numeric}.
+    Total nitrogen in SI units (g N/m\eqn{^2}).}
 }
 }
 \usage{
@@ -39,9 +39,9 @@ and CDFA Healthy Soils Program guidelines. Developed specifically for
 California agricultural contexts.
 }
 \seealso{
-\code{\link{get_ca_compost_amendment}} for looking up amendments
-  by material name. \code{\link{look_up_fertilizer_components}} for
-  fertilizer nutrient composition (N/C fractions) from the SWAT/DayCent
-  database.
+\code{\link{look_up_ca_compost_amendment}} for looking up
+  amendments by material name.
+  \code{\link{look_up_fertilizer_components}} for fertilizer nutrient
+  composition (N/C fractions) from the SWAT/DayCent database.
 }
 \keyword{datasets}

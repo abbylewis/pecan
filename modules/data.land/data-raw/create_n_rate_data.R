@@ -13,8 +13,8 @@ ca_n_application_rate <- readr::read_csv(
     min_n_lbs_acre = readr::col_double(),
     max_n_lbs_acre = readr::col_double(),
     source         = readr::col_character(),
-    min_n_kg_ha    = readr::col_double(),
-    max_n_kg_ha    = readr::col_double()
+    min_n_g_m2    = readr::col_double(),
+    max_n_g_m2    = readr::col_double()
   )
 )
 

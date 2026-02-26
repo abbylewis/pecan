@@ -108,8 +108,9 @@ look_up_ca_n_rate <- function(
 #' @param material Character string. Amendment material to look up.
 #' @param n_class Optional, one of "LOWER" or "HIGHER". Filter by N class.
 #'
-#' @return A data frame with columns: `material`, `cn_avg`, `c_pct`, `n_pct`,
-#'   `pan_pct`, `n_class`, `total_c_min_g_m2`, `total_c_max_g_m2`,
+#' @return A data frame with columns: `material`, `cn_min`, `cn_max`,
+#'   `cn_avg`, `c_pct`, `n_pct`, `pan_pct`, `n_class`,
+#'   `total_c_min_g_m2`, `total_c_max_g_m2`,
 #'   `total_n_min_g_m2`, `total_n_max_g_m2`.
 #'   Returns an empty data frame (with a warning) if no match is found.
 #'
@@ -151,7 +152,8 @@ look_up_ca_compost_amendment <- function(material, n_class = NULL) {
       )
     }
     return(data.frame(
-      material = character(), cn_avg = numeric(), c_pct = numeric(),
+      material = character(), cn_min = numeric(), cn_max = numeric(),
+      cn_avg = numeric(), c_pct = numeric(),
       n_pct = numeric(), pan_pct = numeric(), n_class = character(),
       total_c_min_g_m2 = numeric(), total_c_max_g_m2 = numeric(),
       total_n_min_g_m2 = numeric(), total_n_max_g_m2 = numeric(),
@@ -161,7 +163,8 @@ look_up_ca_compost_amendment <- function(material, n_class = NULL) {
 
   result |>
     dplyr::select(
-      "material", "cn_avg", "c_pct", "n_pct", "pan_pct", "n_class",
+      "material", "cn_min", "cn_max", "cn_avg",
+      "c_pct", "n_pct", "pan_pct", "n_class",
       "total_c_min_g_m2", "total_c_max_g_m2",
       "total_n_min_g_m2", "total_n_max_g_m2"
     )

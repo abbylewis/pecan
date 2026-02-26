@@ -12,8 +12,9 @@ look_up_ca_compost_amendment(material, n_class = NULL)
 \item{n_class}{Optional, one of "LOWER" or "HIGHER". Filter by N class.}
 }
 \value{
-A data frame with columns: `material`, `cn_avg`, `c_pct`, `n_pct`,
-  `pan_pct`, `n_class`, `total_c_min_g_m2`, `total_c_max_g_m2`,
+A data frame with columns: `material`, `cn_min`, `cn_max`,
+  `cn_avg`, `c_pct`, `n_pct`, `pan_pct`, `n_class`,
+  `total_c_min_g_m2`, `total_c_max_g_m2`,
   `total_n_min_g_m2`, `total_n_max_g_m2`.
   Returns an empty data frame (with a warning) if no match is found.
 }

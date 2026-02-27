@@ -4,19 +4,33 @@
 \alias{calc_water_balance}
 \title{Calculate water balance for a time series at a single site}
 \usage{
-calc_water_balance(et, precip, whc, w_min_frac)
+calc_water_balance(
+  et,
+  precip,
+  whc,
+  whc_min_frac,
+  seepage_rate = NULL,
+  is_rice = FALSE
+)
 }
 \arguments{
 \item{et}{Vector of evapotranspiration values (distance / time)}
 
 \item{precip}{Vector of precipitation values (distance / time)}
 
-\item{whc}{Water holding capacity (distance)}
+\item{whc}{Water holding capacity (distance); interpreted as the plant-
+available range from wilting point to field capacity}
 
-\item{w_min_frac}{Fraction of WHC for minimum water level}
+\item{whc_min_frac}{Fraction of WHC for minimum water level (irrigation
+trigger)}
+
+\item{seepage_rate}{Daily seepage loss for rice paddies (distance / time);
+only used when is_rice = TRUE}
+
+\item{is_rice}{Logical; if TRUE, applies a constant seepage loss (mm/day)}
 }
 \value{
-List with vectors: W_t (water balance), irr (irrigation), runoff
+List with vectors: W_t (soil water), irr (irrigation), runoff
 }
 \description{
 This is the core water balance calculation that operates on primitive
@@ -24,4 +38,12 @@ numeric vectors for easy testing and debugging. Each input is a time series
 of daily values for a single location (one date per row). The units for all
 quantities are arbitrary, but they should be consistent (distance / time;
 e.g., most commonly, mm/day).
+}
+\details{
+The handling of rice here is crude and primitive: setting `whc_min_frac` =
+1.0 (as set in `crop_whc` for rice) means a near-constant need for
+irrigation to balance ET + seepage, which roughly mimics the behavior of
+maintaining a standing flood. However, proper treatment of rice requires
+maintaining a field *above* field capacity, and has other complications.
+These will be implemented in the future.
 }

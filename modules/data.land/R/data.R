@@ -287,3 +287,26 @@
 #'   \code{\link{look_up_fertilizer_components}} for fertilizer nutrient
 #'   composition (N/C fractions) from the SWAT/DayCent database.
 "ca_compost_amendment"
+
+#' Crop-specific minimum water holding capacity (WHC) thresholds
+#'
+#' Minimum soil water content (fraction of available water-holding capacity)
+#' that should be maintained for each crop to avoid yield loss or quality issues.
+#' Values are based on crop root depth, drought tolerance, and sensitivity to
+#' water stress.
+#'
+#' @format A tibble with one row per crop and the following columns:
+#' \describe{
+#'   \item{crop_number}{BIS crop number (character). Blank for crops not in BIS.}
+#'   \item{crop_name}{Crop name.}
+#'   \item{Category}{Crop category (e.g., Woody Perennial, Annual (Hardy)).}
+#'   \item{minWHC}{Minimum WHC (fraction, 0-1).}
+#'   \item{Comments}{Rationale for the minimum WHC value.}
+#' }
+#' @source Expert knowledge; California irrigation scheduling guidelines.
+#' @examples
+#' data(crop_whc)
+#' head(crop_whc)
+#'
+#' @keywords datasets
+"crop_whc"

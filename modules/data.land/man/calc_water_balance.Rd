@@ -9,6 +9,9 @@ calc_water_balance(
   precip,
   whc,
   whc_min_frac,
+  field_capacity = NULL,
+  W_initial = NULL,
+  w_min = NULL,
   seepage_rate = NULL,
   is_rice = FALSE
 )
@@ -18,14 +21,24 @@ calc_water_balance(
 
 \item{precip}{Vector of precipitation values (distance / time)}
 
-\item{whc}{Water holding capacity (distance); interpreted as the plant-
+\item{whc}{Water holding capacity (WHC) (distance); interpreted as the plant-
 available range from wilting point to field capacity}
 
 \item{whc_min_frac}{Fraction of WHC for minimum water level (irrigation
-trigger)}
+trigger); unused if `w_min` is explicitly specified}
+
+\item{field_capacity}{Maximum water holding capacity at field capacity
+(distance); defaults to `whc` if NULL}
+
+\item{W_initial}{Initial soil water content at start of time series
+(distance); defaults to `field_capacity` if NULL}
+
+\item{w_min}{Minimum water level threshold (distance); irrigation is
+triggered when soil water falls below this level; defaults to
+`whc_min_frac * whc` if NULL}
 
 \item{seepage_rate}{Daily seepage loss for rice paddies (distance / time);
-only used when is_rice = TRUE}
+only used when `is_rice = TRUE`}
 
 \item{is_rice}{Logical; if TRUE, applies a constant seepage loss (mm/day)}
 }

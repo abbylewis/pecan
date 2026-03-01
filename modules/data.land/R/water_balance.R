@@ -15,12 +15,19 @@
 #'
 #' @param et Vector of evapotranspiration values (distance / time)
 #' @param precip Vector of precipitation values (distance / time)
-#' @param whc Water holding capacity (distance); interpreted as the plant-
+#' @param whc Water holding capacity (WHC) (distance); interpreted as the plant-
 #'   available range from wilting point to field capacity
 #' @param whc_min_frac Fraction of WHC for minimum water level (irrigation
-#'   trigger)
+#'   trigger); unused if `w_min` is explicitly specified
+#' @param field_capacity Maximum water holding capacity at field capacity
+#'   (distance); defaults to `whc` if NULL
+#' @param W_initial Initial soil water content at start of time series
+#'   (distance); defaults to `field_capacity` if NULL
+#' @param w_min Minimum water level threshold (distance); irrigation is
+#'   triggered when soil water falls below this level; defaults to
+#'   `whc_min_frac * whc` if NULL
 #' @param seepage_rate Daily seepage loss for rice paddies (distance / time);
-#'   only used when is_rice = TRUE
+#'   only used when `is_rice = TRUE`
 #' @param is_rice Logical; if TRUE, applies a constant seepage loss (mm/day)
 #' @return List with vectors: W_t (soil water), irr (irrigation), runoff
 #' @export
@@ -29,6 +36,9 @@ calc_water_balance <- function(
   precip,
   whc,
   whc_min_frac,
+  field_capacity = NULL,
+  W_initial = NULL, #nolint: object_name_linter
+  w_min = NULL,
   seepage_rate = NULL,
   is_rice = FALSE
 ) {
@@ -59,17 +69,23 @@ calc_water_balance <- function(
     PEcAn.logger::logger.severe("Seepage rate must be defined for rice fields")
   }
 
-  # Field capacity is the upper management target (= WHC under the convention
-  # that WHC spans wilting point to field capacity)
-  field_capacity <- whc
-  w_min <- whc_min_frac * whc
+  if (is.null(field_capacity)) {
+    field_capacity <- whc
+  }
+  if (is.null(w_min)) {
+    w_min <- whc_min_frac * whc
+  }
+
+  if (is.null(W_initial)) {
+    # Initialize at field capacity
+    W_prev <- field_capacity
+  } else {
+    W_prev <- W_initial
+  }
 
   W_t <- numeric(n)
   irr <- numeric(n)
   runoff <- numeric(n)
-
-  # Initialize at field capacity
-  W_prev <- field_capacity
 
   for (t in seq_len(n)) {
     # Only water above w_min is available for seepage

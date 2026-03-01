@@ -3,7 +3,7 @@
 This chapter provides guidance for diagnosing and resolving common
 issues encountered when running PEcAn workflows.
 Problems may arise from web interface configuration, file system paths,
-model integration, or internal workflow execution.
+model failures, or system-level dependencies.
 The sections below document frequently encountered errors as well as general
 debugging techniques that can help identify the source of a problem.
 

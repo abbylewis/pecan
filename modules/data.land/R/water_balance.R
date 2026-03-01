@@ -35,8 +35,28 @@ calc_water_balance <- function(
   # nolint start: object_name_linter
   n <- length(et)
 
+  if (!length(precip) == n) {
+    PEcAn.logger::logger.severe(
+      "Precip and ET have different lengths. ",
+      "length(precip) = ", length(precip), "  ",
+      "length(et) = ", n
+    )
+  }
+
+  if (!length(whc) == 1) {
+    PEcAn.logger::logger.severe(
+      "whc must have length 1; actual length = ", length(whc)
+    )
+  }
+
+  if (!length(whc_min_frac) == 1) {
+    PEcAn.logger::logger.severe(
+      "whc_min_frac must have length 1; actual length = ", length(whc_min_frac)
+    )
+  }
+
   if (is_rice && is.null(seepage_rate)) {
-    stop("Seepage rate must be defined for rice fields")
+    PEcAn.logger::logger.severe("Seepage rate must be defined for rice fields")
   }
 
   # Field capacity is the upper management target (= WHC under the convention
@@ -107,8 +127,7 @@ apply_water_balance <- function(df, idcol, whc_mm = 500) {
   }
 
   if ("whc_min_frac" %in% colnames(df)) {
-    whc_min_frac <- df$whc_min_frac
-    n_na <- sum(is.na(whc_min_frac))
+    n_na <- sum(is.na(df$whc_min_frac))
     if (n_na > 0) {
       PEcAn.logger::logger.warn(
         sprintf(
@@ -117,14 +136,13 @@ apply_water_balance <- function(df, idcol, whc_mm = 500) {
           default_whc_min_frac
         )
       )
-      whc_min_frac <- tidyr::replace_na(whc_min_frac, default_whc_min_frac)
     }
   } else {
     PEcAn.logger::logger.warn(
       "whc_min_frac column not found in input data. Using default = ",
       default_whc_min_frac
     )
-    whc_min_frac <- default_whc_min_frac
+    df[["whc_min_frac"]] <- default_whc_min_frac
   }
 
   df |>
@@ -133,11 +151,15 @@ apply_water_balance <- function(df, idcol, whc_mm = 500) {
       year = as.integer(format(.data$date, "%Y")),
       week = as.integer(format(.data$date, "%U")),
       day_of_year = as.integer(format(.data$date, "%j")),
+      whc_min_frac = tidyr::replace_na(.data$whc_min_frac, default_whc_min_frac),
       results = tibble::as_tibble(calc_water_balance(
         et = .data$etc_mm_day,
         precip = .data$precip_mm_day,
         whc = whc_mm,
-        whc_min_frac = whc_min_frac
+        # NOTE: Use unique here because, in a merged crop data frame, this gets
+        # expanded to a vector of values. They *should* all be unique per
+        # `idcol`; if they're not, `calc_water_balance` should fail loudly.
+        whc_min_frac = unique(.data$whc_min_frac)
       )),
       .by = dplyr::all_of(idcol)
     ) |>

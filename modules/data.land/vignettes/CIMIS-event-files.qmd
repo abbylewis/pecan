@@ -199,6 +199,7 @@ resolve_multicrop <- function(etc_data, id_col = "id", date_col = "date") {
     dplyr::group_by(!!id_sym, !!date_sym) |>
     dplyr::summarize(
       etc_mm_day = mean(.data$etc_mm_day, na.rm = TRUE),
+      whc_min_frac = mean(.data$whc_min_frac, na.rm = TRUE),
       .groups = "drop"
     )
 }

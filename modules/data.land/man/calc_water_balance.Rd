@@ -9,7 +9,6 @@ calc_water_balance(
   precip,
   whc,
   whc_min_frac,
-  field_capacity = NULL,
   W_initial = NULL,
   w_min = NULL,
   seepage_rate = NULL,
@@ -21,17 +20,14 @@ calc_water_balance(
 
 \item{precip}{Vector of precipitation values (distance / time)}
 
-\item{whc}{Water holding capacity (WHC) (distance); interpreted as the plant-
-available range from wilting point to field capacity}
+\item{whc}{Water holding capacity (distance); the plant-available range from
+wilting point to field capacity (i.e., `whc = field_capacity - wilting_point`)}
 
 \item{whc_min_frac}{Fraction of WHC for minimum water level (irrigation
 trigger); unused if `w_min` is explicitly specified}
 
-\item{field_capacity}{Maximum water holding capacity at field capacity
-(distance); defaults to `whc` if NULL}
-
 \item{W_initial}{Initial soil water content at start of time series
-(distance); defaults to `field_capacity` if NULL}
+(distance); defaults to `whc` (field capacity) if NULL}
 
 \item{w_min}{Minimum water level threshold (distance); irrigation is
 triggered when soil water falls below this level; defaults to
@@ -53,10 +49,28 @@ quantities are arbitrary, but they should be consistent (distance / time;
 e.g., most commonly, mm/day).
 }
 \details{
+This function operates in *relative* WHC space, where:
+- `w = 0` represents wilting point (no plant-available water)
+- `w = whc` represents field capacity (maximum plant-available water)
+- `whc = (field_capacity - wilting_point) * rooting_depth` (the plant-available range)
+
 The handling of rice here is crude and primitive: setting `whc_min_frac` =
 1.0 (as set in `crop_whc` for rice) means a near-constant need for
 irrigation to balance ET + seepage, which roughly mimics the behavior of
 maintaining a standing flood. However, proper treatment of rice requires
 maintaining a field *above* field capacity, and has other complications.
 These will be implemented in the future.
+}
+\examples{
+# Calculate WHC from field capacity, wilting point, and rooting depth
+field_capacity <- 0.30  # volumetric (m3/m3)
+wilting_point <- 0.10   # volumetric (m3/m3)
+rooting_depth <- 1000   # mm
+whc <- (field_capacity - wilting_point) * rooting_depth  # mm
+
+# Run water balance with 5 days of ET and precip data
+et <- c(4, 5, 6, 4, 3)  # mm/day
+precip <- c(0, 0, 10, 0, 0)  # mm/day
+result <- calc_water_balance(et, precip, whc = whc, whc_min_frac = 0.5)
+str(result)
 }

@@ -6,6 +6,11 @@
 #' quantities are arbitrary, but they should be consistent (distance / time;
 #' e.g., most commonly, mm/day).
 #'
+#' This function operates in *relative* WHC space, where:
+#' - `w = 0` represents wilting point (no plant-available water)
+#' - `w = whc` represents field capacity (maximum plant-available water)
+#' - `whc = (field_capacity - wilting_point) * rooting_depth` (the plant-available range)
+#'
 #' The handling of rice here is crude and primitive: setting `whc_min_frac` =
 #' 1.0 (as set in `crop_whc` for rice) means a near-constant need for
 #' irrigation to balance ET + seepage, which roughly mimics the behavior of
@@ -15,14 +20,12 @@
 #'
 #' @param et Vector of evapotranspiration values (distance / time)
 #' @param precip Vector of precipitation values (distance / time)
-#' @param whc Water holding capacity (WHC) (distance); interpreted as the plant-
-#'   available range from wilting point to field capacity
+#' @param whc Water holding capacity (distance); the plant-available range from
+#'   wilting point to field capacity (i.e., `whc = field_capacity - wilting_point`)
 #' @param whc_min_frac Fraction of WHC for minimum water level (irrigation
 #'   trigger); unused if `w_min` is explicitly specified
-#' @param field_capacity Maximum water holding capacity at field capacity
-#'   (distance); defaults to `whc` if NULL
 #' @param W_initial Initial soil water content at start of time series
-#'   (distance); defaults to `field_capacity` if NULL
+#'   (distance); defaults to `whc` (field capacity) if NULL
 #' @param w_min Minimum water level threshold (distance); irrigation is
 #'   triggered when soil water falls below this level; defaults to
 #'   `whc_min_frac * whc` if NULL
@@ -30,13 +33,24 @@
 #'   only used when `is_rice = TRUE`
 #' @param is_rice Logical; if TRUE, applies a constant seepage loss (mm/day)
 #' @return List with vectors: W_t (soil water), irr (irrigation), runoff
+#' @examples
+#' # Calculate WHC from field capacity, wilting point, and rooting depth
+#' field_capacity <- 0.30  # volumetric (m3/m3)
+#' wilting_point <- 0.10   # volumetric (m3/m3)
+#' rooting_depth <- 1000   # mm
+#' whc <- (field_capacity - wilting_point) * rooting_depth  # mm
+#'
+#' # Run water balance with 5 days of ET and precip data
+#' et <- c(4, 5, 6, 4, 3)  # mm/day
+#' precip <- c(0, 0, 10, 0, 0)  # mm/day
+#' result <- calc_water_balance(et, precip, whc = whc, whc_min_frac = 0.5)
+#' str(result)
 #' @export
 calc_water_balance <- function(
   et,
   precip,
   whc,
   whc_min_frac,
-  field_capacity = NULL,
   W_initial = NULL, #nolint: object_name_linter
   w_min = NULL,
   seepage_rate = NULL,
@@ -69,16 +83,13 @@ calc_water_balance <- function(
     PEcAn.logger::logger.severe("Seepage rate must be defined for rice fields")
   }
 
-  if (is.null(field_capacity)) {
-    field_capacity <- whc
-  }
   if (is.null(w_min)) {
     w_min <- whc_min_frac * whc
   }
 
   if (is.null(W_initial)) {
-    # Initialize at field capacity
-    W_prev <- field_capacity
+    # Initialize at field capacity (i.e., full WHC)
+    W_prev <- whc
   } else {
     W_prev <- W_initial
   }
@@ -95,18 +106,18 @@ calc_water_balance <- function(
     W0 <- W_prev + precip[t] - et[t] - seepage
 
     # If W0 falls below w_min (e.g., high ET and seepage; low precip), irrigate
-    # to field capacity.
+    # to field capacity (i.e., full WHC).
     if (W0 < w_min) {
-      irr[t] <- field_capacity - W0
-      W0 <- field_capacity
+      irr[t] <- whc - W0
+      W0 <- whc
     } else {
       irr[t] <- 0
     }
 
-    # If W0 exceeds field capacity, the difference is runoff.
-    if (W0 > field_capacity) {
-      runoff[t] <- W0 - field_capacity
-      W_t[t] <- field_capacity
+    # If W0 exceeds field capacity (i.e., whc), the difference is runoff.
+    if (W0 > whc) {
+      runoff[t] <- W0 - whc
+      W_t[t] <- whc
     } else {
       runoff[t] <- 0
       W_t[t] <- max(W0, w_min)

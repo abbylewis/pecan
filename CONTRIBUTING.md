@@ -117,8 +117,29 @@ git push -u origin GH-issuenumber-title-of-issue
   - The license listed at PR opening time for the code you are contributing to,
   - and/or the BSD 3-clause license.
 
-## Additional Resources
+## Repository Labeling Scheme
 
+PEcAn uses a standardized `category:name` label scheme to keep issues and pull requests organized. This improves discoverability, contributor onboarding, workflow clarity, and automation reliability.
+
+### Categories
+* **`type:`** Indicates the nature of the issue/PR (e.g., `type:bug`, `type:feature`, `type:docs`, `type:refactor`, `type:chore`). Color: red/blue shades.
+* **`status:`** Indicates where in the lifecycle the issue/PR is (e.g., `status:blocked`, `status:in-progress`, `status:ready-for-review`). Color: yellow/orange shades.
+* **`priority:`** Indicates urgency (e.g., `priority:low`, `priority:medium`, `priority:high`, `priority:critical`). Color: red intensity.
+* **`area:`** Indicates the component or domain of the project affected (e.g., `area:core`, `area:models`, `area:modules`, `area:infrastructure`, `area:ui`). Color: green/purple shades.
+* **`meta`**: Labels related to the issue tracker itself, meetings, or general project management. Color: gray.
+
+### Naming Rules
+* All labels are in lowercase.
+* No spaces; use hyphens (e.g., `good-first-issue`).
+* Use the clear prefix categories defined above.
+
+### Applying Labels
+* Apply a `type:` label to all issues and PRs.
+* Apply an `area:` label if the scope is limited to specific components.
+* Apply `status:` and `priority:` labels as needed to help project maintainers triage and track progress.
+* The `.github/labeler.yml` action automatically applies `area:` and `type:` labels to PRs based on the files modified.
+
+## Additional Resources
 - [Adding models to PEcAn](https://pecanproject.github.io/pecan-documentation/develop/adding-model.html)
 - [PEcAn configuration files](https://pecanproject.github.io/pecan-documentation/develop/pecanXML.html)
 - [Development help](https://pecanproject.github.io/pecan-documentation/latest/developer-guide.html)

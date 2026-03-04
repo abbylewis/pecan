@@ -154,7 +154,7 @@ test_that("model2netcdf.SIPNET parses v2 output without Notes line", {
   # litterWater absent in v2; should not crash, should omit variable
   expect_false("litter_mass_content_of_water" %in% vars)
 
-  # verify N pool values (state variables: gN/m2 -> kgN/m2)
+  # verify N pool values (gN/m2 -> kgN/m2)
   min_n <- as.vector(ncdf4::ncvar_get(nc, "mineral_N"))
   expect_equal(min_n, rep(1.5 * 0.001, n), tolerance = 1e-9)
 

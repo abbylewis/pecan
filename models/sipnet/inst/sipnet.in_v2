@@ -32,3 +32,23 @@ DO_SINGLE_OUTPUTS = 0
 !  value, followed by the time series
 ! For RUNTYPE = montecarlo, there is no leading label value - these
 !  files just contain the time series
+
+! --- V2 MODEL FLAGS ---
+
+NITROGEN_CYCLE = 1
+! Enable nitrogen cycle modeling (requires LITTER_POOL and ANAEROBIC)
+
+LITTER_POOL = 1
+! Enable separate litter carbon pool (required by NITROGEN_CYCLE)
+
+ANAEROBIC = 1
+! Enable anaerobic respiration & CH4 production (required by NITROGEN_CYCLE)
+
+GROWTH_RESP = 0
+! Explicitly model growth respiration (0 = included in maintenance resp)
+
+WATER_HRESP = 1
+! Enable soil moisture effect on heterotrophic respiration
+
+LEAF_WATER = 0
+! Leaf water interception pool (0 = disabled)

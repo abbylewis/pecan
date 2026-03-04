@@ -11,19 +11,19 @@
   - any-glob-to-any-file: 'DEV-INTRO.md'
   - any-glob-to-any-file: 'README.md'
 
-'GitHub Actions':
+'github-actions':
 - changed-files:
   - any-glob-to-any-file: '.github/workflows/**'
 
-'infrastructure':
+'dockerfile':
 - changed-files:
   - any-glob-to-any-file: 'docker/**'
 
-'ui':
+'web-frontend':
 - changed-files:
   - any-glob-to-any-file: 'web/**'
 
-'core':
+'base':
 - changed-files:
   - any-glob-to-any-file: 'base/**'
 
@@ -41,7 +41,7 @@
 - changed-files:
   - any-glob-to-any-file: 'scripts/**'
 
-'testing':
+'tests':
 - all:
   - changed-files:
     - any-glob-to-any-file: ['tests/**', '**/tests/**']

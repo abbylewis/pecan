@@ -119,10 +119,9 @@ git push -u origin GH-issuenumber-title-of-issue
 
 ## Repository Labels
 
-PEcAn uses plain, self-explanatory labels to keep issues and pull requests organized.
-The [labels page](https://github.com/PecanProject/pecan/labels) is the authoritative reference — label names are intentionally kept simple enough to be understood at a glance without consulting external documentation.
+PEcAn uses [labels](https://github.com/PecanProject/pecan/labels) to keep issues and pull requests organized. We aim to keep label names simple and have few enough of them for the tag system to be understood by reading the list without consulting external documentation.
 
-The `.github/labeler.yml` action automatically applies labels to PRs based on the files modified.
+The `.github/labeler.yml` action automatically applies labels to PRs based on the files modified. If additional labels beyond these are applicable they can be added manually as needed, but this is not mandatory; we do _not_ expect every issue to need a label.
 
 ## Additional Resources
 - [Adding models to PEcAn](https://pecanproject.github.io/pecan-documentation/develop/adding-model.html)

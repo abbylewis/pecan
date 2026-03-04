@@ -31,6 +31,33 @@ write.config.SIPNET <- function(defaults, trait.values, settings, run.id, inputs
   )
   config.text <- readLines(con = template.in, n = -1)
   writeLines(config.text, con = file.path(settings$rundir, run.id, "sipnet.in"))
+
+  # for v2, allow settings$model to override runtime flags in sipnet.in
+  if (rev_str == "v2") {
+    sipnet_in_path <- file.path(settings$rundir, run.id, "sipnet.in")
+    nc <- as.integer(settings$model$nitrogen_cycle %||% 1)
+    lp <- as.integer(settings$model$litter_pool %||% 1)
+    an <- as.integer(settings$model$anaerobic %||% 1)
+    # NITROGEN_CYCLE requires both LITTER_POOL and ANAEROBIC
+    if (nc == 1 && !(lp == 1 && an == 1)) {
+      PEcAn.logger::logger.warn(
+        "NITROGEN_CYCLE requires LITTER_POOL and ANAEROBIC; enabling both")
+      lp <- 1L
+      an <- 1L
+    }
+    flag_lines <- c(
+      paste("NITROGEN_CYCLE =", nc),
+      paste("LITTER_POOL =", lp),
+      paste("ANAEROBIC =", an)
+    )
+    # overwrite template flags with settings driven values
+    existing <- readLines(sipnet_in_path)
+    for (fl in flag_lines) {
+      flag_name <- trimws(sub("=.*", "", fl))
+      existing <- existing[!grepl(paste0("^\\s*", flag_name, "\\s*="), existing)]
+    }
+    writeLines(c(existing, "", flag_lines), sipnet_in_path)
+  }
   
   ### WRITE *.clim
   template.clim <- settings$run$inputs$met$path  ## read from settings
@@ -311,8 +338,8 @@ write.config.SIPNET <- function(defaults, trait.values, settings, run.id, inputs
       param[which(param[, 1] == "halfSatPar"), 2] <- pft.traits[which(pft.trait.names == "half_saturation_PAR")]
     }
     
-    # Ball-berry slomatal slope parameter m
-    if ("stomatal_slope.BB" %in% pft.trait.names) {
+    # Ball-berry stomatal slope parameter m (v1 only; m_ballBerry removed in v2)
+    if ("stomatal_slope.BB" %in% pft.trait.names && "m_ballBerry" %in% param[, 1]) {
       id <- which(param[, 1] == "m_ballBerry")
       param[id, 2] <- pft.traits[which(pft.trait.names == "stomatal_slope.BB")]
     }
@@ -593,7 +620,9 @@ write.config.SIPNET <- function(defaults, trait.values, settings, run.id, inputs
           soilWHC_total <- sum(unlist(soil_IC_list$vals["volume_fraction_of_water_in_soil_at_saturation"])*thickness)
           if (thickness[1]<=10) {
             #LitterWHC in cm, assuming the litter depth is within the top 10 cm
-            param[which(param[, 1] == "litterWHC"), 2] <- unlist(soil_IC_list$vals["volume_fraction_of_water_in_soil_at_saturation"])[1]*thickness[1]
+            if ("litterWHC" %in% param[, 1]) {
+              param[which(param[, 1] == "litterWHC"), 2] <- unlist(soil_IC_list$vals["volume_fraction_of_water_in_soil_at_saturation"])[1]*thickness[1]
+            }
           }
         } else {
           #if no depth/thickness is provided
@@ -604,8 +633,10 @@ write.config.SIPNET <- function(defaults, trait.values, settings, run.id, inputs
         param[which(param[, 1] == "soilWHC"), 2] <- soilWHC_total
       }
       if ("soil_hydraulic_conductivity_at_saturation" %in% names(soil_IC_list$vals)) {
-         #litwaterDrainrate in cm/day
-         param[which(param[, 1] == "litWaterDrainRate"), 2] <- PEcAn.utils::ud_convert(unlist(soil_IC_list$vals["soil_hydraulic_conductivity_at_saturation"])[1], "m s-1", "cm day-1")
+         #litwaterDrainrate in cm/day (v1 only; litWaterDrainRate removed in v2)
+         if ("litWaterDrainRate" %in% param[, 1]) {
+           param[which(param[, 1] == "litWaterDrainRate"), 2] <- PEcAn.utils::ud_convert(unlist(soil_IC_list$vals["soil_hydraulic_conductivity_at_saturation"])[1], "m s-1", "cm day-1")
+         }
        }
     }
   }
@@ -653,8 +684,8 @@ write.config.SIPNET <- function(defaults, trait.values, settings, run.id, inputs
     if ("soil" %in% ic.names) {
       param[which(param[, 1] == "soilInit"), 2] <- IC$soil
     }
-    ## litterWFracInit fraction
-    if ("litter_mass_content_of_water" %in% ic.names) {
+    ## litterWFracInit fraction (v1 only; removed in v2)
+    if ("litter_mass_content_of_water" %in% ic.names && "litterWFracInit" %in% param[, 1]) {
       #here we use litterWaterContent/litterWHC to calculate the litterWFracInit
       param[which(param[, 1] == "litterWFracInit"), 2] <- IC$litter_mass_content_of_water/(param[which(param[, 1] == "litterWHC"), 2]*10)
     }
@@ -670,8 +701,8 @@ write.config.SIPNET <- function(defaults, trait.values, settings, run.id, inputs
     if ("SWE" %in% ic.names) {
       param[which(param[, 1] == "snowInit"), 2] <- IC$SWE
     }
-    ## microbeInit mgC/g soil
-    if ("microbe" %in% ic.names) {
+    ## microbeInit mgC/g soil (v1 only; removed in v2)
+    if ("microbe" %in% ic.names && "microbeInit" %in% param[, 1]) {
       param[which(param[, 1] == "microbeInit"), 2] <- IC$microbe
     }
 
@@ -788,7 +819,7 @@ write.config.SIPNET <- function(defaults, trait.values, settings, run.id, inputs
           param[param[, 1] == "leafOffDay", 2] <- leafOffDay
         }
       }
-      if (ic_has_ncvars[["Microbial Biomass C"]]) {
+      if (ic_has_ncvars[["Microbial Biomass C"]] && "microbeInit" %in% param[, 1]) {
         microbe <- ncdf4::ncvar_get(IC.nc, "Microbial Biomass C")
         if (!is.na(microbe) && is.numeric(microbe)) {
           param[param[, 1] == "microbeInit", 2] <- PEcAn.utils::ud_convert(microbe, "mg kg-1", "mg g-1") #BETY: mg microbial C kg-1 soil

@@ -217,6 +217,8 @@ ssurgo_mukeys <- function(bbox = NULL, polygon = NULL, point = NULL, distance = 
     stop("distance requires point to be provided")
   }
 
+  wgs84_crs <- sf::st_crs(4326)
+
   filter_xml <- if (!is.null(bbox)) {
     if (!is.numeric(bbox) || length(bbox) != 4) {
       stop("bbox must be a numeric vector of length 4: c(xmin, ymin, xmax, ymax)")
@@ -228,6 +230,26 @@ ssurgo_mukeys <- function(bbox = NULL, polygon = NULL, point = NULL, distance = 
 
     if (xmin >= xmax || ymin >= ymax) {
       stop("bbox must have xmin < xmax and ymin < ymax")
+    }
+
+    MAX_AREA <- 10100000000
+    albers_crs <- sf::st_crs(5070)
+
+    bbox_poly <- sf::st_polygon(list(
+      matrix(c(xmin, ymin, xmax, ymin, xmax, ymax, xmin, ymax, xmin, ymin), ncol = 2, byrow = TRUE)
+    ))
+    bbox_sf <- sf::st_sfc(bbox_poly, crs = wgs84_crs)
+    bbox_albers <- sf::st_transform(bbox_sf, albers_crs)
+    area <- as.numeric(sf::st_area(bbox_albers))
+
+    if (area > MAX_AREA) {
+      stop(
+        paste0(
+          "Bounding box area (", format(area, scientific = FALSE),
+          " m²) exceeds maximum allowed area (", format(MAX_AREA, scientific = FALSE),
+          " m²). Use ssurgo_mukeys_bigbbox() for large bounding boxes."
+        )
+      )
     }
 
     paste0(
@@ -271,9 +293,43 @@ ssurgo_mukeys <- function(bbox = NULL, polygon = NULL, point = NULL, distance = 
       if (ncol(polygon) != 2) {
         stop("polygon matrix must have 2 columns: x (lon) and y (lat)")
       }
-      as.vector(t(as.matrix(polygon)))
+      if (nrow(polygon) < 4) {
+        stop("polygon matrix must have at least 4 rows (3 unique vertices + closing point)")
+      }
+      poly_matrix <- as.matrix(polygon)
+      if (!identical(poly_matrix[1, ], poly_matrix[nrow(poly_matrix), ])) {
+        stop("polygon matrix first and last points must be identical (closed ring)")
+      }
+      as.vector(t(poly_matrix))
     } else {
       stop("polygon must be an sf/sfc object or a matrix/data.frame with coordinates")
+    }
+
+    poly_sf <- if (inherits(polygon, "sfc")) {
+      polygon
+    } else if (inherits(polygon, "sfg")) {
+      sf::st_sfc(polygon, crs = wgs84_crs)
+    } else if (inherits(polygon, "sf")) {
+      sf::st_geometry(polygon)
+    } else {
+      poly_matrix <- as.matrix(polygon)
+      poly_obj <- sf::st_polygon(list(poly_matrix))
+      sf::st_sfc(poly_obj, crs = wgs84_crs)
+    }
+
+    MAX_AREA <- 10100000000
+    albers_crs <- sf::st_crs(5070)
+    poly_albers <- sf::st_transform(poly_sf, albers_crs)
+    area <- as.numeric(sf::st_area(poly_albers))
+
+    if (area > MAX_AREA) {
+      stop(
+        paste0(
+          "Polygon area (", format(area, scientific = FALSE),
+          " m²) exceeds maximum allowed area (", format(MAX_AREA, scientific = FALSE),
+          " m²)."
+        )
+      )
     }
 
     coords_str <- paste(coords, collapse = " ")
@@ -295,6 +351,18 @@ ssurgo_mukeys <- function(bbox = NULL, polygon = NULL, point = NULL, distance = 
   } else if (!is.null(point)) {
     lon <- point[1]
     lat <- point[2]
+
+    MAX_AREA <- 10100000000
+    circle_area <- pi * (distance^2)
+    if (circle_area > MAX_AREA) {
+      stop(
+        paste0(
+          "Search radius area (", format(circle_area, scientific = FALSE),
+          " m²) exceeds maximum allowed area (", format(MAX_AREA, scientific = FALSE),
+          " m²)."
+        )
+      )
+    }
 
     paste0(
       "<Filter>",
@@ -358,4 +426,89 @@ ssurgo_mukeys <- function(bbox = NULL, polygon = NULL, point = NULL, distance = 
   mukeys <- unique(strsplit(trimws(mukey_str), ",")[[1]])
 
   mukeys
+}
+
+#' Get map unit keys (mukeys) from gSSURGO for large bounding boxes
+#'
+#' Queries the NRCS gSSURGO Web Feature Service for large bounding boxes
+#' by dividing the area into smaller cells that comply with the API's
+#' 10,100,000,000 m² extent limit.
+#'
+#' @param bbox Numeric vector of length 4: c(xmin, ymin, xmax, ymax) in WGS84 (EPSG:4326).
+#' @param ... Additional arguments passed to \code{ssurgo_mukeys()}.
+#'   Currently supports \code{distance} for point queries (ignored for bbox queries).
+#'
+#' @return Character vector of unique map unit keys (mukeys).
+#'
+#' @details
+#' This function divides a large bounding box into smaller cells,
+#' each with an area less than 10,100,000,000 square meters,
+#' then queries each cell individually and combines the results.
+#'
+#' The grid is created using Albers Equal Area projection (EPSG:5070)
+#' to ensure accurate area calculations, then transformed back to
+#' WGS84 (EPSG:4326) for the API query.
+#'
+#' @examples
+#' \dontrun{
+#' # Large bounding box covering a significant area
+#' mukeys <- ssurgo_mukeys_bigbbox(bbox = c(-120, 35, -110, 45))
+#' }
+#' @export
+ssurgo_mukeys_bigbbox <- function(bbox, ...) {
+  if (!is.numeric(bbox) || length(bbox) != 4) {
+    stop("bbox must be a numeric vector of length 4: c(xmin, ymin, xmax, ymax)")
+  }
+
+  xmin <- bbox[1]
+  ymin <- bbox[2]
+  xmax <- bbox[3]
+  ymax <- bbox[4]
+
+  if (xmin >= xmax || ymin >= ymax) {
+    stop("bbox must have xmin < xmax and ymin < ymax")
+  }
+
+  MAX_AREA <- 10100000000
+  wgs84_crs <- sf::st_crs(4326)
+
+  bbox_poly <- sf::st_polygon(list(
+    matrix(c(xmin, ymin, xmax, ymin, xmax, ymax, xmin, ymax, xmin, ymin), ncol = 2, byrow = TRUE)
+  ))
+  bbox_sf <- sf::st_sfc(bbox_poly, crs = wgs84_crs)
+
+  bbox_area <- as.numeric(sf::st_area(bbox_sf))
+
+  bbox_wgs84_box <- sf::st_bbox(bbox_sf)
+  width_deg <- bbox_wgs84_box["xmax"] - bbox_wgs84_box["xmin"]
+  height_deg <- bbox_wgs84_box["ymax"] - bbox_wgs84_box["ymin"]
+
+  aspect_ratio <- width_deg / height_deg
+
+  n_cells <- ceiling(bbox_area / MAX_AREA)
+  cells_per_side <- sqrt(n_cells)
+
+  ncol_cells <- ceiling(cells_per_side * sqrt(aspect_ratio))
+  nrow_cells <- ceiling(cells_per_side / sqrt(aspect_ratio))
+
+  if (ncol_cells < 1) ncol_cells <- 1
+  if (nrow_cells < 1) nrow_cells <- 1
+
+  grid_wgs84 <- sf::st_make_grid(
+    bbox_sf,
+    n = c(ncol_cells, nrow_cells),
+    crs = wgs84_crs
+  )
+
+  cell_bboxes <- purrr::map(grid_wgs84, sf::st_bbox)
+
+  results <- purrr::map(cell_bboxes, function(cell_bbox) {
+    cell_vec <- c(
+      cell_bbox["xmin"], cell_bbox["ymin"],
+      cell_bbox["xmax"], cell_bbox["ymax"]
+    )
+    ssurgo_mukeys(bbox = cell_vec, ...)
+  }, .progress = "Querying grid cells")
+
+  unique(unlist(results, use.names = FALSE))
 }

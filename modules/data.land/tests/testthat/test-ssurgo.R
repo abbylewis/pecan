@@ -82,7 +82,6 @@ test_that("ssurgo_mukeys polygon as sf returns mukeys", {
   skip_on_cran()
   skip_on_ci()
   skip_if_not_installed("sf")
-  library(sf)
 
   poly <- rbind(
     c(-88.0865046533, 37.5555143852),

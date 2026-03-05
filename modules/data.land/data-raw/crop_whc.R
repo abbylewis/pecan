@@ -14,8 +14,10 @@ crop_whc <- read_csv(
     crop_number = col_character(),
     crop_name = col_character(),
     Category = col_character(),
+    rooting_depth_m = col_double(),
     whc_min_frac = col_double(),
-    Comments = col_character()
+    whc_notes = col_character(),
+    rooting_depth_notes = col_character()
   ),
   progress = FALSE
 )

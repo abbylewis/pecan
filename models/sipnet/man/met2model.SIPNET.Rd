@@ -14,7 +14,7 @@ met2model.SIPNET(
   overwrite = FALSE,
   verbose = FALSE,
   year.fragment = FALSE,
-  use_v1_format = FALSE,
+  sipnet_version = "2",
   ...
 )
 }
@@ -41,8 +41,9 @@ Default NULL uses all variables from input file}
 \item{year.fragment}{the function should ignore whether or not the data is
 stored as a set of complete years (such as for forecasts).}
 
-\item{use_v1_format}{Add location and soil wetness columns expected by
-Sipnet < v2.0? See details}
+\item{sipnet_version}{Version string for SIPNET (e.g. "1", "2", "2.0").
+Versions < 2 write the legacy 14-column format; >= 2 writes 12 columns.
+Default "2"}
 
 \item{...}{Additional arguments, currently ignored}
 }
@@ -70,7 +71,7 @@ The columns of the output file are:
 \item Wind speed (m/s)
 }
 
-If use_v1_format is TRUE, the table has 14 columns:
+When sipnet_version < "2" (i.e. v1), the table has 14 columns:
 \itemize{
 \item column 1 is a spatial grid index, always set to 0
 \item columns 2-13 are the 12 described above
@@ -79,8 +80,8 @@ If use_v1_format is TRUE, the table has 14 columns:
 
 These were needed by older versions of Sipnet, but never had any effect on
 PEcAn runs: PEcAn never used gridded runs and always configured Sipnet to
-calculate soil moistuer internally.
-Model support for both of these columns was removed from Sipnet >= v2.0.
+calculate soil moisture internally.
+Model support for both the spatial index and soil moisture columns was removed from Sipnet >= v2.0.
 Newer versions now accept 14-column files, but ignore the first
 and last columns with a warning.
 

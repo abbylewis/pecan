@@ -11,6 +11,8 @@ extract_cimis_dates(design_points, dates, ...)
 `location_id`, `lat`, and `lon`}
 
 \item{dates}{Sequence of dates for which to extract data}
+
+\item{...}{Additional arguments to `purrr::map`}
 }
 \value{
 `design_points` `data.frame` extended with ETref data for all dates.

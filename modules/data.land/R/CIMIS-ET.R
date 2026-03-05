@@ -76,6 +76,7 @@ extract_cimis_date <- function(
 #' Extract CIMIS reference ET for multiple dates
 #'
 #' @param dates Sequence of dates for which to extract data
+#' @param ... Additional arguments to `purrr::map`
 #' @inheritParams extract_cimis_date
 #'
 #' @return `design_points` `data.frame` extended with ETref data for all dates.

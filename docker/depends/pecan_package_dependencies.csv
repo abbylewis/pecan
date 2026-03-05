@@ -70,6 +70,7 @@
 "dplyr",">= 1.1.2","base/db","Imports",FALSE
 "dygraphs","*","models/peprmt","Suggests",FALSE
 "earthdatalogin","*","models/peprmt","Suggests",FALSE
+"duckspatial","*","modules/data.land","Imports",FALSE
 "ecmwfr",">= 2.0.0","modules/data.atmosphere","Suggests",FALSE
 "ellipse","*","modules/assim.batch","Imports",FALSE
 "exactextractr","*","modules/assim.sequential","Suggests",FALSE

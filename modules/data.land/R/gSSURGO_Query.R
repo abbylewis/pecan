@@ -30,10 +30,10 @@
 #' | `chorizon.om_r`        | Organic matter (<2 mm soil)               | %            |
 #' | `chorizon.hzdept_r`    | Horizon top depth                         | cm           |
 #' | `chfrags.fragvol_r`    | Rock fragments                            | % (by volume)|
-#' | `chorizon.dbthirdbar_r`| Bulk density at field capacity            | g/cm³        |
+#' | `chorizon.dbthirdbar_r`| Bulk density at field capacity            | g/cm3        |
 #' | `chorizon.ph1to1h2o_r` | Soil pH (1:1 H2O)                         | pH (unitless)|
-#' | `chorizon.cokey`       | Component key (identifier)                | —            |
-#' | `chorizon.chkey`       | Horizon key (identifier)                  | —            |
+#' | `chorizon.cokey`       | Component key (identifier)                | -            |
+#' | `chorizon.chkey`       | Horizon key (identifier)                  | -            |
 #'
 #' **API stability:** The NRCS occasionally modifies the API schema. If queries fail,
 #'   adjustments may be required here to align with the updated structure. 
@@ -202,8 +202,8 @@ ssurgo_mukeys_bbox <- function(bbox) {
     stop(
       paste0(
         "Bounding box area (", format(area, scientific = FALSE),
-        " m²) exceeds maximum allowed area (", format(SSURGO_API_MAX_AREA_M2, scientific = FALSE),
-        " m²). Use ssurgo_mukeys_bigbbox() for large bounding boxes."
+        " m2) exceeds maximum allowed area (", format(SSURGO_API_MAX_AREA_M2, scientific = FALSE),
+        " m2). Use ssurgo_mukeys_bigbbox() for large bounding boxes."
       )
     )
   }
@@ -265,8 +265,8 @@ ssurgo_mukeys_point <- function(point, distance) {
     stop(
       paste0(
         "Search radius area (", format(circle_area, scientific = FALSE),
-        " m²) exceeds maximum allowed area (", format(SSURGO_API_MAX_AREA_M2, scientific = FALSE),
-        " m²)."
+        " m2) exceeds maximum allowed area (", format(SSURGO_API_MAX_AREA_M2, scientific = FALSE),
+        " m2)."
       )
     )
   }

@@ -138,29 +138,43 @@ gSSURGO.Query <- function(mukeys,
   
 }
 
-#' Get map unit keys (mukeys) from gSSURGO using a bounding box
+SSURGO_API_MAX_AREA_M2 <- 10100000000
+
+#' Get map unit keys (mukeys) from gSSURGO
 #'
-#' Queries the NRCS gSSURGO Web Feature Service to retrieve map unit keys
-#' based on a bounding box spatial filter.
+#' These functions query the NRCS gSSURGO Web Feature Service to retrieve map
+#' unit keys based on different spatial filters.
 #'
-#' @param bbox Numeric vector of length 4: c(xmin, ymin, xmax, ymax) in WGS84 (EPSG:4326).
-#'   Features that intersect the bounding box are returned.
+#' @param bbox Numeric vector of length 4: c(xmin, ymin, xmax, ymax) in WGS84
+#'   (EPSG:4326). Features that intersect the bounding box are returned.
+#' @param point Numeric vector of length 2: c(lon, lat) in WGS84 (EPSG:4326).
+#' @param distance Numeric. Distance in meters from the point. Use 0 for exact
+#'   point intersection.
 #'
 #' @return Character vector of unique map unit keys (mukeys).
 #'
 #' @details
-#' This function uses the NRCS SDM Data Access Web Feature Service:
+#' These functions use the NRCS SDM Data Access Web Feature Service:
 #' \url{https://sdmdataaccess.nrcs.usda.gov/SpatialFilterHelp.htm}
 #'
-#' The total extent of the bounding box cannot exceed 10,100,000,000 square
-#' meters (~3,900 square miles). Use \code{ssurgo_mukeys_bigbbox()} for large
-#' bounding boxes.
+#' The total extent cannot exceed 10,100,000,000 square meters (~3,900 square
+#' miles). Use `ssurgo_mukeys_bigbbox()` for large bounding boxes.
 #'
 #' @examples
 #' \dontrun{
 #' # Bounding box query
 #' mukeys <- ssurgo_mukeys_bbox(bbox = c(-114.006, 32.1823, -113.806, 32.2823))
+#'
+#' # Point with distance (600m radius)
+#' mukeys <- ssurgo_mukeys_point(point = c(-91.22, 38.46), distance = 600)
+#'
+#' # Large bounding box
+#' mukeys <- ssurgo_mukeys_bigbbox(bbox = c(-120, 35, -110, 45))
 #' }
+#' @name ssurgo_mukeys
+NULL
+
+#' @rdname ssurgo_mukeys
 #' @export
 ssurgo_mukeys_bbox <- function(bbox) {
   if (!is.numeric(bbox) || length(bbox) != 4) {
@@ -176,7 +190,6 @@ ssurgo_mukeys_bbox <- function(bbox) {
     stop("bbox must have xmin < xmax and ymin < ymax")
   }
 
-  MAX_AREA <- 10100000000
   wgs84_crs <- sf::st_crs(4326)
 
   bbox_poly <- sf::st_polygon(list(
@@ -185,11 +198,11 @@ ssurgo_mukeys_bbox <- function(bbox) {
   bbox_sf <- sf::st_sfc(bbox_poly, crs = wgs84_crs)
   area <- as.numeric(sf::st_area(bbox_sf))
 
-  if (area > MAX_AREA) {
+  if (area > SSURGO_API_MAX_AREA_M2) {
     stop(
       paste0(
         "Bounding box area (", format(area, scientific = FALSE),
-        " m²) exceeds maximum allowed area (", format(MAX_AREA, scientific = FALSE),
+        " m²) exceeds maximum allowed area (", format(SSURGO_API_MAX_AREA_M2, scientific = FALSE),
         " m²). Use ssurgo_mukeys_bigbbox() for large bounding boxes."
       )
     )
@@ -233,32 +246,7 @@ ssurgo_mukeys_bbox <- function(bbox) {
   mukeys
 }
 
-#' Get map unit keys (mukeys) from gSSURGO using a point with distance
-#'
-#' Queries the NRCS gSSURGO Web Feature Service to retrieve map unit keys
-#' based on a point and distance (DWithin) spatial filter.
-#'
-#' @param point Numeric vector of length 2: c(lon, lat) in WGS84 (EPSG:4326).
-#' @param distance Numeric. Distance in meters from the point.
-#'   Use 0 for exact point intersection.
-#'
-#' @return Character vector of unique map unit keys (mukeys).
-#'
-#' @details
-#' This function uses the NRCS SDM Data Access Web Feature Service:
-#' \url{https://sdmdataaccess.nrcs.usda.gov/SpatialFilterHelp.htm}
-#'
-#' The search radius area (π × distance²) cannot exceed 10,100,000,000 square
-#' meters (~3,900 square miles).
-#'
-#' @examples
-#' \dontrun{
-#' # Point with distance (600m radius)
-#' mukeys <- ssurgo_mukeys_point(point = c(-91.22, 38.46), distance = 600)
-#'
-#' # Point with zero distance (exact intersection)
-#' mukeys <- ssurgo_mukeys_point(point = c(-91.22, 38.46), distance = 0)
-#' }
+#' @rdname ssurgo_mukeys
 #' @export
 ssurgo_mukeys_point <- function(point, distance) {
   if (length(point) != 2) {
@@ -272,13 +260,12 @@ ssurgo_mukeys_point <- function(point, distance) {
   lon <- point[1]
   lat <- point[2]
 
-  MAX_AREA <- 10100000000
   circle_area <- pi * (distance^2)
-  if (circle_area > MAX_AREA) {
+  if (circle_area > SSURGO_API_MAX_AREA_M2) {
     stop(
       paste0(
         "Search radius area (", format(circle_area, scientific = FALSE),
-        " m²) exceeds maximum allowed area (", format(MAX_AREA, scientific = FALSE),
+        " m²) exceeds maximum allowed area (", format(SSURGO_API_MAX_AREA_M2, scientific = FALSE),
         " m²)."
       )
     )
@@ -334,29 +321,7 @@ ssurgo_mukeys_point <- function(point, distance) {
   mukeys
 }
 
-#' Get map unit keys (mukeys) from gSSURGO for large bounding boxes
-#'
-#' Queries the NRCS gSSURGO Web Feature Service for large bounding boxes
-#' by dividing the area into smaller cells that comply with the API's
-#' 10,100,000,000 m² extent limit.
-#'
-#' @param bbox Numeric vector of length 4: c(xmin, ymin, xmax, ymax) in WGS84 (EPSG:4326).
-#'
-#' @return Character vector of unique map unit keys (mukeys).
-#'
-#' @details
-#' This function divides a large bounding box into smaller cells,
-#' each with an area less than 10,100,000,000 square meters,
-#' then queries each cell individually in parallel and combines the results.
-#'
-#' The grid is created using \code{sf::st_area()} to calculate the bbox area
-#' in meters, then divided into appropriately-sized cells.
-#'
-#' @examples
-#' \dontrun{
-#' # Large bounding box covering a significant area
-#' mukeys <- ssurgo_mukeys_bigbbox(bbox = c(-120, 35, -110, 45))
-#' }
+#' @rdname ssurgo_mukeys
 #' @export
 ssurgo_mukeys_bigbbox <- function(bbox) {
   if (!is.numeric(bbox) || length(bbox) != 4) {
@@ -372,7 +337,6 @@ ssurgo_mukeys_bigbbox <- function(bbox) {
     stop("bbox must have xmin < xmax and ymin < ymax")
   }
 
-  MAX_AREA <- 10100000000
   wgs84_crs <- sf::st_crs(4326)
 
   bbox_poly <- sf::st_polygon(list(
@@ -388,7 +352,7 @@ ssurgo_mukeys_bigbbox <- function(bbox) {
 
   aspect_ratio <- width_deg / height_deg
 
-  n_cells <- ceiling(bbox_area / MAX_AREA)
+  n_cells <- ceiling(bbox_area / SSURGO_API_MAX_AREA_M2)
   cells_per_side <- sqrt(n_cells)
 
   ncol_cells <- ceiling(cells_per_side * sqrt(aspect_ratio))

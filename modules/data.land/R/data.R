@@ -80,8 +80,8 @@
 "soil_class"
 
 #' Fertilizer Nutrient Composition Table
-#' 
-#' A dataset of fertilizer and organic matter addition types 
+#'
+#' A dataset of fertilizer and organic matter addition types
 #' and their nitrogen and carbon composition, based on the SWAT model's
 #' `fertilizer.frt` table and DayCent model defaults for organic matter
 #' C:N ratio parameters.
@@ -101,9 +101,9 @@
 #' }
 #'
 #' @details
-#' This table is based on SWAT model's \code{fertilizer.frt} file, and uses 
+#' This table is based on SWAT model's \code{fertilizer.frt} file, and uses
 #' C:N ratios (\code{cn_ratio}) from DayCent model default parameter files.
-#' \code{fraction_nh3_n} and \code{fraction_no3_n} represent the fraction of 
+#' \code{fraction_nh3_n} and \code{fraction_no3_n} represent the fraction of
 #' fertilizer by mass that is ammonium-N and nitrate-N, respectively. This is different from
 #' the SWAT model's definition of \code{fraction_nh3_n} as a fraction of the total mineral N.
 #'
@@ -123,7 +123,7 @@
 #'   \item{SUBCLASS}{LandIQ subclass code.}
 #'   \item{subclass_name}{LandIQ subclass name.}
 #' }
-#' @source California Department of Water Resources. (2023). Statewide Crop Mapping—California 
+#' @source California Department of Water Resources. (2023). Statewide Crop Mapping—California
 #' Natural Resources Agency Open Data. Metadata retrieved from https://data.cnra.ca.gov/dataset/statewide-crop-mapping and manually extracted into `data-raw/landiq_crop_mapping_codes.tsv`.
 "landiq_crop_mapping_codes"
 
@@ -132,7 +132,7 @@
 #' Crop and growth stage specific coefficients (Kc) from the Basic Irrigation Scheduling
 #' (BIS) Excel workbook (Snyder et. al., 2014).
 #' The dataset is an export of the BISm.xlsx workbook's `CropRef` worksheet, with columns renamed
-#' and columns added that map to LandIQ CADWR land use dataset 
+#' and columns added that map to LandIQ CADWR land use dataset
 #' (\code{\link{landiq_crop_mapping_codes}}; California Department of Water Resources, 2023).
 #' This dataset provides the information needed to reconstruct a stage-based daily Kc curve when
 #' combined with grass-reference evapotranspiration (ETo), such as that provided

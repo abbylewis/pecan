@@ -15,7 +15,13 @@
 write.config.SIPNET <- function(defaults, trait.values, settings, run.id, inputs = NULL, IC = NULL,
                                 restart = NULL, spinup = NULL) {
 
-  sipnet_version <- package_version(settings$model$revision, strict = FALSE)
+  rev_raw <- settings$model$revision
+  # integers like "2" are not valid version strings for package_version();
+  # normalise to "MAJOR.0" so the parser accepts them.
+  if (grepl("^[0-9]+$", rev_raw)) {
+    rev_raw <- paste0(rev_raw, ".0")
+  }
+  sipnet_version <- package_version(rev_raw, strict = FALSE)
   if (!is.na(sipnet_version)) {
     rev_str <- paste0("v", sipnet_version$major)
   } else {

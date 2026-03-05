@@ -88,9 +88,14 @@ soil_process <- function(settings, input, dbfiles, overwrite = FALSE, run.local 
     # This ensures files generated outside this workflow (e.g. by SDA runs)
     # are also registered. dbfile.input.insert() is idempotent: it will not
     # create a duplicate record if the file is already registered.
+    #
+    # Note: extract_soil_gssurgo() returns a list where each element is a
+    # named character string (name = "path", value = the file path).
+    # We use as.character() to safely coerce in either case.
     for (i in seq_along(newfile)) {
-      in.path   <- paste0(dirname(newfile[[i]]$path), "/")
-      in.prefix <- stringr::str_remove(basename(newfile[[i]]$path), "\\.nc$")
+      fpath     <- as.character(newfile[[i]])
+      in.path   <- paste0(dirname(fpath), "/")
+      in.prefix <- stringr::str_remove(basename(fpath), "\\.nc$")
 
       PEcAn.DB::dbfile.input.insert(
         in.path,
@@ -156,11 +161,12 @@ soil_process <- function(settings, input, dbfiles, overwrite = FALSE, run.local 
 
   # Register the extracted PalEON_soil file(s) in BETY.
   # Previously missing: this path had no BETY registration at all.
+  # extract_soil_nc() returns a plain character path string.
   if (!is.null(newfile) && length(newfile) > 0) {
     for (i in seq_along(newfile)) {
-      pf <- if (is.list(newfile[[i]])) newfile[[i]]$path else newfile[[i]]
-      in.path   <- paste0(dirname(pf), "/")
-      in.prefix <- stringr::str_remove(basename(pf), "\\.nc$")
+      fpath     <- as.character(newfile[[i]])
+      in.path   <- paste0(dirname(fpath), "/")
+      in.prefix <- stringr::str_remove(basename(fpath), "\\.nc$")
 
       PEcAn.DB::dbfile.input.insert(
         in.path,

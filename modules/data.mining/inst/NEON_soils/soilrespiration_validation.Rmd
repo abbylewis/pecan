@@ -227,12 +227,15 @@ names(daily_mean_data_neon)[names(daily_mean_data_neon) == "sr_neon.x"] <- "Mars
 names(daily_mean_data_neon)[names(daily_mean_data_neon) == "sr_neon.y"] <- "Mill_Quirk_SR"
 names(daily_mean_data_neon)[names(daily_mean_data_neon) == "Site_id"] <- "Site_ID"
 
+# convert Time to date class
+final_daily_sr_data$Time <- as.Date(final_daily_sr_data$Time)
+daily_mean_data_neon$Time <- as.Date(daily_mean_data_neon$Time)
+
+# Delete var2
+final_daily_sr_data$Output2 <- NULL
+
 # combine data frame into final_daily_sr_data
 daily_sr <- merge(final_daily_sr_data, daily_mean_data_neon, by = c("Time","Site_ID"))
-names(daily_sr)[names(daily_sr) == "Final_SR"] <- "Forecast_SR"
-
-# convert Time to date class
-daily_sr$Time <- as.Date(daily_sr$Time)
 
 # Convert NEON data to kg/mol ^2 *s (currently in umol/m^2 * s)
 daily_sr$Marshall_SR = daily_sr$Marshall_SR*10^-6*12.011*10^-3

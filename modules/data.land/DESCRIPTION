@@ -30,6 +30,7 @@ Imports:
     dplyr,
     duckdb,
     duckspatial,
+    dplR,
     foreach,
     fs,
     future,

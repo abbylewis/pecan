@@ -3,28 +3,33 @@
 \docType{data}
 \name{crop_whc}
 \alias{crop_whc}
-\title{Crop-specific minimum water holding capacity (WHC) thresholds}
+\title{Crop-specific rooting depths and water-depletion thresholds}
 \format{
 A tibble with one row per crop and the following columns:
 \describe{
   \item{crop_number}{BIS crop number (character). Blank for crops not in BIS.}
   \item{crop_name}{Crop name.}
   \item{Category}{Crop category (e.g., Woody Perennial, Annual (Hardy)).}
-  \item{whc_min_frac}{Minimum WHC as fraction of total WHC (0-1).}
-  \item{Comments}{Rationale for the minimum WHC value.}
+  \item{rooting_depth_m}{Maximum effective rooting depth in meters.}
+  \item{whc_min_frac}{Minimum soil water as fraction of available water-holding capacity (0-1).}
+  \item{whc_notes}{Rationale or source for the minimum WHC value.}
+  \item{rooting_depth_notes}{Rationale or source for the rooting depth value.}
 }
 }
 \source{
-Expert knowledge; California irrigation scheduling guidelines.
+Allen, R. G., Pereira, L. S., Raes, D., & Smith, M.
+\emph{FAO Irrigation and Drainage Paper No. 56}.
+https://www.professormendoncauenf.com.br/wp-content/uploads/2021/03/ag_fao_56_ingles.pdf
 }
 \usage{
 crop_whc
 }
 \description{
-Minimum soil water content (fraction of available water-holding capacity)
-that should be maintained for each crop to avoid yield loss or quality issues.
-Values are based on crop root depth, drought tolerance, and sensitivity to
-water stress.
+Maximum effective rooting depth and minimum soil water content thresholds
+for various crops. The `whc_min_frac` column represents the fraction of
+total available water (TAW) that should remain in the root zone to avoid
+moisture stress (equivalent to 1 - p, where p is the depletion fraction
+from FAO-56).
 }
 \examples{
 data(crop_whc)

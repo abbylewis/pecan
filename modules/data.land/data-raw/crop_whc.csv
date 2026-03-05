@@ -36,7 +36,7 @@ crop_number,crop_name,Category,rooting_depth_m,whc_min_frac,whc_notes,rooting_de
 1.22,Lettuce,Annual (Sensitive),0.4,0.70,FAO-56 Table 22,FAO-56 Table 22
 1.23,Melon,Annual (Hardy),1.2,0.55,FAO-56 Table 22,FAO-56 Table 22
 1.24,Millet,Annual (Hardy),1.5,0.45,FAO-56 Table 22,FAO-56 Table 22
-1.25,Mustard,Annual (Hardy),60,0.45,Rapid growth and reasonable scavenging ability.,"Limited CA data; 0.6 m estimated from brassica analogues (canola, rapeseed)"
+1.25,Mustard,Annual (Hardy),1.2,0.45,Common value for other hardy annuals,"Dharmasri, Jong, Cowell. 1993. https://harvest.usask.ca/server/api/core/bitstreams/fc5e68a2-951c-4d34-9cfe-b5d2a383d449/content"
 1.26,Oats,Annual (Hardy),1.25,0.45,FAO-56 Table 22,FAO-56 Table 22
 4.06,Olives,Woody Perennial,1.45,0.35,FAO-56 Table 22,FAO-56 Table 22
 1.27,Onion (dry),Annual (Sensitive),0.45,0.70,FAO-56 Table 22,FAO-56 Table 22

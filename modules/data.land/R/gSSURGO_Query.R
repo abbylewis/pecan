@@ -138,22 +138,13 @@ gSSURGO.Query <- function(mukeys,
   
 }
 
-#' Get map unit keys (mukeys) from gSSURGO using spatial filters
+#' Get map unit keys (mukeys) from gSSURGO using a bounding box
 #'
 #' Queries the NRCS gSSURGO Web Feature Service to retrieve map unit keys
-#' based on spatial filters: bounding box, polygon, or point with distance.
+#' based on a bounding box spatial filter.
 #'
 #' @param bbox Numeric vector of length 4: c(xmin, ymin, xmax, ymax) in WGS84 (EPSG:4326).
 #'   Features that intersect the bounding box are returned.
-#' @param polygon Polygon coordinates in WGS84. Can be:
-#'   - An `sf` object with a single polygon geometry
-#'   - A numeric matrix with columns x (lon) and y (lat), where the first and
-#'     last points are identical (closed ring)
-#'   Features that intersect the polygon are returned.
-#' @param point Numeric vector of length 2: c(lon, lat) in WGS84.
-#'   Must be used with `distance`.
-#' @param distance Numeric. Distance in meters from the point.
-#'   Must be used with `point`. Use 0 for exact point intersection.
 #'
 #' @return Character vector of unique map unit keys (mukeys).
 #'
@@ -161,249 +152,164 @@ gSSURGO.Query <- function(mukeys,
 #' This function uses the NRCS SDM Data Access Web Feature Service:
 #' \url{https://sdmdataaccess.nrcs.usda.gov/SpatialFilterHelp.htm}
 #'
-#' The total extent of any spatial filter cannot exceed 10,100,000,000 square
-#' meters (~3,900 square miles).
+#' The total extent of the bounding box cannot exceed 10,100,000,000 square
+#' meters (~3,900 square miles). Use \code{ssurgo_mukeys_bigbbox()} for large
+#' bounding boxes.
 #'
 #' @examples
 #' \dontrun{
 #' # Bounding box query
-#' mukeys <- ssurgo_mukeys(bbox = c(-114.006, 32.1823, -113.806, 32.2823))
-#'
-#' # Point with distance (600m radius)
-#' mukeys <- ssurgo_mukeys(point = c(-91.22, 38.46), distance = 600)
-#'
-#' # Point with zero distance (exact intersection)
-#' mukeys <- ssurgo_mukeys(point = c(-91.22, 38.46), distance = 0)
-#'
-#' # Polygon as matrix
-#' poly <- rbind(
-#'   c(-88.0865046533, 37.5555143852),
-#'   c(-88.0860204771, 37.5600435404),
-#'   c(-88.0782858287, 37.5595392364),
-#'   c(-88.0787704736, 37.5550101113),
-#'   c(-88.0865046533, 37.5555143852)
-#' )
-#' mukeys <- ssurgo_mukeys(polygon = poly)
-#'
-#' # Polygon as sf object
-#' poly_sf <- sf::st_polygon(list(poly))
-#' mukeys <- ssurgo_mukeys(polygon = poly_sf)
+#' mukeys <- ssurgo_mukeys_bbox(bbox = c(-114.006, 32.1823, -113.806, 32.2823))
 #' }
 #' @export
-ssurgo_mukeys <- function(bbox = NULL, polygon = NULL, point = NULL, distance = NULL) {
-  n_provided <- sum(c(!is.null(bbox), !is.null(polygon), !is.null(point)))
-
-  if (n_provided == 0) {
-    stop("Must provide one of: bbox, polygon, or point")
+ssurgo_mukeys_bbox <- function(bbox) {
+  if (!is.numeric(bbox) || length(bbox) != 4) {
+    stop("bbox must be a numeric vector of length 4: c(xmin, ymin, xmax, ymax)")
   }
 
-  if (n_provided > 1) {
-    stop("Only one of bbox, polygon, or point may be provided")
+  xmin <- bbox[1]
+  ymin <- bbox[2]
+  xmax <- bbox[3]
+  ymax <- bbox[4]
+
+  if (xmin >= xmax || ymin >= ymax) {
+    stop("bbox must have xmin < xmax and ymin < ymax")
   }
 
-  if (!is.null(point)) {
-    if (length(point) != 2) {
-      stop("point must be a numeric vector of length 2: c(lon, lat)")
-    }
-    if (is.null(distance)) {
-      stop("distance is required when point is provided")
-    }
-    if (!is.numeric(distance) || distance < 0) {
-      stop("distance must be a non-negative numeric value")
-    }
-  }
-
-  if (!is.null(distance) && is.null(point)) {
-    stop("distance requires point to be provided")
-  }
-
+  MAX_AREA <- 10100000000
   wgs84_crs <- sf::st_crs(4326)
 
-  filter_xml <- if (!is.null(bbox)) {
-    if (!is.numeric(bbox) || length(bbox) != 4) {
-      stop("bbox must be a numeric vector of length 4: c(xmin, ymin, xmax, ymax)")
-    }
-    xmin <- bbox[1]
-    ymin <- bbox[2]
-    xmax <- bbox[3]
-    ymax <- bbox[4]
+  bbox_poly <- sf::st_polygon(list(
+    matrix(c(xmin, ymin, xmax, ymin, xmax, ymax, xmin, ymax, xmin, ymin), ncol = 2, byrow = TRUE)
+  ))
+  bbox_sf <- sf::st_sfc(bbox_poly, crs = wgs84_crs)
+  area <- as.numeric(sf::st_area(bbox_sf))
 
-    if (xmin >= xmax || ymin >= ymax) {
-      stop("bbox must have xmin < xmax and ymin < ymax")
-    }
-
-    MAX_AREA <- 10100000000
-    albers_crs <- sf::st_crs(5070)
-
-    bbox_poly <- sf::st_polygon(list(
-      matrix(c(xmin, ymin, xmax, ymin, xmax, ymax, xmin, ymax, xmin, ymin), ncol = 2, byrow = TRUE)
-    ))
-    bbox_sf <- sf::st_sfc(bbox_poly, crs = wgs84_crs)
-    bbox_albers <- sf::st_transform(bbox_sf, albers_crs)
-    area <- as.numeric(sf::st_area(bbox_albers))
-
-    if (area > MAX_AREA) {
-      stop(
-        paste0(
-          "Bounding box area (", format(area, scientific = FALSE),
-          " m²) exceeds maximum allowed area (", format(MAX_AREA, scientific = FALSE),
-          " m²). Use ssurgo_mukeys_bigbbox() for large bounding boxes."
-        )
+  if (area > MAX_AREA) {
+    stop(
+      paste0(
+        "Bounding box area (", format(area, scientific = FALSE),
+        " m²) exceeds maximum allowed area (", format(MAX_AREA, scientific = FALSE),
+        " m²). Use ssurgo_mukeys_bigbbox() for large bounding boxes."
       )
-    }
-
-    paste0(
-      "<Filter>",
-      "<BBOX>",
-      "<PropertyName>Geometry</PropertyName>",
-      "<Box srsName='EPSG:4326'>",
-      "<coordinates>", xmin, ",", ymin, " ", xmax, ",", ymax, "</coordinates>",
-      "</Box>",
-      "</BBOX>",
-      "</Filter>"
-    )
-  } else if (!is.null(polygon)) {
-    coords <- if (inherits(polygon, "sfc")) {
-      if (length(polygon) != 1) {
-        stop("polygon (sfc) must contain exactly one geometry")
-      }
-      geom <- polygon[[1]]
-      if (inherits(geom, "POLYGON")) {
-        as.vector(t(geom))
-      } else {
-        stop("sfc object must contain a POLYGON geometry")
-      }
-    } else if (inherits(polygon, "sfg")) {
-      if (inherits(polygon, "POLYGON")) {
-        as.vector(t(polygon))
-      } else {
-        stop("sfg object must be a POLYGON")
-      }
-    } else if (inherits(polygon, "sf")) {
-      if (nrow(polygon) != 1) {
-        stop("polygon (sf) must contain exactly one feature")
-      }
-      geom <- sf::st_geometry(polygon)[[1]]
-      if (inherits(geom, "POLYGON")) {
-        as.vector(t(geom))
-      } else {
-        stop("sf object must contain a POLYGON geometry")
-      }
-    } else if (is.matrix(polygon) || is.data.frame(polygon)) {
-      if (ncol(polygon) != 2) {
-        stop("polygon matrix must have 2 columns: x (lon) and y (lat)")
-      }
-      if (nrow(polygon) < 4) {
-        stop("polygon matrix must have at least 4 rows (3 unique vertices + closing point)")
-      }
-      poly_matrix <- as.matrix(polygon)
-      if (!identical(poly_matrix[1, ], poly_matrix[nrow(poly_matrix), ])) {
-        stop("polygon matrix first and last points must be identical (closed ring)")
-      }
-      as.vector(t(poly_matrix))
-    } else {
-      stop("polygon must be an sf/sfc object or a matrix/data.frame with coordinates")
-    }
-
-    poly_sf <- if (inherits(polygon, "sfc")) {
-      polygon
-    } else if (inherits(polygon, "sfg")) {
-      sf::st_sfc(polygon, crs = wgs84_crs)
-    } else if (inherits(polygon, "sf")) {
-      sf::st_geometry(polygon)
-    } else {
-      poly_matrix <- as.matrix(polygon)
-      poly_obj <- sf::st_polygon(list(poly_matrix))
-      sf::st_sfc(poly_obj, crs = wgs84_crs)
-    }
-
-    MAX_AREA <- 10100000000
-    albers_crs <- sf::st_crs(5070)
-    poly_albers <- sf::st_transform(poly_sf, albers_crs)
-    area <- as.numeric(sf::st_area(poly_albers))
-
-    if (area > MAX_AREA) {
-      stop(
-        paste0(
-          "Polygon area (", format(area, scientific = FALSE),
-          " m²) exceeds maximum allowed area (", format(MAX_AREA, scientific = FALSE),
-          " m²)."
-        )
-      )
-    }
-
-    coords_str <- paste(coords, collapse = " ")
-
-    paste0(
-      "<Filter>",
-      "<Intersect>",
-      "<PropertyName>Geometry</PropertyName>",
-      "<gml:Polygon>",
-      "<gml:outerBoundaryIs>",
-      "<gml:LinearRing>",
-      "<gml:coordinates>", coords_str, "</gml:coordinates>",
-      "</gml:LinearRing>",
-      "</gml:outerBoundaryIs>",
-      "</gml:Polygon>",
-      "</Intersect>",
-      "</Filter>"
-    )
-  } else if (!is.null(point)) {
-    lon <- point[1]
-    lat <- point[2]
-
-    MAX_AREA <- 10100000000
-    circle_area <- pi * (distance^2)
-    if (circle_area > MAX_AREA) {
-      stop(
-        paste0(
-          "Search radius area (", format(circle_area, scientific = FALSE),
-          " m²) exceeds maximum allowed area (", format(MAX_AREA, scientific = FALSE),
-          " m²)."
-        )
-      )
-    }
-
-    paste0(
-      "<Filter>",
-      "<DWithin>",
-      "<PropertyName>Geometry</PropertyName>",
-      "<gml:Point>",
-      "<gml:coordinates>", lon, ",", lat, "</gml:coordinates>",
-      "</gml:Point>",
-      "<Distance units=\"m\">", distance, "</Distance>",
-      "</DWithin>",
-      "</Filter>"
     )
   }
 
   base_url <- "https://sdmdataaccess.nrcs.usda.gov/Spatial/SDMWGS84Geographic.wfs"
 
-  if (!is.null(bbox)) {
-    query <- list(
-      SERVICE = "WFS",
-      VERSION = "1.1.0",
-      REQUEST = "GetFeature",
-      TYPENAME = "MapunitPoly",
-      BBOX = paste(bbox, collapse = ","),
-      OUTPUTFORMAT = "XMLMukeyList"
-    )
-    resp <- httr2::request(base_url) |>
-      httr2::req_url_query(!!!query) |>
-      httr2::req_perform()
-  } else {
-    query <- list(
-      SERVICE = "WFS",
-      VERSION = "1.1.0",
-      REQUEST = "GetFeature",
-      TYPENAME = "MapunitPoly",
-      FILTER = filter_xml,
-      OUTPUTFORMAT = "XMLMukeyList"
-    )
-    resp <- httr2::request(base_url) |>
-      httr2::req_url_query(!!!query) |>
-      httr2::req_perform()
+  query <- list(
+    SERVICE = "WFS",
+    VERSION = "1.1.0",
+    REQUEST = "GetFeature",
+    TYPENAME = "MapunitPoly",
+    BBOX = paste(bbox, collapse = ","),
+    OUTPUTFORMAT = "XMLMukeyList"
+  )
+
+  resp <- httr2::request(base_url) |>
+    httr2::req_url_query(!!!query) |>
+    httr2::req_perform()
+
+  httr2::resp_check_status(resp)
+
+  resp_text <- httr2::resp_body_string(resp)
+
+  resp_xml <- XML::xmlParse(resp_text)
+
+  mukey_nodes <- XML::getNodeSet(resp_xml, "//MapUnitKeyList")
+
+  if (length(mukey_nodes) == 0) {
+    return(character(0))
   }
+
+  mukey_str <- XML::xmlValue(mukey_nodes[[1]])
+
+  if (is.null(mukey_str) || nchar(trimws(mukey_str)) == 0) {
+    return(character(0))
+  }
+
+  mukeys <- unique(strsplit(trimws(mukey_str), ",")[[1]])
+
+  mukeys
+}
+
+#' Get map unit keys (mukeys) from gSSURGO using a point with distance
+#'
+#' Queries the NRCS gSSURGO Web Feature Service to retrieve map unit keys
+#' based on a point and distance (DWithin) spatial filter.
+#'
+#' @param point Numeric vector of length 2: c(lon, lat) in WGS84 (EPSG:4326).
+#' @param distance Numeric. Distance in meters from the point.
+#'   Use 0 for exact point intersection.
+#'
+#' @return Character vector of unique map unit keys (mukeys).
+#'
+#' @details
+#' This function uses the NRCS SDM Data Access Web Feature Service:
+#' \url{https://sdmdataaccess.nrcs.usda.gov/SpatialFilterHelp.htm}
+#'
+#' The search radius area (π × distance²) cannot exceed 10,100,000,000 square
+#' meters (~3,900 square miles).
+#'
+#' @examples
+#' \dontrun{
+#' # Point with distance (600m radius)
+#' mukeys <- ssurgo_mukeys_point(point = c(-91.22, 38.46), distance = 600)
+#'
+#' # Point with zero distance (exact intersection)
+#' mukeys <- ssurgo_mukeys_point(point = c(-91.22, 38.46), distance = 0)
+#' }
+#' @export
+ssurgo_mukeys_point <- function(point, distance) {
+  if (length(point) != 2) {
+    stop("point must be a numeric vector of length 2: c(lon, lat)")
+  }
+
+  if (!is.numeric(distance) || distance < 0) {
+    stop("distance must be a non-negative numeric value")
+  }
+
+  lon <- point[1]
+  lat <- point[2]
+
+  MAX_AREA <- 10100000000
+  circle_area <- pi * (distance^2)
+  if (circle_area > MAX_AREA) {
+    stop(
+      paste0(
+        "Search radius area (", format(circle_area, scientific = FALSE),
+        " m²) exceeds maximum allowed area (", format(MAX_AREA, scientific = FALSE),
+        " m²)."
+      )
+    )
+  }
+
+  filter_xml <- paste0(
+    "<Filter>",
+    "<DWithin>",
+    "<PropertyName>Geometry</PropertyName>",
+    "<gml:Point>",
+    "<gml:coordinates>", lon, ",", lat, "</gml:coordinates>",
+    "</gml:Point>",
+    "<Distance units=\"m\">", distance, "</Distance>",
+    "</DWithin>",
+    "</Filter>"
+  )
+
+  base_url <- "https://sdmdataaccess.nrcs.usda.gov/Spatial/SDMWGS84Geographic.wfs"
+
+  query <- list(
+    SERVICE = "WFS",
+    VERSION = "1.1.0",
+    REQUEST = "GetFeature",
+    TYPENAME = "MapunitPoly",
+    FILTER = filter_xml,
+    OUTPUTFORMAT = "XMLMukeyList"
+  )
+
+  resp <- httr2::request(base_url) |>
+    httr2::req_url_query(!!!query) |>
+    httr2::req_perform()
 
   httr2::resp_check_status(resp)
 
@@ -435,19 +341,16 @@ ssurgo_mukeys <- function(bbox = NULL, polygon = NULL, point = NULL, distance = 
 #' 10,100,000,000 m² extent limit.
 #'
 #' @param bbox Numeric vector of length 4: c(xmin, ymin, xmax, ymax) in WGS84 (EPSG:4326).
-#' @param ... Additional arguments passed to \code{ssurgo_mukeys()}.
-#'   Currently supports \code{distance} for point queries (ignored for bbox queries).
 #'
 #' @return Character vector of unique map unit keys (mukeys).
 #'
 #' @details
 #' This function divides a large bounding box into smaller cells,
 #' each with an area less than 10,100,000,000 square meters,
-#' then queries each cell individually and combines the results.
+#' then queries each cell individually in parallel and combines the results.
 #'
-#' The grid is created using Albers Equal Area projection (EPSG:5070)
-#' to ensure accurate area calculations, then transformed back to
-#' WGS84 (EPSG:4326) for the API query.
+#' The grid is created using \code{sf::st_area()} to calculate the bbox area
+#' in meters, then divided into appropriately-sized cells.
 #'
 #' @examples
 #' \dontrun{
@@ -455,7 +358,7 @@ ssurgo_mukeys <- function(bbox = NULL, polygon = NULL, point = NULL, distance = 
 #' mukeys <- ssurgo_mukeys_bigbbox(bbox = c(-120, 35, -110, 45))
 #' }
 #' @export
-ssurgo_mukeys_bigbbox <- function(bbox, ...) {
+ssurgo_mukeys_bigbbox <- function(bbox) {
   if (!is.numeric(bbox) || length(bbox) != 4) {
     stop("bbox must be a numeric vector of length 4: c(xmin, ymin, xmax, ymax)")
   }
@@ -502,13 +405,57 @@ ssurgo_mukeys_bigbbox <- function(bbox, ...) {
 
   cell_bboxes <- purrr::map(grid_wgs84, sf::st_bbox)
 
-  results <- purrr::map(cell_bboxes, function(cell_bbox) {
+  base_url <- "https://sdmdataaccess.nrcs.usda.gov/Spatial/SDMWGS84Geographic.wfs"
+
+  reqs <- purrr::map(cell_bboxes, function(cell_bbox) {
     cell_vec <- c(
       cell_bbox["xmin"], cell_bbox["ymin"],
       cell_bbox["xmax"], cell_bbox["ymax"]
     )
-    ssurgo_mukeys(bbox = cell_vec, ...)
-  }, .progress = "Querying grid cells")
+    query <- list(
+      SERVICE = "WFS",
+      VERSION = "1.1.0",
+      REQUEST = "GetFeature",
+      TYPENAME = "MapunitPoly",
+      BBOX = paste(cell_vec, collapse = ","),
+      OUTPUTFORMAT = "XMLMukeyList"
+    )
+    httr2::request(base_url) |>
+      httr2::req_url_query(!!!query)
+  })
 
-  unique(unlist(results, use.names = FALSE))
+  reqs_throttled <- purrr::map(reqs, ~ .x |> httr2::req_throttle(10 / 60))
+
+  resps <- httr2::req_perform_parallel(
+    reqs_throttled,
+    on_error = "continue",
+    max_active = 10,
+    progress = TRUE
+  )
+
+  parse_mukeys <- function(resp) {
+    if (inherits(resp, "httr2_response")) {
+      tryCatch({
+        resp_text <- httr2::resp_body_string(resp)
+        resp_xml <- XML::xmlParse(resp_text)
+        mukey_nodes <- XML::getNodeSet(resp_xml, "//MapUnitKeyList")
+        if (length(mukey_nodes) == 0) {
+          return(character(0))
+        }
+        mukey_str <- XML::xmlValue(mukey_nodes[[1]])
+        if (is.null(mukey_str) || nchar(trimws(mukey_str)) == 0) {
+          return(character(0))
+        }
+        strsplit(trimws(mukey_str), ",")[[1]]
+      }, error = function(e) {
+        character(0)
+      })
+    } else {
+      character(0)
+    }
+  }
+
+  mukeys_list <- purrr::map(resps, parse_mukeys)
+
+  unique(unlist(mukeys_list, use.names = FALSE))
 }

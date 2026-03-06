@@ -138,7 +138,8 @@ gSSURGO.Query <- function(mukeys,
   
 }
 
-SSURGO_API_MAX_AREA_M2 <- 10100000000
+#' Maximum area for SSURGO API requests
+SSURGO_API_MAX_AREA_M2 <- 10100000000  # nolint: object_name_linter
 
 #' Get map unit keys (mukeys) from gSSURGO
 #'
@@ -192,9 +193,16 @@ ssurgo_mukeys_bbox <- function(bbox) {
 
   wgs84_crs <- sf::st_crs(4326)
 
-  bbox_poly <- sf::st_polygon(list(
-    matrix(c(xmin, ymin, xmax, ymin, xmax, ymax, xmin, ymax, xmin, ymin), ncol = 2, byrow = TRUE)
-  ))
+  # Calculate the area of the bbox to make sure that it's smaller than the
+  # SSURGO limit (`SSURGO_API_MAX_AREA_M2`).
+  bbox_matrix <- rbind(
+    c(xmin, ymin),
+    c(xmax, ymin),
+    c(xmax, ymax),
+    c(xmin, ymax),
+    c(xmin, ymin)
+  )
+  bbox_poly <- sf::st_polygon(list(bbox_matrix))
   bbox_sf <- sf::st_sfc(bbox_poly, crs = wgs84_crs)
   area <- as.numeric(sf::st_area(bbox_sf))
 
@@ -225,23 +233,7 @@ ssurgo_mukeys_bbox <- function(bbox) {
 
   httr2::resp_check_status(resp)
 
-  resp_text <- httr2::resp_body_string(resp)
-
-  resp_xml <- XML::xmlParse(resp_text)
-
-  mukey_nodes <- XML::getNodeSet(resp_xml, "//MapUnitKeyList")
-
-  if (length(mukey_nodes) == 0) {
-    return(character(0))
-  }
-
-  mukey_str <- XML::xmlValue(mukey_nodes[[1]])
-
-  if (is.null(mukey_str) || nchar(trimws(mukey_str)) == 0) {
-    return(character(0))
-  }
-
-  mukeys <- unique(strsplit(trimws(mukey_str), ",")[[1]])
+  mukeys <- unique(parse_mukey_response(resp))
 
   mukeys
 }
@@ -300,23 +292,7 @@ ssurgo_mukeys_point <- function(point, distance) {
 
   httr2::resp_check_status(resp)
 
-  resp_text <- httr2::resp_body_string(resp)
-
-  resp_xml <- XML::xmlParse(resp_text)
-
-  mukey_nodes <- XML::getNodeSet(resp_xml, "//MapUnitKeyList")
-
-  if (length(mukey_nodes) == 0) {
-    return(character(0))
-  }
-
-  mukey_str <- XML::xmlValue(mukey_nodes[[1]])
-
-  if (is.null(mukey_str) || nchar(trimws(mukey_str)) == 0) {
-    return(character(0))
-  }
-
-  mukeys <- unique(strsplit(trimws(mukey_str), ",")[[1]])
+  mukeys <- unique(parse_mukey_response(resp))
 
   mukeys
 }
@@ -339,16 +315,21 @@ ssurgo_mukeys_bigbbox <- function(bbox) {
 
   wgs84_crs <- sf::st_crs(4326)
 
-  bbox_poly <- sf::st_polygon(list(
-    matrix(c(xmin, ymin, xmax, ymin, xmax, ymax, xmin, ymax, xmin, ymin), ncol = 2, byrow = TRUE)
-  ))
+  # Get the total bbox area.
+  bbox_matrix <- rbind(
+    c(xmin, ymin),
+    c(xmax, ymin),
+    c(xmax, ymax),
+    c(xmin, ymax),
+    c(xmin, ymin)
+  )
+  bbox_poly <- sf::st_polygon(list(bbox_matrix))
   bbox_sf <- sf::st_sfc(bbox_poly, crs = wgs84_crs)
 
   bbox_area <- as.numeric(sf::st_area(bbox_sf))
 
-  bbox_wgs84_box <- sf::st_bbox(bbox_sf)
-  width_deg <- bbox_wgs84_box["xmax"] - bbox_wgs84_box["xmin"]
-  height_deg <- bbox_wgs84_box["ymax"] - bbox_wgs84_box["ymin"]
+  width_deg <- xmax - xmin
+  height_deg <- ymax - ymin
 
   aspect_ratio <- width_deg / height_deg
 
@@ -388,7 +369,11 @@ ssurgo_mukeys_bigbbox <- function(bbox) {
       httr2::req_url_query(!!!query)
   })
 
-  reqs_throttled <- purrr::map(reqs, ~ .x |> httr2::req_throttle(10 / 60))
+  reqs_throttled <- reqs |>
+    # max 10 tries per minute
+    purrr::map(httr2::req_throttle, capacity = 10) |>
+    # keep trying for 2 minutes before giving up
+    purrr::map(httr2::req_retry, max_seconds = 120)
 
   resps <- httr2::req_perform_parallel(
     reqs_throttled,
@@ -400,17 +385,7 @@ ssurgo_mukeys_bigbbox <- function(bbox) {
   parse_mukeys <- function(resp) {
     if (inherits(resp, "httr2_response")) {
       tryCatch({
-        resp_text <- httr2::resp_body_string(resp)
-        resp_xml <- XML::xmlParse(resp_text)
-        mukey_nodes <- XML::getNodeSet(resp_xml, "//MapUnitKeyList")
-        if (length(mukey_nodes) == 0) {
-          return(character(0))
-        }
-        mukey_str <- XML::xmlValue(mukey_nodes[[1]])
-        if (is.null(mukey_str) || nchar(trimws(mukey_str)) == 0) {
-          return(character(0))
-        }
-        strsplit(trimws(mukey_str), ",")[[1]]
+        parse_mukey_response(resp)
       }, error = function(e) {
         character(0)
       })
@@ -422,4 +397,22 @@ ssurgo_mukeys_bigbbox <- function(bbox) {
   mukeys_list <- purrr::map(resps, parse_mukeys)
 
   unique(unlist(mukeys_list, use.names = FALSE))
+}
+
+#' Parse responses from the mukey WFS service
+#'
+#' @params resp `httr2` response object from SSURGO mukey WFS API
+#' @return character vector of mukeys
+parse_mukey_response <- function(resp) {
+  resp_text <- httr2::resp_body_string(resp)
+  resp_xml <- XML::xmlParse(resp_text)
+  mukey_nodes <- XML::getNodeSet(resp_xml, "//MapUnitKeyList")
+  if (length(mukey_nodes) == 0) {
+    return(character(0))
+  }
+  mukey_str <- XML::xmlValue(mukey_nodes[[1]])
+  if (is.null(mukey_str) || nchar(trimws(mukey_str)) == 0) {
+    return(character(0))
+  }
+  strsplit(trimws(mukey_str), ",")[[1]]
 }

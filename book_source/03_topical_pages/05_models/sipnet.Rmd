@@ -34,9 +34,4 @@ SIPNET is configured using 3 files which are placed in the run folder, as well a
 
 **Installation notes**
 
-For current SIPNET installation instructions, please see:
-
-- [Installing SIPNET in the PEcAn documentation](https://pecanproject.github.io/pecan-documentation/develop/osinstall.html#sipnet-inst-sipnet)
-- [SIPNET Installation Guide](https://pecanproject.github.io/sipnet/install.html)
-
-The recommended approach is to install SIPNET from the official [SIPNET repository](https://github.com/PecanProject/sipnet)
+For current SIPNET installation instructions, please see the [SIPNET Installation Guide](https://pecanproject.github.io/sipnet/install.html) or install binaries from the official [releases](https://github.com/PecanProject/sipnet/releases) page.

@@ -1,5 +1,6 @@
 # PEcAn.SIPNET 1.10.0.9000
 
+* Updated README with a more complete model description and instructions for installing SIPNET (#3705)
 * Removed `tests/Rcheck_reference.log`, which was used to ignore historic check messages that have now been fixed.
 * Initial support for SIPNET v2.0, whose features include simplified input files,
     simulation of management events, tracking of N cycle components, and anaerobic CH4 generation.

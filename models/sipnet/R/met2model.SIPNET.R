@@ -387,8 +387,6 @@ met2model.SIPNET <- function(in.path,
   if (!is.null(out)) {
 
     # Sipnet does not know how to handle missing values in clim files.
-    # -- No, say it louder: Missing values send Sipnet into _infinite loops_.
-    # Let's not do that, hmm?
     if (anyNA(out)) {
       n_bad <- nrow(out) - nrow(stats::na.omit(out))
       PEcAn.logger::logger.error(

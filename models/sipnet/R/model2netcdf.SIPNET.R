@@ -153,9 +153,12 @@ model2netcdf.SIPNET <- function(outdir, sitelat, sitelon, start_date, end_date, 
       "TotSoilCarb" = PEcAn.utils::ud_convert(sub.sipnet.output$soil + sub.sipnet.output$litter, "g/m2", "kg/m2")
     )
 
-    # Water variables
-    # Units are labeled as mm here, but many places refer to it as kg water m-2
-    # (which is equivalent to mm, but ud_convert doesn't know that)
+    # Water variables:
+    # Liquid water units are cm in Sipnet; in PEcAn they're kg water m-2
+    #  (which is equivalent to mm, but ud_convert doesn't know that)
+    # Evapotranspiration in SIPNET is cm^3 water per cm^2 of area, to convert it to latent heat units W/m2 multiply with :
+    #  0.01 (cm2m) * 1000 (water density, kg m-3) * latent heat of vaporization (J kg-1)
+    # Latent heat of vaporization is not constant and it varies slightly with temperature, get.lv() returns 2.5e6 J kg-1 by default
     output[["Qle"]] <- (PEcAn.utils::ud_convert(sub.sipnet.output$evapotranspiration, "cm", "mm") * PEcAn.data.atmosphere::get.lv()) / timestep.s  # Qle W/m2
     # Note that Sipnet reports transpiration, and no other variables, in cm/day not cm/timestep.
     output[["Transp"]] <- PEcAn.utils::ud_convert(sub.sipnet.output$fluxestranspiration, "cm/day", "mm/sec") # Transpiration

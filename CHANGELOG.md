@@ -16,13 +16,9 @@ For more information about this file see also [Keep a Changelog](http://keepacha
 - Added datasets to `PEcAn.data.land` 
   *  `landiq_crop_mapping_codes` dataset mapping LandIQ crop classification codes to human-readable crop names.
   *  `bism_kc_by_crop` dataset containing BISm crop coefficient schedules and stage timing references for use in ET estimation, including columns that map to LandIQ class and subclass.
-- Add SIPNET v2 support in PEcAn.SIPNET; v2 parameter template (`template.param_v2`) with
-  73 parameters, v2 input template (`sipnet.in_v2`) with runtime flags, nitrogen cycle / methane
-  NetCDF output in `model2netcdf.SIPNET`, and runtime flag injection in `write.config.SIPNET`
+- PEcAn.SIPNET gains support for SIPNET v2, whose features includes management events, nitrogen cycle tracking, explicit N2O and methane fluxes, runtime setting of feature flags, and changes to the parameter set (now 73 parameters). SIPNET v1 is still fully supported, but workarounds for bugs in the legacy `sipnet.unk` version have been removed.
 
 ### Fixed
-- Fixed `model2netcdf.SIPNET` to auto detect v2 output format (no "Notes:" header line),
-  handle missing `litterWater` column, and correctly convert N/CH4 outputs to NetCDF
 
 ### Changed
 - Improved PEcAn.SIPNET documentation including README, model description, and current installation instructions (@Eshaan-byte; #3703, #3705).

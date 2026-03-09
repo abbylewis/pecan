@@ -16,21 +16,19 @@ write.config.SIPNET <- function(defaults, trait.values, settings, run.id, inputs
                                 restart = NULL, spinup = NULL) {
 
   rev_raw <- settings$model$revision
-  # determine which SIPNET major version we're configuring for.
-  # settings$model$revision may be a SIPNET version ("1", "2", "2.0")
-  # or a internal model identifier ("136", "unk", "git", NULL).
-  # Only "1" and "2" (and their dotted forms) are valid SIPNET versions;
-  # everything else defaults to v1 for backward compatibility
-  rev_str <- "v1"
-  if (!is.null(rev_raw) && nzchar(rev_raw)) {
-    if (grepl("^[0-9]+$", rev_raw)) {
-      rev_raw <- paste0(rev_raw, ".0")
-    }
-    sv <- package_version(rev_raw, strict = FALSE)
-    if (!is.na(sv) && sv$major %in% c(1L, 2L)) {
-      rev_str <- paste0("v", sv$major)
+  legacy_v1 <- c("136", "git")
+  if (is.null(rev_raw) || rev_raw %in% legacy_v1) {
+    sipnet_version <- numeric_version("1.0")
+  } else {
+    rev_clean <- sub("^v", "", rev_raw, ignore.case = TRUE)
+    sipnet_version <- numeric_version(rev_clean, strict = FALSE)
+    if (is.na(sipnet_version)) {
+      PEcAn.logger::logger.warn(
+        "Unrecognized model revision '", rev_raw, "'; defaulting to SIPNET v1")
+      sipnet_version <- numeric_version("1.0")
     }
   }
+  rev_str <- if (sipnet_version >= "2.0") "v2" else "v1"
 
 
   ### WRITE sipnet.in

@@ -16,7 +16,7 @@ Imports:
     PEcAn.remote,
     lubridate (>= 1.6.0),
     ncdf4 (>= 1.15),
-    PEcAn.utils
+    PEcAn.utils,
     readr
 Suggests:
     testthat (>= 1.0.2)
@@ -27,4 +27,4 @@ Copyright: Authors
 LazyLoad: yes
 LazyData: FALSE
 Encoding: UTF-8
-RoxygenNote: 7.3.2
+RoxygenNote: 7.3.3

@@ -172,6 +172,7 @@
 "lubridate",">= 1.6.0","models/lpjguess","Imports",FALSE
 "lubridate",">= 1.6.0","models/maat","Imports",FALSE
 "lubridate",">= 1.6.0","models/maespa","Imports",FALSE
+"lubridate",">= 1.6.0","models/peprmt","Imports",FALSE
 "lubridate",">= 1.6.0","models/rothc","Imports",FALSE
 "lubridate",">= 1.6.0","models/sipnet","Imports",FALSE
 "lubridate",">= 1.6.0","modules/assim.batch","Imports",FALSE
@@ -253,6 +254,7 @@
 "ncdf4",">= 1.15","models/lpjguess","Imports",FALSE
 "ncdf4",">= 1.15","models/maat","Imports",FALSE
 "ncdf4",">= 1.15","models/maespa","Imports",FALSE
+"ncdf4",">= 1.15","models/peprmt","Imports",FALSE
 "ncdf4",">= 1.15","models/sipnet","Imports",FALSE
 "ncdf4",">= 1.15","modules/assim.batch","Imports",FALSE
 "ncdf4",">= 1.15","modules/benchmark","Imports",FALSE
@@ -343,6 +345,7 @@
 "PEcAn.logger","*","models/lpjguess","Imports",TRUE
 "PEcAn.logger","*","models/maat","Imports",TRUE
 "PEcAn.logger","*","models/maespa","Imports",TRUE
+"PEcAn.logger","*","models/peprmt","Imports",TRUE
 "PEcAn.logger","*","models/rothc","Imports",TRUE
 "PEcAn.logger","*","models/sibcasa","Imports",TRUE
 "PEcAn.logger","*","models/sipnet","Imports",TRUE
@@ -379,6 +382,7 @@
 "PEcAn.remote","*","models/lpjguess","Imports",TRUE
 "PEcAn.remote","*","models/maat","Imports",TRUE
 "PEcAn.remote","*","models/maespa","Imports",TRUE
+"PEcAn.remote","*","models/peprmt","Imports",TRUE
 "PEcAn.remote","*","models/sipnet","Imports",TRUE
 "PEcAn.remote","*","models/stics","Imports",TRUE
 "PEcAn.remote","*","modules/assim.batch","Imports",TRUE
@@ -421,6 +425,7 @@
 "PEcAn.utils","*","models/lpjguess","Imports",TRUE
 "PEcAn.utils","*","models/maat","Imports",TRUE
 "PEcAn.utils","*","models/maespa","Imports",TRUE
+"PEcAn.utils","*","models/peprmt","Imports",TRUE
 "PEcAn.utils","*","models/sipnet","Imports",TRUE
 "PEcAn.utils","*","modules/assim.batch","Imports",TRUE
 "PEcAn.utils","*","modules/assim.sequential","Suggests",TRUE
@@ -477,6 +482,7 @@
 "Rcpp",">= 1.0.1","models/lpjguess","Imports",FALSE
 "rcrossref","*","base/db","Suggests",FALSE
 "readr","*","models/ldndc","Imports",FALSE
+"readr","*","models/peprmt","Imports",FALSE
 "readr","*","modules/assim.sequential","Suggests",FALSE
 "REddyProc","*","modules/data.atmosphere","Imports",FALSE
 "redland","*","modules/data.land","Suggests",FALSE
@@ -547,6 +553,7 @@
 "roxygen2","== 7.3.3","models/lpjguess","Roxygen",FALSE
 "roxygen2","== 7.3.3","models/maat","Roxygen",FALSE
 "roxygen2","== 7.3.3","models/maespa","Roxygen",FALSE
+"roxygen2","== 7.3.3","models/peprmt","Roxygen",FALSE
 "roxygen2","== 7.3.3","models/rothc","Roxygen",FALSE
 "roxygen2","== 7.3.3","models/sibcasa","Roxygen",FALSE
 "roxygen2","== 7.3.3","models/sipnet","Roxygen",FALSE
@@ -628,6 +635,7 @@
 "testthat",">= 1.0.2","models/lpjguess","Suggests",FALSE
 "testthat",">= 1.0.2","models/maat","Suggests",FALSE
 "testthat",">= 1.0.2","models/maespa","Suggests",FALSE
+"testthat",">= 1.0.2","models/peprmt","Suggests",FALSE
 "testthat",">= 1.0.2","models/sipnet","Suggests",FALSE
 "testthat",">= 1.0.2","models/stics","Suggests",FALSE
 "testthat",">= 1.0.2","modules/allometry","Suggests",FALSE

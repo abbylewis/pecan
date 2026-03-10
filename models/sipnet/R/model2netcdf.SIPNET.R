@@ -58,6 +58,29 @@ mergeNC <- function(
 ##' @author Shawn Serbin, Michael Dietze
 model2netcdf.SIPNET <- function(outdir, sitelat, sitelon, start_date, end_date, delete.raw = FALSE, revision, prefix = "sipnet.out",
                                 overwrite = FALSE, conflict = FALSE) {
+  # Version-specific capabilities (separate from output availability)
+  rev_raw <- revision
+  legacy_v1 <- c("102319", "136", "r136", "ssr", "git")
+  rev_known <- FALSE
+  sipnet_version <- NA
+  if (!is.null(rev_raw) && nzchar(rev_raw)) {
+    if (rev_raw %in% legacy_v1) {
+      sipnet_version <- numeric_version("1.0")
+      rev_known <- TRUE
+    } else {
+      rev_clean <- sub("^v", "", rev_raw, ignore.case = TRUE)
+      sipnet_version <- numeric_version(rev_clean, strict = FALSE)
+      if (!is.na(sipnet_version)) {
+        rev_known <- TRUE
+      }
+    }
+  }
+  rev_str <- if (rev_known && sipnet_version >= "2.0") "v2" else if (rev_known) "v1" else "unknown"
+  caps <- list(
+    has_litter_water = if (rev_known) rev_str == "v1" else TRUE,
+    has_n_cycle = if (rev_known) rev_str == "v2" else TRUE
+  )
+
   ### Read in model output in SIPNET format
   sipnet_out_file <- file.path(outdir, prefix)
   # SIPNET v1 had a "Notes" comment line before the header; v2 removed it.
@@ -106,9 +129,21 @@ model2netcdf.SIPNET <- function(outdir, sitelat, sitelon, start_date, end_date, 
       file.rename(file.path(outdir, paste(y, "nc", sep = ".")), file.path(outdir, "previous.nc"))
     }
     print(paste("---- Processing year: ", y))  # turn on for debugging
-    
+
     ## Subset data for processing
     sub.sipnet.output <- subset(sipnet_output, sipnet_output$year == y)
+    avail <- list(
+      litterWater = "litterWater" %in% names(sub.sipnet.output),
+      woodCreation = "woodCreation" %in% names(sub.sipnet.output),
+      minN = "minN" %in% names(sub.sipnet.output),
+      soilOrgN = "soilOrgN" %in% names(sub.sipnet.output),
+      litterN = "litterN" %in% names(sub.sipnet.output),
+      n2o = "n2o" %in% names(sub.sipnet.output),
+      nLeaching = "nLeaching" %in% names(sub.sipnet.output),
+      nFixation = "nFixation" %in% names(sub.sipnet.output),
+      nUptake = "nUptake" %in% names(sub.sipnet.output),
+      ch4 = "ch4" %in% names(sub.sipnet.output)
+    )
     
     raw_time <- sub.sipnet.output[["time"]] # decimal hours (eg 13.75 = 1:45 PM)
     doy <- sub.sipnet.output[["day"]] # day of year, not of month
@@ -167,7 +202,7 @@ model2netcdf.SIPNET <- function(outdir, sitelat, sitelon, start_date, end_date, 
     output[["SWE"]] <- PEcAn.utils::ud_convert(sub.sipnet.output$snow, "cm", "mm")  # Snow Water Equivalent
     output[["litter_carbon_content"]] <- PEcAn.utils::ud_convert(sub.sipnet.output$litter, "g/m2", "kg/m2")
     # litterWater was removed in SIPNET v2; only extract if present
-    if ("litterWater" %in% names(sub.sipnet.output)) {
+    if (caps$has_litter_water && avail$litterWater) {
       output[["litter_mass_content_of_water"]] <- PEcAn.utils::ud_convert(sub.sipnet.output$litterWater, "cm", "mm")
     }
 
@@ -183,34 +218,34 @@ model2netcdf.SIPNET <- function(outdir, sitelat, sitelon, start_date, end_date, 
     output[["LAI"]] <- output[["leaf_carbon_content"]] * SLA
     output[["fine_root_carbon_content"]] <- PEcAn.utils::ud_convert(sub.sipnet.output$fineRootC, "g/m2", "kg/m2")
     output[["coarse_root_carbon_content"]] <- PEcAn.utils::ud_convert(sub.sipnet.output$coarseRootC, "g/m2", "kg/m2")
-    if ("woodCreation" %in% names(sub.sipnet.output)) {
+    if (avail$woodCreation) {
       output[["GWBI"]] <- PEcAn.utils::ud_convert(sub.sipnet.output$woodCreation, "g/m2/day", "kg/m2/s")
     }
     output[["AGB"]] <- PEcAn.utils::ud_convert(sub.sipnet.output$plantWoodC + sub.sipnet.output$plantLeafC, "g/m2", "kg/m2")
     # columns only present in sipnet >= v2 with N and methane turned on
-    if ("minN" %in% names(sub.sipnet.output)) {
+    if (caps$has_n_cycle && avail$minN) {
       output[["mineral_N"]] <- sub.sipnet.output$minN * 0.001  # gN/m2 -> kgN/m2
     }
-    if ("soilOrgN" %in% names(sub.sipnet.output)) {
+    if (caps$has_n_cycle && avail$soilOrgN) {
       output[["soil_organic_N"]] <- sub.sipnet.output$soilOrgN * 0.001  # kgN/m2
     }
-    if ("litterN" %in% names(sub.sipnet.output)) {
+    if (caps$has_n_cycle && avail$litterN) {
       output[["litter_N"]] <- sub.sipnet.output$litterN * 0.001  # kgN/m2
     }
-    if ("n2o" %in% names(sub.sipnet.output)) {
+    if (caps$has_n_cycle && avail$n2o) {
       output[["N2O_flux"]] <- PEcAn.utils::ud_convert(sub.sipnet.output$n2o, "g/m2", "kg/m2") / timestep.s
       # convert g N m-2 per timestep -> kg N m-2 s-1
     }
-    if ("nLeaching" %in% names(sub.sipnet.output)) {
+    if (caps$has_n_cycle && avail$nLeaching) {
       output[["N_leaching"]] <- (sub.sipnet.output$nLeaching * 0.001) / timestep.s  # kgN/m2/s
     }
-    if ("nFixation" %in% names(sub.sipnet.output)) {
+    if (caps$has_n_cycle && avail$nFixation) {
       output[["N_fixation"]] <- (sub.sipnet.output$nFixation * 0.001) / timestep.s  # kgN/m2/s
     }
-    if ("nUptake" %in% names(sub.sipnet.output)) {
+    if (caps$has_n_cycle && avail$nUptake) {
       output[["N_uptake"]] <- (sub.sipnet.output$nUptake * 0.001) / timestep.s  # kgN/m2/s
     }
-    if ("ch4" %in% names(sub.sipnet.output)) {
+    if (caps$has_n_cycle && avail$ch4) {
       output[["CH4_flux"]] <- PEcAn.utils::ud_convert(sub.sipnet.output$ch4, "g/m2", "kg/m2") / timestep.s
       # convert g C m-2 per timestep -> kg C m-2 s-1
     }

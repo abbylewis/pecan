@@ -15,7 +15,7 @@ model2netcdf.PEPRMT <- function(outdir, sitelat, sitelon, start_date, end_date) 
   runid <- basename(outdir)
   
   ### Read in model output in PEPRMT format
-  PEPRMT.output      <- read.csv(file.path(outdir, "out.csv"))
+  PEPRMT.output      <- utils::read.csv(file.path(outdir, "out.csv"))
   PEPRMT.output.dims <- dim(PEPRMT.output)
   
   years <- unique(PEPRMT.output$Year)
@@ -28,13 +28,13 @@ model2netcdf.PEPRMT <- function(outdir, sitelat, sitelon, start_date, end_date) 
     print(paste("---- Processing year: ", y))  #turn on for debugging
     
     ## Subset data for processing
-    sub.PEPRMT.output <- subset(PEPRMT.output, Year == y)
+    sub.PEPRMT.output <- subset(PEPRMT.output, .data$Year == y)
     sub.PEPRMT.output.dims <- dim(sub.PEPRMT.output)
 
     # ******************** Declare netCDF variables ********************#
     start.day <- 1
     if (y == lubridate::year(start_date)){
-      start.day <- yday(start_date)
+      start.day <- lubridate::yday(start_date)
     } 
     tvals <- (start.day:sub.PEPRMT.output.dims[1])-1
     bounds <- array(data=NA, dim=c(length(tvals),2))

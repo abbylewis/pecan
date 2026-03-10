@@ -7,8 +7,8 @@
 ##' @param in.path location on disk where inputs are stored
 ##' @param in.prefix prefix of input and output files
 ##' @param outfolder location on disk where outputs will be stored
-##' @param start_date the start date of the data to be downloaded (will only use the year part of the date)
-##' @param end_date the end date of the data to be downloaded (will only use the year part of the date)
+##' @param start_date,end_date the start and end dates of the data to be downloaded (will only use the year part of the date)
+##' @param lat,lon latitude and longitude in degrees
 ##' @param overwrite should existing files be overwritten
 ##' @param verbose should the function be very verbose
 ##' @param ... additional arguments, currently ignored
@@ -17,7 +17,10 @@ hls2model.PEPRMT <- function(in.path, in.prefix, outfolder, start_date, end_date
                              lat, lon,overwrite = FALSE, verbose = FALSE, ...) {
 
   PEcAn.logger::logger.info("START hls2model.PEPRMT")
-  
+
+  # Error if any of the soft dependencies we use here are not installed
+  PEcAn.utils::need_packages(c("terra", "earthdatalogin", "dygraphs", "imager", "rstac", "xts"))
+
   #https://github.com/nasa/HLS-Data-Resources/blob/main/r/HLS_Tutorial.Rmd
   earthdatalogin::edl_netrc()
   s = rstac::stac("https://cmr.earthdata.nasa.gov/stac/LPCLOUD/")
@@ -130,7 +133,7 @@ hls2model.PEPRMT <- function(in.path, in.prefix, outfolder, start_date, end_date
   # Filter based on quality
   build_mask <- function(fmask, selected_bit_nums){
     # Create a mask of all zeros
-    mask <- rast(fmask, vals=0)
+    mask <- terra::rast(fmask, vals=0)
     for (b in selected_bit_nums){
       # Apply Bitwise AND to fmask values and selected bit numbers
       mask_temp <- app(fmask, function(x) bitwAnd(x, bitwShiftL(1,b)) >0)
@@ -148,10 +151,10 @@ hls2model.PEPRMT <- function(in.path, in.prefix, outfolder, start_date, end_date
   
   # Apply Mask to EVI using NA Values
   evi_masked <- mapply(function(x, y) {
-    mask(x, y, maskvalue = TRUE, updatevalue = NA)
+    terra::mask(x, y, maskvalue = TRUE, updatevalue = NA)
   }, evi_stack, qmask_stack, SIMPLIFY = FALSE)
   
-  evi_masked <- rast(evi_masked)
+  evi_masked <- terra::rast(evi_masked)
   
   # Add Date Only Column
   sf_items$date <- sapply(sf_items$datetime, function(x) strsplit(x, "T")[[1]][1])
@@ -167,7 +170,7 @@ hls2model.PEPRMT <- function(in.path, in.prefix, outfolder, start_date, end_date
     EVI_mean = evi_mean,
     EVI_SD = evi_sd
   )
-  stats$Date <- ymd_hms(sf_items$datetime) # convert string to date format (ISO 8601)
+  stats$Date <- lubridate::ymd_hms(sf_items$datetime) # convert string to date format (ISO 8601)
   variables = xts::xts(x=stats[,-5], order.by=stats$Date) # Choose the cols with the variables
   dygraphs::dygraph(variables) %>%
     dygraphs::dyAxis("y",label = "EVI")
@@ -182,6 +185,6 @@ hls2model.PEPRMT <- function(in.path, in.prefix, outfolder, start_date, end_date
                      ".dat")
   out.file.full <- file.path(outfolder, out.file)
   
-  write.csv(stats, out.file.full)
+  utils::write.csv(stats, out.file.full)
 
   } # hls2model.PEPRMT

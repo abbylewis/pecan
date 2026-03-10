@@ -24,9 +24,9 @@ hls2model.PEPRMT(
 
 \item{outfolder}{location on disk where outputs will be stored}
 
-\item{start_date}{the start date of the data to be downloaded (will only use the year part of the date)}
+\item{start_date, end_date}{the start and end dates of the data to be downloaded (will only use the year part of the date)}
 
-\item{end_date}{the end date of the data to be downloaded (will only use the year part of the date)}
+\item{lat, lon}{latitude and longitude in degrees}
 
 \item{overwrite}{should existing files be overwritten}
 

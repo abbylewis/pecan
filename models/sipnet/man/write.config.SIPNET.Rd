@@ -16,7 +16,9 @@ write.config.SIPNET(
 )
 }
 \arguments{
-\item{defaults}{pft}
+\item{defaults}{nested list of named constant parameter values. The
+structure is \verb{list(list(constants = list(trait1 = <value>, trait2 = <value>, ...)))}.
+Only \code{defaults[[1]]$constants} is used; all other elements are silently ignored.}
 
 \item{trait.values}{vector of samples for a given trait}
 
@@ -33,8 +35,37 @@ write.config.SIPNET(
 \item{spinup}{currently unused, included for compatibility with other models}
 }
 \description{
-Writes a configuration files for your model
+Creates the following SIPNET files:
+\itemize{
+\item \verb{*.clim} --- SIPNET meteorology driver (from
+\code{settings$run$inputs$met$path}, overriden by \code{inputs$met$path}). Note that
+this determines the ' SIPNET start and end dates.
+\item \code{job.sh} --- Job submission script. Populated from \code{inst/template.job}
+\item \code{events.in} --- Copied from \code{inputs$events$path} or
+\code{settings$run$inputs$events$path}. This needs to be in the SIPNET event
+format; see \code{\link[=write.events.SIPNET]{write.events.SIPNET()}} for generating these files
+\item \verb{*.param} --- SIPNET parameter file. Includes both traits and initial
+conditions.
 }
+}
+\section{Command line arguments}{
+SIPNET command line arguments can be passed through a named list via
+\code{settings$model$binary_args}. For example, this...
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{settings$model$binary <- "path/to/sipnet.dev"
+settings$model$binary_args <- list(
+  "restart-in" = "path/to/restart.in",
+  "restart-out" = "path/to/restart.out",
+  "quiet" = NULL
+)
+}\if{html}{\out{</div>}}
+
+...will be rendered the following string in \code{job.sh}:
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{"path/to/sipnet.dev" --restart-in=path/to/restart.in --restart-out=path/to/restart.out --quiet
+}\if{html}{\out{</div>}}
+}
+
 \author{
-Michael Dietze
+Michael Dietze, Alexey Shiklomanov
 }

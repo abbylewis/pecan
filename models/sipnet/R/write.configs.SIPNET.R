@@ -1,17 +1,53 @@
-##' Writes a configuration files for your model
-##' @name write.config.SIPNET
-##' @title Writes a configuration files for SIPNET model
-##' @param defaults pft
-##' @param trait.values vector of samples for a given trait
-##' @param settings PEcAn settings object
-##' @param run.id run ID
-##' @param inputs list of model inputs
-##' @param IC initial condition
-##' @param restart In case this is a continuation of an old simulation. restart needs to be a list with name tags of runid, inputs, new.params (parameters), new.state (initial condition), ensemble.id (ensemble id), start.time and stop.time.See Details.
-##' @param spinup currently unused, included for compatibility with other models
-##' @export
-##' @importFrom rlang %||%
-##' @author Michael Dietze
+#' Writes a configuration files for SIPNET model
+#'
+#' @description
+#' Creates the following SIPNET files:
+#'
+#' - `*.clim` --- SIPNET meteorology driver (from
+#' `settings$run$inputs$met$path`, overriden by `inputs$met$path`). Note that
+#' this determines the ' SIPNET start and end dates. 
+#' - `job.sh` --- Job submission script. Populated from `inst/template.job`
+#' - `events.in` --- Copied from `inputs$events$path` or
+#' `settings$run$inputs$events$path`. This needs to be in the SIPNET event
+#' format; see [write.events.SIPNET()] for generating these files
+#' - `*.param` --- SIPNET parameter file. Includes both traits and initial
+#' conditions.
+#'
+#' @details
+#' 
+#' # Command line arguments
+#'
+#' SIPNET command line arguments can be passed through a named list via
+#' `settings$model$binary_args`. For example, this...
+#'
+#' ```
+#' settings$model$binary <- "path/to/sipnet.dev"
+#' settings$model$binary_args <- list(
+#'   "restart-in" = "path/to/restart.in",
+#'   "restart-out" = "path/to/restart.out",
+#'   "quiet" = NULL
+#' )
+#' ```
+#'
+#' ...will be rendered the following string in `job.sh`:
+#'
+#' ```
+#' "path/to/sipnet.dev" --restart-in=path/to/restart.in --restart-out=path/to/restart.out --quiet
+#' ```
+#'
+#' @param defaults nested list of named constant parameter values. The
+#' structure is `list(list(constants = list(trait1 = <value>, trait2 = <value>, ...)))`.
+#' Only `defaults[[1]]$constants` is used; all other elements are silently ignored. 
+#' @param trait.values vector of samples for a given trait
+#' @param settings PEcAn settings object
+#' @param run.id run ID
+#' @param inputs list of model inputs
+#' @param IC initial condition
+#' @param restart In case this is a continuation of an old simulation. restart needs to be a list with name tags of runid, inputs, new.params (parameters), new.state (initial condition), ensemble.id (ensemble id), start.time and stop.time.See Details.
+#' @param spinup currently unused, included for compatibility with other models
+#' @export
+#' @importFrom rlang %||%
+#' @author Michael Dietze, Alexey Shiklomanov
 write.config.SIPNET <- function(defaults, trait.values, settings, run.id, inputs = NULL, IC = NULL,
                                 restart = NULL, spinup = NULL) {
 
@@ -147,6 +183,8 @@ write.config.SIPNET <- function(defaults, trait.values, settings, run.id, inputs
   
   jobsh <- gsub("@BINARY@", settings$model$binary, jobsh)
   jobsh <- gsub("@REVISION@", settings$model$revision, jobsh)
+
+  jobsh <- gsub("@BINARY_ARGS@", binary_args_to_string(settings$model$binary_args), jobsh)
   
   jobsh <- gsub("@CPRUNCMD@", cpruncmd, jobsh)
   jobsh <- gsub("@CPOUTCMD@", cpoutcmd, jobsh)
@@ -909,3 +947,28 @@ remove.config.SIPNET <- function(main.outdir, settings) {
     print("*** WARNING: Removal of files on remote host not yet implemented ***")
   }
 } # remove.config.SIPNET 
+
+#' Convert binary_args list to command-line argument string.
+#'
+#' Accepts a list like list(arg1 = "value", arg2 = 3, arg3 = NULL),
+#' which becomes "--arg1=value --arg2=3 --arg3".
+#' If provided as a plain string, passes through with a warning.
+binary_args_to_string <- function(args) {
+  if (is.null(args) || length(args) == 0) return("")
+  if (is.character(args)) {
+    PEcAn.logger::logger.warn(
+      "`binary_args` provided as a plain string; passing through as-is.",
+      "Consider using a named list instead."
+    )
+    return(args)
+  }
+  arg2string <- function(val, nm) {
+    if (is.null(val)) {
+      paste0("--", nm)
+    } else {
+      paste0("--", nm, "=", val)
+    }
+  }
+  parts <- mapply(arg2string, args, names(args), SIMPLIFY = TRUE)
+  paste(parts, collapse = " ")
+}

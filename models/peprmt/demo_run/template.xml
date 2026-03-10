@@ -10,11 +10,11 @@
  <outdir><!-- altered at config time -->output</outdir>
  <modeloutdir><!-- altered at config time -->output/out</modeloutdir>
  <rundir><!-- altered at config time -->output/run</rundir>
- <pfts> <!-- TODO do we want any pfts for PEPRMT 
+ <pfts>
   <pft>
    <name>soil</name>
-   <outdir>data_raw/pfts/soil/</outdir>
-  </pft> -->
+   <outdir>raw-data/pfts/soil/</outdir>
+  </pft>
  </pfts>
  <ensemble>
   <size><!-- inserted at config time --></size>
@@ -62,6 +62,7 @@
   <rundir><!-- altered at config time -->output/run</rundir>
   <modellauncher>
     <binary>parallel -j ${NCPUS:-1} --skip-first-line '{}/job.sh' ::::</binary>
+    <qsub.extra>""<!-- apparently required by prepare.settings, so here's an empty string --></qsub.extra>
     <Njobmax>1000</Njobmax>
   </modellauncher>
  </host>

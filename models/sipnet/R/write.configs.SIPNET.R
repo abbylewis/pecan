@@ -16,7 +16,7 @@ write.config.SIPNET <- function(defaults, trait.values, settings, run.id, inputs
                                 restart = NULL, spinup = NULL) {
 
   rev_raw <- settings$model$revision
-  legacy_v1 <- c("136", "git")
+  legacy_v1 <- c("102319", "136", "r136", "ssr", "git")
   if (is.null(rev_raw) || rev_raw %in% legacy_v1) {
     sipnet_version <- numeric_version("1.0")
   } else {

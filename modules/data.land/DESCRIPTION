@@ -29,8 +29,6 @@ Imports:
     coda,
     curl,
     dplyr,
-    duckdb,
-    duckspatial,
     dplR,
     foreach,
     fs,

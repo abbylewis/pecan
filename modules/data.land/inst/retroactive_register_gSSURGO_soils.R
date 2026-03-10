@@ -27,25 +27,29 @@ library(PEcAn.logger)
 library(stringr)
 
 #------------------------------------------------------------------------------
-# CONFIGURATION — edit these before running
+# CONFIGURATION — edit these before running or pass via environment variables
 #------------------------------------------------------------------------------
-dbfiles_root <- "/fs/data1/pecan.data/dbfiles"   # root where gSSURGO folders live
+dbfiles_root <- Sys.getenv("DBFILES_ROOT", "/fs/data1/pecan.data/dbfiles")   # root where gSSURGO folders live
 bety_settings <- list(
-  driver   = "PostgreSQL",
-  user     = "bety",
-  password = "bety",
-  host     = "localhost",
-  dbname   = "bety",
-  port     = 5432
+  driver   = Sys.getenv("BETY_DRIVER", "PostgreSQL"),
+  user     = Sys.getenv("BETY_USER", "bety"),
+  password = Sys.getenv("BETY_PASSWORD", "bety"),
+  host     = Sys.getenv("BETY_HOST", "localhost"),
+  dbname   = Sys.getenv("BETY_DBNAME", "bety"),
+  port     = as.numeric(Sys.getenv("BETY_PORT", 5432))
 )
-dry_run <- TRUE   # Set to FALSE to actually write to BETY; TRUE to just preview
+dry_run <- as.logical(Sys.getenv("DRY_RUN", "TRUE"))   # Set to FALSE to actually write to BETY; TRUE to just preview
 #------------------------------------------------------------------------------
 
 PEcAn.logger::logger.setLevel("INFO")
 
 # Open DB connection
-con <- PEcAn.DB::db.open(bety_settings)
-on.exit(PEcAn.DB::db.close(con), add = TRUE)
+if (!dry_run) {
+  con <- PEcAn.DB::db.open(bety_settings)
+  on.exit(PEcAn.DB::db.close(con), add = TRUE)
+} else {
+  con <- NULL
+}
 
 # Find all gSSURGO_site_* folders
 soil_dirs <- list.dirs(dbfiles_root, recursive = FALSE, full.names = TRUE)

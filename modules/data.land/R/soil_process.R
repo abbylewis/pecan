@@ -85,29 +85,37 @@ soil_process <- function(settings, input, dbfiles, overwrite = FALSE, run.local 
     }
 
     # Register ALL files in BETY — whether newly extracted or pre-existing.
-    # This ensures files generated outside this workflow (e.g. by SDA runs)
-    # are also registered. dbfile.input.insert() is idempotent: it will not
-    # create a duplicate record if the file is already registered.
-    #
-    # Note: extract_soil_gssurgo() returns a list where each element is a
-    # named character string (name = "path", value = the file path).
-    # We use as.character() to safely coerce in either case.
-    for (i in seq_along(newfile)) {
-      fpath     <- as.character(newfile[[i]])
-      in.path   <- paste0(dirname(fpath), "/")
-      in.prefix <- stringr::str_remove(basename(fpath), "\\.nc$")
+    # We explicitly check for DB connection and pre-existing files to avoid 
+    # relying on `dbfile.input.insert` which can generate duplicate inputs.
+    if (!is.null(con)) {
+      for (i in seq_along(newfile)) {
+        fpath     <- as.character(newfile[[i]])
+        in.path   <- paste0(dirname(fpath), "/")
+        in.prefix <- stringr::str_remove(basename(fpath), "\\.nc$")
 
-      PEcAn.DB::dbfile.input.insert(
-        in.path,
-        in.prefix,
-        new.site$id,
-        startdate  = NULL,
-        enddate    = NULL,
-        mimetype   = "application/x-netcdf",
-        formatname = "pecan_soil_standard",
-        con        = con,
-        ens        = TRUE
-      )
+        # Check if this exact file is already in dbfiles
+        existing_dbfiles <- PEcAn.DB::db.query(
+          paste0(
+            "SELECT id FROM dbfiles WHERE ",
+            "file_path='", in.path, "' AND file_name='", basename(in.prefix), "'"
+          ),
+          con
+        )
+        
+        if (nrow(existing_dbfiles) == 0) {
+          PEcAn.DB::dbfile.input.insert(
+            in.path,
+            in.prefix,
+            new.site$id,
+            startdate  = NULL,
+            enddate    = NULL,
+            mimetype   = "application/x-netcdf",
+            formatname = "pecan_soil_standard",
+            con        = con,
+            ens        = TRUE
+          )
+        }
+      }
     }
 
     return(newfile)
@@ -161,24 +169,34 @@ soil_process <- function(settings, input, dbfiles, overwrite = FALSE, run.local 
 
   # Register the extracted PalEON_soil file(s) in BETY.
   # Previously missing: this path had no BETY registration at all.
-  # extract_soil_nc() returns a plain character path string.
-  if (!is.null(newfile) && length(newfile) > 0) {
+  if (!is.null(con) && !is.null(newfile) && length(newfile) > 0) {
     for (i in seq_along(newfile)) {
       fpath     <- as.character(newfile[[i]])
       in.path   <- paste0(dirname(fpath), "/")
       in.prefix <- stringr::str_remove(basename(fpath), "\\.nc$")
 
-      PEcAn.DB::dbfile.input.insert(
-        in.path,
-        in.prefix,
-        new.site$id,
-        startdate  = NULL,
-        enddate    = NULL,
-        mimetype   = "application/x-netcdf",
-        formatname = "pecan_soil_standard",
-        con        = con,
-        ens        = TRUE
+      # Check if this exact file is already in dbfiles
+      existing_dbfiles <- PEcAn.DB::db.query(
+        paste0(
+          "SELECT id FROM dbfiles WHERE ",
+          "file_path='", in.path, "' AND file_name='", basename(in.prefix), "'"
+        ),
+        con
       )
+
+      if (nrow(existing_dbfiles) == 0) {
+        PEcAn.DB::dbfile.input.insert(
+          in.path,
+          in.prefix,
+          new.site$id,
+          startdate  = NULL,
+          enddate    = NULL,
+          mimetype   = "application/x-netcdf",
+          formatname = "pecan_soil_standard",
+          con        = con,
+          ens        = TRUE
+        )
+      }
     }
   }
 

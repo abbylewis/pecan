@@ -6,6 +6,14 @@ setup_logger_for_testing <- function() {
   PEcAn.logger::logger.setLevel("DEBUG")
 }
 
+# Helper: create a coda-style trait.mcmc object (named list of mcmc.list)
+make_trait_mcmc <- function(...) {
+  traits <- list(...)
+  lapply(traits, function(x) {
+    coda::mcmc.list(coda::mcmc(matrix(x, ncol = 1, dimnames = list(NULL, "beta.o"))))
+  })
+}
+
 test_that("load from single distns file works", {
   tmpdir <- withr::local_tempdir()
 
@@ -24,7 +32,7 @@ test_that("load from single distns file works", {
   )
 
   expect_null(result$trait.mcmc)
-  expect_false(result$is.pda)
+  expect_false(result$is.joint)
   expect_is(result$prior.distns, "data.frame")
   expect_equal(rownames(result$prior.distns), c("trait_a", "trait_b"))
 })
@@ -33,11 +41,8 @@ test_that("load from single distns file works", {
 test_that("load from single mcmc file works", {
   tmpdir <- withr::local_tempdir()
 
-  # Create a trait.mcmc object (list of matrices, mimicking coda output)
-  trait.mcmc <- list(
-    trait_a = list(matrix(rnorm(100), ncol = 1, dimnames = list(NULL, "beta.o"))),
-    trait_b = list(matrix(rnorm(100), ncol = 1, dimnames = list(NULL, "beta.o")))
-  )
+  # Create a trait.mcmc object using coda classes
+  trait.mcmc <- make_trait_mcmc(trait_a = rnorm(100), trait_b = rnorm(100))
   save(trait.mcmc, file = file.path(tmpdir, "samples.Rdata"))
 
   result <- load.posteriors(
@@ -47,7 +52,7 @@ test_that("load from single mcmc file works", {
   expect_is(result$trait.mcmc, "list")
   expect_equal(names(result$trait.mcmc), c("trait_a", "trait_b"))
   expect_null(result$prior.distns)
-  expect_false(result$is.pda)
+  expect_false(result$is.joint)
 })
 
 
@@ -64,20 +69,17 @@ test_that("load from directory with both mcmc and distns prefers mcmc", {
   )
   save(post.distns, file = file.path(tmpdir, "distributions.Rdata"))
 
-  # File 2: MCMC samples
-  trait.mcmc <- list(
-    trait_a = list(matrix(rnorm(100), ncol = 1, dimnames = list(NULL, "beta.o")))
-  )
+  # File 2: MCMC samples (coda objects)
+  trait.mcmc <- make_trait_mcmc(trait_a = rnorm(100))
   save(trait.mcmc, file = file.path(tmpdir, "mcmc_samples.Rdata"))
 
   result <- load.posteriors(posterior.file = tmpdir)
 
   # Both should be loaded
-
   expect_is(result$trait.mcmc, "list")
   expect_equal(names(result$trait.mcmc), c("trait_a"))
   expect_is(result$prior.distns, "data.frame")
-  expect_false(result$is.pda)
+  expect_false(result$is.joint)
 })
 
 
@@ -104,9 +106,7 @@ test_that("load from directory with only distns works", {
 test_that("load from directory with only mcmc works", {
   tmpdir <- withr::local_tempdir()
 
-  trait.mcmc <- list(
-    trait_a = list(matrix(rnorm(100), ncol = 1, dimnames = list(NULL, "beta.o")))
-  )
+  trait.mcmc <- make_trait_mcmc(trait_a = rnorm(100))
   save(trait.mcmc, file = file.path(tmpdir, "mcmc.Rdata"))
 
   result <- load.posteriors(posterior.file = tmpdir)
@@ -181,10 +181,8 @@ test_that("fallback to outdir loads post.distns over prior.distns", {
 test_that("fallback outdir finds mcmc in directory scan", {
   tmpdir <- withr::local_tempdir()
 
-  # Create MCMC file with non-standard name
-  trait.mcmc <- list(
-    trait_a = list(matrix(rnorm(100), ncol = 1, dimnames = list(NULL, "beta.o")))
-  )
+  # Create MCMC file with non-standard name (coda objects)
+  trait.mcmc <- make_trait_mcmc(trait_a = rnorm(100))
   save(trait.mcmc, file = file.path(tmpdir, "my_custom_mcmc.Rdata"))
 
   invisible(capture.output(
@@ -234,7 +232,7 @@ test_that("nonexistent path returns empty result with error", {
 
   expect_null(result$prior.distns)
   expect_null(result$trait.mcmc)
-  expect_false(result$is.pda)
+  expect_false(result$is.joint)
 })
 
 
@@ -253,13 +251,43 @@ test_that("empty directory returns empty result", {
 })
 
 
-test_that("PDA detection works via filename heuristic in legacy path", {
+test_that("joint detection works via companion file in from.path", {
   tmpdir <- withr::local_tempdir()
 
-  # Create mcmc file with pda in name
-  trait.mcmc <- list(
-    trait_a = list(matrix(rnorm(100), ncol = 1, dimnames = list(NULL, "beta.o")))
-  )
+  # Create PDA-style MCMC file
+  trait.mcmc <- make_trait_mcmc(trait_a = rnorm(100))
+  save(trait.mcmc, file = file.path(tmpdir, "trait.mcmc.pda.temperate_1.Rdata"))
+
+  # Create the companion mcmc.pda.* file that PDA always produces
+  params.pft <- list(trait_a = rnorm(100))
+  save(params.pft, file = file.path(tmpdir, "mcmc.pda.temperate_1.Rdata"))
+
+  result <- load.posteriors(posterior.file = tmpdir)
+
+  expect_true(result$is.joint)
+  expect_is(result$trait.mcmc, "list")
+})
+
+
+test_that("non-PDA mcmc is not detected as joint", {
+  tmpdir <- withr::local_tempdir()
+
+  # Create MA-style MCMC file (no companion mcmc.pda.* file)
+  trait.mcmc <- make_trait_mcmc(trait_a = rnorm(100))
+  save(trait.mcmc, file = file.path(tmpdir, "trait.mcmc.Rdata"))
+
+  result <- load.posteriors(posterior.file = tmpdir)
+
+  expect_false(result$is.joint)
+  expect_is(result$trait.mcmc, "list")
+})
+
+
+test_that("joint detection works via filename heuristic in legacy path", {
+  tmpdir <- withr::local_tempdir()
+
+  # Create mcmc file with pda in name (legacy path uses filename heuristic)
+  trait.mcmc <- make_trait_mcmc(trait_a = rnorm(100))
   save(trait.mcmc, file = file.path(tmpdir, "mcmc.pda.Rdata"))
 
   invisible(capture.output(
@@ -269,6 +297,21 @@ test_that("PDA detection works via filename heuristic in legacy path", {
     )
   ))
 
-  expect_true(result$is.pda)
+  expect_true(result$is.joint)
   expect_is(result$trait.mcmc, "list")
+})
+
+
+test_that("MCMC detected by coda class, not variable name", {
+  tmpdir <- withr::local_tempdir()
+
+  # Save mcmc.list under a non-standard variable name
+  my_custom_mcmc <- make_trait_mcmc(SLA = rnorm(50))
+  save(my_custom_mcmc, file = file.path(tmpdir, "output.Rdata"))
+
+  result <- load.posteriors(posterior.file = file.path(tmpdir, "output.Rdata"))
+
+  # Should be detected by coda class, not by variable name
+  expect_is(result$trait.mcmc, "list")
+  expect_equal(names(result$trait.mcmc), "SLA")
 })

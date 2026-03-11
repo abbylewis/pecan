@@ -81,9 +81,6 @@ write.config.PEPRMT <- function(defaults, trait.values, settings, run.id) {
     if (filename == "") {
       if (!is.null(settings$model$revision)) {
         filename <- system.file(paste0("config.", settings$model$revision), package = "PEcAn.PEPRMT")
-      } else {
-        model <- PEcAn.DB::db.query(paste("SELECT * FROM models WHERE id =", settings$model$id), params = settings$database$bety)
-        filename <- system.file(paste0("config.r", model$revision), package = "PEcAn.PEPRMT")
       }
     }
     if (filename == "") {

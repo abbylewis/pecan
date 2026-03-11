@@ -9,7 +9,10 @@
 #   when files already existed on disk (Issue #2666).
 #
 # USAGE (on BU server):
-#   Rscript retroactive_register_gSSURGO_soils.R
+#   Rscript retroactive_register_gSSURGO_soils.R [<dbfiles_root>]
+#
+#   <dbfiles_root>  optional path to the folder containing gSSURGO_site_* dirs.
+#                   Defaults to /fs/data1/pecan.data/dbfiles if not supplied.
 #
 # REQUIREMENTS:
 #   - Run on a machine with access to /fs/data1/pecan.data/dbfiles
@@ -27,16 +30,17 @@ library(PEcAn.logger)
 library(stringr)
 
 #------------------------------------------------------------------------------
-# CONFIGURATION — edit these before running or pass via environment variables
+# CONFIGURATION
 #------------------------------------------------------------------------------
-dbfiles_root <- Sys.getenv("DBFILES_ROOT", "/fs/data1/pecan.data/dbfiles")   # root where gSSURGO folders live
+args         <- commandArgs(trailingOnly = TRUE)
+dbfiles_root <- if (length(args) >= 1) args[[1]] else "/fs/data1/pecan.data/dbfiles"
 bety_settings <- list(
-  driver   = Sys.getenv("BETY_DRIVER", "PostgreSQL"),
-  user     = Sys.getenv("BETY_USER", "bety"),
-  password = Sys.getenv("BETY_PASSWORD", "bety"),
-  host     = Sys.getenv("BETY_HOST", "localhost"),
-  dbname   = Sys.getenv("BETY_DBNAME", "bety"),
-  port     = as.numeric(Sys.getenv("BETY_PORT", 5432))
+  driver   = "PostgreSQL",
+  user     = "bety",
+  password = "bety",
+  host     = "localhost",
+  dbname   = "bety",
+  port     = 5432
 )
 dry_run <- as.logical(Sys.getenv("DRY_RUN", "TRUE"))   # Set to FALSE to actually write to BETY; TRUE to just preview
 #------------------------------------------------------------------------------

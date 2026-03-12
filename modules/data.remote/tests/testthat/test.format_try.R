@@ -20,7 +20,7 @@ test_that("format_try_for_ma maps correctly and handles missing columns", {
     Dataset = c("Field Observational", "Other", "Some Greenhouse Study", "Other")
   )
   
-  res <- format_try_for_ma(try_data)
+  expect_warning(res <- format_try_for_ma(try_data), "The following TRY traits or covariates were not mapped")
   
   # Only traits with valid TraitID and present in the mapped traits should remain
   expect_equal(nrow(res), 2)
@@ -30,6 +30,7 @@ test_that("format_try_for_ma maps correctly and handles missing columns", {
   expect_equal(res$n, c(3, 2)) # leafN 'Replicates' was 1, but stat is not NA, jagify logic bumps to 2
   expect_equal(res$citation_id, c(101, -9999))
   expect_equal(res$greenhouse, c(0, 1))
+  expect_true("species_name" %in% names(res))
 })
 
 test_that("format_try_for_ma handles jagify-style edge cases cleanly", {

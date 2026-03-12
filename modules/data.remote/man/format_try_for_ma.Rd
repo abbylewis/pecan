@@ -4,7 +4,7 @@
 \alias{format_try_for_ma}
 \title{Convert TRY database data to PEcAn format for meta-analysis}
 \usage{
-format_try_for_ma(try_data, trait_map = try_trait_mapping())
+format_try_for_ma(try_data, trait_map = try_trait_mapping, species_map = NULL)
 }
 \arguments{
 \item{try_data}{A data frame containing data from the TRY database.}
@@ -12,6 +12,10 @@ format_try_for_ma(try_data, trait_map = try_trait_mapping())
 \item{trait_map}{A named character vector for mapping TRY TraitName to PEcAn vname. 
 Names should be TRY TraitName and values should be PEcAn vname. 
 If NULL, defaults to \code{try_trait_mapping()}.}
+
+\item{species_map}{An optional named vector mapping TRY \code{SpeciesName} to PEcAn BETY \code{specie_id}.
+If provided, this is used to assign \code{specie_id} instead of using the raw \code{AccSpeciesID}.
+If omitted, the returning data will include a \code{species_name} column to help users map PFTs later.}
 }
 \value{
 A data frame formatted similarly to BETYdb output to be passed to \code{PEcAn.MA::jagify}.

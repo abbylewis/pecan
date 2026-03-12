@@ -2,7 +2,7 @@
 % Please edit documentation in R/write.configs.SIPNET.R
 \name{write.config.SIPNET}
 \alias{write.config.SIPNET}
-\title{Writes a configuration files for SIPNET model}
+\title{Writes configuration files for one invocation of the SIPNET model}
 \usage{
 write.config.SIPNET(
   defaults,
@@ -37,33 +37,62 @@ Only \code{defaults[[1]]$constants} is used; all other elements are silently ign
 \description{
 Creates the following SIPNET files:
 \itemize{
-\item \verb{*.clim} --- SIPNET meteorology driver (from
-\code{settings$run$inputs$met$path}, overriden by \code{inputs$met$path}). Note that
-this determines the ' SIPNET start and end dates.
 \item \code{job.sh} --- Job submission script. Populated from \code{inst/template.job}
+\item \code{sipnet.in} --- Sipnet configuration file. Populated from \verb{inst/sipnet.in_v*}
 \item \code{events.in} --- Copied from \code{inputs$events$path} or
 \code{settings$run$inputs$events$path}. This needs to be in the SIPNET event
 format; see \code{\link[=write.events.SIPNET]{write.events.SIPNET()}} for generating these files
 \item \verb{*.param} --- SIPNET parameter file. Includes both traits and initial
 conditions.
+\item \verb{*.clim} --- SIPNET meteorology driver (from
+\code{settings$run$inputs$met$path}, overriden by \code{inputs$met$path}).
+Note that the dates in this file determine the SIPNET start and end dates.
 }
+
+If you relocate files between config generation and Sipnet runtime,
+note that write.configs() does not copy \verb{*.clim}. Instead it records the
+path to its current location. At Sipnet runtime, \code{job.sh} then creates
+a symbolic link to that path.
 }
+\section{Model version specification}{
+\code{write.config.SIPNET()} matches its output format to the version of Sipnet
+listed in \code{settings$model$revision}. This should be a numeric version
+(e.g. \verb{2.0.1}) and needs to match the version of your Sipnet binary.
+You can check your binary's version by running
+\code{./path/to/your/sipnet --version}, which should report something similar
+to \verb{SIPNET version 2.0.0 (4baf19a66c)}. If it says "illegal option" then you
+have Sipnet 1.x and can report the version as "v1".
+}
+
 \section{Command line arguments}{
-SIPNET command line arguments can be passed through a named list via
-\code{settings$model$binary_args}. For example, this...
+SIPNET run-time options can be passed through a named list via
+\code{settings$model$options}. For example, this...\if{html}{\out{
+<model>
+ <binary>path/to/sipnet</binary>
+ <revision>2.0.2</revision>
+ <options>
+   <RESTART_IN>path/to/restart.in</RESTART_IN>
+   <RESTART_OUT>path/to/restart.in</RESTART_OUT>
+   <GDD>0</GDD>
+   <ANAEROBIC>1</ANAEROBIC>
+ </options>
+[...]
+</model>
+```
+}}
 
-\if{html}{\out{<div class="sourceCode">}}\preformatted{settings$model$binary <- "path/to/sipnet.dev"
-settings$model$binary_args <- list(
-  "restart-in" = "path/to/restart.in",
-  "restart-out" = "path/to/restart.out",
-  "quiet" = NULL
-)
+
+...will be rendered in \code{sipnet.in} as...:
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{RESTART_IN = path/to/restart.in
+RESTART_OUT = path/to/restart.out
+GDD = 0
+ANAEROBIC = 1
 }\if{html}{\out{</div>}}
 
-...will be rendered the following string in \code{job.sh}:
-
-\if{html}{\out{<div class="sourceCode">}}\preformatted{"path/to/sipnet.dev" --restart-in=path/to/restart.in --restart-out=path/to/restart.out --quiet
-}\if{html}{\out{</div>}}
+...though not necessarily in this order. If the \code{sipnet.in} template already
+defines an option specified in settings$model$options, its value will be
+updated in place; options not already in the file will be added to the bottom.
 }
 
 \author{

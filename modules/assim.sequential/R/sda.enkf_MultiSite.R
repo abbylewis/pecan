@@ -32,9 +32,9 @@
 #' including `local` ,where we execute the model locally;
 #' `qsub`, where we use the traditional `start_model_runs` function for submission;
 #' `qsub_parallel`, where we first combine jobs and submit them into the SCC.
-#' @param debias List: R list containing the covariance directory and the start year.
+#' @param debias List: R list containing the covariance directory and the start time point.
 #' covariance directory should include GeoTIFF files named by year.
-#' start year is numeric input which decide when to start the debiasing feature.
+#' start time point is numeric input which decide when to start the debiasing feature.
 #' @param ...       Additional arguments, currently ignored
 #' 
 #' @return NONE
@@ -57,7 +57,7 @@ sda.enkf.multisite <- function(settings,
                                             MCMC.args = NULL,
                                             merge_nc = TRUE,
                                             execution = "local"),
-                               debias = list(cov.dir = NULL, start.year = NULL), ...) {
+                               debias = list(cov.dir = NULL, t.start = NULL), ...) {
   #add if/else for when restart points to folder instead if T/F set restart as T
   if(is.list(restart)){
     old.dir <- restart$filepath

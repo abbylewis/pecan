@@ -20,9 +20,9 @@
 #' `MCMC.args` include lists for controling the MCMC sampling process (iteration, nchains, burnin, and nthin.).
 #' `merge_nc` determine if we want to merge all netCDF files across sites and ensembles.
 #' If it's set as `TRUE`, we will then combine all netCDF files into the `merged_nc` folder within the `outdir`.
-#' @param debias List: R list containing the covariance directory and the start year.
+#' @param debias List: R list containing the covariance directory and the start time point.
 #' covariance directory should include GeoTIFF files named by year.
-#' start year is numeric input which decide when to start the debiasing feature.
+#' start time point is numeric input which decide when to start the debiasing feature.
 #' 
 #' @return NONE
 #' @export
@@ -41,7 +41,7 @@ sda.enkf_local <- function(settings,
                                         forceRun = TRUE,
                                         MCMC.args = NULL,
                                         merge_nc = TRUE),
-                           debias = list(cov.dir = NULL, start.year = NULL)) {
+                           debias = list(cov.dir = NULL, t.start = NULL)) {
   # grab cores from settings.
   cores <- as.numeric(settings$state.data.assimilation$batch.settings$general.job$cores)
   # if we didn't assign number of CPUs in the settings.
@@ -211,7 +211,6 @@ sda.enkf_local <- function(settings,
     # find a site that has all registered inputs except for the parameter field.
     if (all(names.sampler %in% names.site.input)) {
       input_design <- PEcAn.uncertainty::generate_joint_ensemble_design(settings = settings[[i]], 
-                                                                        ensemble_samples = ensemble.samples, 
                                                                         ensemble_size = nens)[[1]]
       break
     }
@@ -219,8 +218,6 @@ sda.enkf_local <- function(settings,
   ###------------------------------------------------------------------------------------------------###
   ### loop over time                                                                                 ###
   ###------------------------------------------------------------------------------------------------###
-  # initialize the lists of covariates for the debias feature.
-  pre.states <- vector("list", length = length(var.names)) %>% purrr::set_names(var.names)
   # initialize the lists of forecasts for all time points.
   all.X <- vector("list", length = nt)
   for (t in 1:nt) {
@@ -377,15 +374,17 @@ sda.enkf_local <- function(settings,
     if (!is.null(debias$start.year)) {
       if (obs.year >= debias$start.year) {
         PEcAn.logger::logger.info("Start debiasing!")
-        debias.out <- sda_bias_correction(site.locs, 
-                                          t, all.X, 
-                                          obs.mean, 
-                                          state.interval, 
-                                          debias$cov.dir,
-                                          pre.states,
-                                          .get_debias_mod)
+        debias.out <- sda.bias.correction(settings = settings, 
+                                          t = t, 
+                                          t.start = debias$t.start, 
+                                          dates = assim.sda, 
+                                          all.X = all.X, 
+                                          obs.mean = obs.mean, 
+                                          state.interval = state.interval, 
+                                          cov.dir = debias$cov.dir, 
+                                          residual.lag = TRUE, 
+                                          py.init = .get_debias_mod)
         X <- debias.out$X
-        pre.states <- debias.out$pre.states
       }
     }
     FORECAST[[obs.t]] <- all.X[[t]] <- X

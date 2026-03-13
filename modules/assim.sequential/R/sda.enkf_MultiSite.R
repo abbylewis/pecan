@@ -353,7 +353,6 @@ sda.enkf.multisite <- function(settings,
     
     # get the joint input design.
     input_design <- PEcAn.uncertainty::generate_joint_ensemble_design(settings = settings[[1]], 
-                                                                      ensemble_samples = ensemble.samples, 
                                                                       ensemble_size = nens)[[1]]
   }
   ###------------------------------------------------------------------------------------------------###

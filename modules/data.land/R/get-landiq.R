@@ -12,10 +12,6 @@ get_landiq <- function(design_points, parcels_file, crops_file) {
 
   crops <- arrow::read_parquet(crops_file) |>
     dplyr::semi_join(dp_with_parcels, by = "parcel_id") |>
-    dplyr::mutate(
-      dplyr::across(c("CLASS", "SUBCLASS"), ~ dplyr::na_if(.x, "**")),
-      SUBCLASS = as.integer(.data$SUBCLASS)
-    ) |>
     dplyr::select("parcel_id", "year", "season", "CLASS", "SUBCLASS")
 
   dp_with_crops <- dp_with_parcels |>

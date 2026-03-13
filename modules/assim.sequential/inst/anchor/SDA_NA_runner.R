@@ -41,7 +41,7 @@ batch.settings = structure(list(
 settings$state.data.assimilation$batch.settings <- batch.settings
 
 # alter the ensemble size.
-settings$ensemble$size <- 10
+settings$ensemble$size <- 100
 
 # load observations.
 load("/projectnb/dietzelab/dongchen/anchorSites/NA_runs/SDA_8k_site/observation/Rdata/obs.mean.Rdata")

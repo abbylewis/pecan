@@ -359,8 +359,6 @@ sda.enkf.multisite <- function(settings,
   ###------------------------------------------------------------------------------------------------###
   ### loop over time                                                                                 ###
   ###------------------------------------------------------------------------------------------------###
-  # initialize the lists of covariates for the debias feature.
-  pre.states <- vector("list", length = length(var.names)) %>% purrr::set_names(var.names)
   # initialize the lists of forecasts for all time points.
   all.X <- vector("list", length = nt)
   for(t in 1:nt){
@@ -513,15 +511,17 @@ sda.enkf.multisite <- function(settings,
     if (!is.null(debias$start.year)) {
       if (obs.year >= debias$start.year) {
         PEcAn.logger::logger.info("Start debiasing!")
-        debias.out <- sda_bias_correction(site.locs, 
-                                          t, all.X, 
-                                          obs.mean, 
-                                          state.interval, 
-                                          debias$cov.dir,
-                                          pre.states,
-                                          .get_debias_mod)
+        debias.out <- sda.bias.correction(settings = settings, 
+                                          t = t, 
+                                          t.start = debias$t.start, 
+                                          dates = assim.sda, 
+                                          all.X = all.X, 
+                                          obs.mean = obs.mean, 
+                                          state.interval = state.interval, 
+                                          cov.dir = debias$cov.dir, 
+                                          residual.lag = TRUE, 
+                                          py.init = .get_debias_mod)
         X <- debias.out$X
-        pre.states <- debias.out$pre.states
       }
     }
     FORECAST[[obs.t]] <- all.X[[t]] <- X

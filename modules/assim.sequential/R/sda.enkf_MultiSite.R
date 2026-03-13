@@ -32,9 +32,11 @@
 #' including `local` ,where we execute the model locally;
 #' `qsub`, where we use the traditional `start_model_runs` function for submission;
 #' `qsub_parallel`, where we first combine jobs and submit them into the SCC.
-#' @param debias List: R list containing the covariance directory and the start time point.
+#' @param debias List: R list containing the covariance directory, the start time point, 
+#' and if we want to include the `residual.lag` as additional covariate.
 #' covariance directory should include GeoTIFF files named by year.
 #' start time point is numeric input which decide when to start the debiasing feature.
+#' `residual.lag` is either TRUE or FALSE.
 #' @param ...       Additional arguments, currently ignored
 #' 
 #' @return NONE
@@ -57,7 +59,7 @@ sda.enkf.multisite <- function(settings,
                                             MCMC.args = NULL,
                                             merge_nc = TRUE,
                                             execution = "local"),
-                               debias = list(cov.dir = NULL, t.start = NULL), ...) {
+                               debias = list(cov.dir = NULL, t.start = NULL, residual.lag = NULL), ...) {
   #add if/else for when restart points to folder instead if T/F set restart as T
   if(is.list(restart)){
     old.dir <- restart$filepath
@@ -507,8 +509,8 @@ sda.enkf.multisite <- function(settings,
     all.X[[t]] <- X
     # start debiasing.
     debias.out <- NULL
-    if (!is.null(debias$start.year)) {
-      if (obs.year >= debias$start.year) {
+    if (!is.null(debias$t.start)) {
+      if (obs.year >= debias$t.start) {
         PEcAn.logger::logger.info("Start debiasing!")
         debias.out <- sda.bias.correction(settings = settings, 
                                           t = t, 
@@ -518,7 +520,7 @@ sda.enkf.multisite <- function(settings,
                                           obs.mean = obs.mean, 
                                           state.interval = state.interval, 
                                           cov.dir = debias$cov.dir, 
-                                          residual.lag = TRUE, 
+                                          residual.lag = debias$residual.lag, 
                                           py.init = .get_debias_mod)
         X <- debias.out$X
       }

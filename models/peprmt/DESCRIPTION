@@ -12,14 +12,21 @@ Description: This module provides functions to link PEPRMT to PEcAn.
 URL: https://pecanproject.github.io
 BugReports: https://github.com/PecanProject/pecan/issues
 Imports:
-    PEcAn.logger,
-    PEcAn.remote,
+    dplyr,
     lubridate (>= 1.6.0),
     ncdf4 (>= 1.15),
-    PEcAn.utils
-    readr
+    PEcAn.logger,
+    PEcAn.remote,
+    PEcAn.utils,
+    PEPRMT
 Suggests:
-    testthat (>= 1.0.2)
+    dygraphs,
+    earthdatalogin,
+    imager,
+    rstac,
+    terra,
+    testthat (>= 1.0.2),
+    xts
 #SystemRequirements: dalec
 OS_type: unix
 License: BSD_3_clause + file LICENSE
@@ -27,4 +34,4 @@ Copyright: Authors
 LazyLoad: yes
 LazyData: FALSE
 Encoding: UTF-8
-RoxygenNote: 7.3.2
+RoxygenNote: 7.3.3

@@ -1,14 +1,23 @@
 <?xml version="1.0"?>
 <pecan>
  <info>
-  <notes>Compiled from template.xml at 2026-02-16 10:15:15.150035</notes>
+  <notes>Compiled from template.xml at 2026-03-03 12:32:05.933794</notes>
   <userid>-1</userid>
   <username></username>
  </info>
  <outdir>output</outdir>
  <modeloutdir>output/out</modeloutdir>
  <rundir>output/run</rundir>
- <pfts/>
+ <pfts>
+  <pft>
+   <name>soil</name>
+   <outdir>raw-data/pfts/soil/</outdir>
+  </pft>
+  <pft>
+   <name>Not implemented</name>
+   <outdir>raw-data/pfts/soil/</outdir>
+  </pft>
+ </pfts>
  <ensemble>
   <size>20</size>
   <variable>TotSoilCarb</variable>
@@ -41,6 +50,7 @@
      <soil>soil</soil>
     </site.pft>
     <ERA5_grid_cell>37.5N_122W</ERA5_grid_cell>
+    <name>US_EDN</name>
     <met.start>2016-01-01</met.start>
     <met.end>2024-12-31</met.end>
    </site>
@@ -98,6 +108,7 @@
      <soil>soil</soil>
     </site.pft>
     <ERA5_grid_cell>38N_122W</ERA5_grid_cell>
+    <name>US_SRR</name>
     <met.start>2016-01-01</met.start>
     <met.end>2024-12-31</met.end>
    </site>
@@ -155,6 +166,7 @@
      <soil>soil</soil>
     </site.pft>
     <ERA5_grid_cell>39N_75.5W</ERA5_grid_cell>
+    <name>US_STJ</name>
     <met.start>2016-01-01</met.start>
     <met.end>2024-12-31</met.end>
    </site>
@@ -212,6 +224,7 @@
      <soil>soil</soil>
     </site.pft>
     <ERA5_grid_cell>29.5N_90.5W</ERA5_grid_cell>
+    <name>US_LA1</name>
     <met.start>2016-01-01</met.start>
     <met.end>2024-12-31</met.end>
    </site>
@@ -269,6 +282,7 @@
      <soil>soil</soil>
     </site.pft>
     <ERA5_grid_cell>42.5N_71W</ERA5_grid_cell>
+    <name>US_PLM</name>
     <met.start>2016-01-01</met.start>
     <met.end>2024-12-31</met.end>
    </site>
@@ -323,6 +337,9 @@
   <rundir>output/run</rundir>
   <modellauncher>
    <binary>parallel -j ${NCPUS:-1} --skip-first-line &apos;{}/job.sh&apos; ::::</binary>
+   <qsub.extra>
+    <text>&quot;&quot;</text>
+   </qsub.extra>
    <Njobmax>1000</Njobmax>
   </modellauncher>
  </host>

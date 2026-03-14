@@ -8,14 +8,16 @@
 ##' @param sitelon Longitude of the site
 ##' @param start_date Start time of the simulation
 ##' @param end_date End time of the simulation
+##' @param delete_raw logical: remove out.csv after converting?
 ##' @export
 ##' @author Abigail Lewis
 
-model2netcdf.PEPRMT <- function(outdir, sitelat, sitelon, start_date, end_date) {
+model2netcdf.PEPRMT <- function(outdir, sitelat, sitelon, start_date, end_date, delete_raw = FALSE) {
   runid <- basename(outdir)
+  raw_output <- file.path(outdir, "out.csv")
   
   ### Read in model output in PEPRMT format
-  PEPRMT.output      <- read.csv(file.path(outdir, "out.csv"))
+  PEPRMT.output      <- utils::read.csv(raw_output)
   PEPRMT.output.dims <- dim(PEPRMT.output)
   
   years <- unique(PEPRMT.output$Year)
@@ -28,13 +30,13 @@ model2netcdf.PEPRMT <- function(outdir, sitelat, sitelon, start_date, end_date) 
     print(paste("---- Processing year: ", y))  #turn on for debugging
     
     ## Subset data for processing
-    sub.PEPRMT.output <- subset(PEPRMT.output, Year == y)
+    sub.PEPRMT.output <- dplyr::filter(PEPRMT.output, .data$Year == y)
     sub.PEPRMT.output.dims <- dim(sub.PEPRMT.output)
 
     # ******************** Declare netCDF variables ********************#
     start.day <- 1
     if (y == lubridate::year(start_date)){
-      start.day <- yday(start_date)
+      start.day <- lubridate::yday(start_date)
     } 
     tvals <- (start.day:sub.PEPRMT.output.dims[1])-1
     bounds <- array(data=NA, dim=c(length(tvals),2))
@@ -108,8 +110,12 @@ model2netcdf.PEPRMT <- function(outdir, sitelat, sitelon, start_date, end_date) 
       ncdf4::ncvar_put(nc, nc_var[[i]], output[[i]])
     }
     ncdf4::nc_close(nc)
-    
+
   }  ### End of year loop
+
+  if (delete_raw) {
+    file.remove(raw_output)
+  }
 } # model2netcdf.PEPRMT
 # ==================================================================================================#
 ## EOF

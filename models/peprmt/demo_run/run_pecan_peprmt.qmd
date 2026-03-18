@@ -59,11 +59,6 @@ options(repos = c(
 install.packages(c('PEcAn.all', 'PEcAn.PEPRMT'))
 ```
 
-```{r}
-remotes::install_github("pecanproject/pecan#3871", subdir = "base/all", ref = "develop")
-remotes::install_github("abbylewis/pecan", subdir = "models/peprmt", 
-                        ref = "peprmt")
-```
 
 
 (Note that the chunk above does not run automatically since it will overwrite a version of PEcAn you installed by other methods. Run it by hand when needed.)

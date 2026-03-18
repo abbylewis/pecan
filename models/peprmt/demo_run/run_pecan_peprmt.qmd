@@ -347,7 +347,7 @@ If you want to remove all files and directories created by this workflow and sta
 ```{r cleanup}
 # WARNING: This will permanently delete all workflow output files!
 # Uncomment the line below to enable cleanup.
-fs::dir_delete(settings$outdir)
+# fs::dir_delete(settings$outdir)
 ```
 
 # Session Info

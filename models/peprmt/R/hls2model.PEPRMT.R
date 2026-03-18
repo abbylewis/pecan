@@ -136,7 +136,7 @@ hls2model.PEPRMT <- function(in.path, in.prefix, outfolder, start_date, end_date
     mask <- terra::rast(fmask, vals=0)
     for (b in selected_bit_nums){
       # Apply Bitwise AND to fmask values and selected bit numbers
-      mask_temp <- app(fmask, function(x) bitwAnd(x, bitwShiftL(1,b)) >0)
+      mask_temp <- terra::app(fmask, function(x) bitwAnd(x, bitwShiftL(1,b)) >0)
       # Update Mask to maintain only 1 layer with bitwise OR
       mask <- mask | mask_temp
     }

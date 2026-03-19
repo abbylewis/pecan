@@ -18,9 +18,9 @@ make_test_pft <- function(outdir) {
 }
 
 make_empty_pft <- function(outdir) {
-  # Uses a deliberately nonexistent PFT name to test empty-data behavior
+  # PFT that exists in BETY but has no observations for the requested traits
   list(
-    name        = "test.EmptyPFT.NoSpecies",
+    name        = "soil.ALL",
     outdir      = outdir,
     posteriorid = NULL,
     constants   = list()
@@ -110,7 +110,7 @@ test_that("make_empty_pft returns correctly structured list", {
   pft <- make_empty_pft(outdir)
   
   expect_true(is.list(pft))
-  expect_equal(pft$name, "test.EmptyPFT.NoSpecies")
+  expect_equal(pft$name, "soil.ALL")
   expect_equal(pft$outdir, outdir)
   expect_null(pft$posteriorid)
   expect_true(is.list(pft$constants))
@@ -313,14 +313,20 @@ test_that("get.trait.data.pft() does not error for a PFT with no observations", 
   skip_if_no_db(test_dbcon)
   outdir <- withr::local_tempdir()
 
-  expect_no_error(
+  soil_exists <- tryCatch({
+    nrow(DBI::dbGetQuery(test_dbcon, "SELECT 1 FROM pfts WHERE name = 'soil.ALL' LIMIT 1")) > 0
+  }, error = function(e) FALSE)
+  skip_if_not(soil_exists, "soil.ALL PFT not present in test BETY")
+
+  expect_error(
     get.trait.data.pft(
       pft         = make_empty_pft(outdir),
       modeltype   = std_modeltype,
       dbfiles     = outdir,
       dbcon       = test_dbcon,
       trait.names = std_traits
-    )
+    ),
+    regexp = NA  # NA means "no error expected"
   )
 })
 
@@ -431,13 +437,51 @@ test_that("end-to-end: written files are consistent with returned pft", {
 })
 
 if (!is.null(test_dbcon)) {
-  if (exists("teardown_env", where = asNamespace("testthat"))) {
-    withr::defer(
-      try(PEcAn.DB::db.close(test_dbcon), silent = TRUE),
-      envir = testthat::teardown_env()
-    )
-  } else {
-    # Fallback for testthat < 3.0.0
-    on.exit(try(PEcAn.DB::db.close(test_dbcon), silent = TRUE), add = TRUE)
-  }
+  withr::defer(
+    try(PEcAn.DB::db.close(test_dbcon), silent = TRUE),
+    envir = testthat::teardown_env()
+  )
 }
+
+# ── Block 7: Error cases ─────────────────────────────────────────────────────
+
+test_that("get.trait.data.pft() errors for non-existent PFT name", {
+  skip_if_no_db(test_dbcon)
+  outdir <- withr::local_tempdir()
+
+  expect_error(
+    get.trait.data.pft(
+      pft       = list(name = "NOTAPFT", outdir = outdir,
+                        posteriorid = NULL, constants = list()),
+      modeltype = std_modeltype,
+      dbfiles   = outdir,
+      dbcon     = test_dbcon,
+      trait.names = std_traits
+    ),
+    "Could not find pft"
+  )
+})
+
+test_that("get.trait.data.pft() errors when multiple PFTs share a name", {
+  skip_if_no_db(test_dbcon)
+  outdir <- withr::local_tempdir()
+
+  # "soil" matches multiple PFTs in standard BETY
+  multi_exists <- tryCatch({
+    n <- DBI::dbGetQuery(test_dbcon, "SELECT count(*) AS n FROM pfts WHERE name = 'soil'")$n
+    n > 1
+  }, error = function(e) FALSE)
+  skip_if_not(multi_exists, "Need multiple PFTs named 'soil' to test this case")
+
+  expect_error(
+    get.trait.data.pft(
+      pft       = list(name = "soil", outdir = outdir,
+                        posteriorid = NULL, constants = list()),
+      modeltype = NULL,
+      dbfiles   = outdir,
+      dbcon     = test_dbcon,
+      trait.names = "SLA"
+    ),
+    "Multiple PFTs"
+  )
+})

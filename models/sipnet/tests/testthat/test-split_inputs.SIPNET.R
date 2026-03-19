@@ -55,7 +55,7 @@ test_that("v2 clim format", {
   outdir <- withr::local_tempdir()
   climfile <- file.path(outdir, "niwot_v2.clim")
   v1_clim <- system.file("niwot.clim", package = "PEcAn.SIPNET")
-  system2("cut", c("-w", "-f2-13", v1_clim, ">", climfile))
+  system2("cut", c("-d' '", "-f2-13", v1_clim, ">", climfile))
 
   clim_split <- split_inputs.SIPNET(
     start.time = "2001-01-01",

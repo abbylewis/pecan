@@ -18,12 +18,11 @@ test_that("split_inputs", {
     by = "2 years"
   )
 
-  clim_split <- purrr::map2_chr(
-    .x = dates,
-    .y = c(dates[-1], as.Date("2006-01-01")), # Stop just _before_ these dates
-    ~ split_inputs.SIPNET(
-      start.time = .x,
-      stop.time = .y,
+  clim_split <- mapply(
+    split_inputs.SIPNET,
+    start.time = dates,
+    stop.time = c(dates[-1], as.Date("2006-01-01")), # Stop just _before_ these dates
+    MoreArgs = list(
       inputs = climfile,
       outpath = outdir
     )

@@ -23,6 +23,18 @@ event_filename <- Sys.getenv("EVENT_FILENAME", "irrigation_small.parquet")
 
 stopifnot(exec_type %in% c("cluster", "local"))
 
+message(glue::glue(
+  "Running {n_parcels} parcels in batches of {batch_size} parcels each.\n",
+  "Execution type: {exec_type} with ",
+  if (exec_type == "local") {
+    "{n_local_workers} workers.\n"
+  } else {
+    "{n_remote_workers} workers.\n"
+  },
+  "Output will be saved to ",
+  "{file.path(Sys.getenv('EVENT_OUTPUT_DIR'), event_filename)}"
+))
+
 ctrl_local <- crew_controller_local(
   name = "local",
   workers = n_local_workers

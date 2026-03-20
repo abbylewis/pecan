@@ -37,9 +37,9 @@ This notebook demonstrates how to:
 
 ### The Scenario Being Modeled:
 
-We are modeling greenhouse gas dynamics (gross primary productivity, ecosystem respiration, and methane emissions) at ____ sites. The model configuration uses the PEPRMT-Tidal process-based ecosystem model. [model details]
+We are modeling greenhouse gas dynamics (gross primary productivity, ecosystem respiration, and methane emissions) at five sites. The model configuration uses the PEPRMT-Tidal process-based ecosystem model (Oikawa et al. 2024). 
 
-The simulation is run for _____ time period. 
+The simulation is run for the duration of data at each site, which ranges from 2011 to 2021.
 
 This scenario is designed to be a minimal, reproducible example to demonstrate how to run PEPRMT within the PEcAn workflow. In later steps, this same framework can be extended to include more ensemble members, longer time periods, or alternative meteorological inputs.
 
@@ -49,7 +49,7 @@ Before running this notebook, make sure you have:
 
 -   All the PEcAn packages installed. You can install all PEcAn packages and their dependencies by running the following command in the root of your PEcAn repository:
 
-```
+```         
 
 # Enable repository from pecanproject
 options(repos = c(
@@ -59,17 +59,22 @@ options(repos = c(
 install.packages(c('PEcAn.all', 'PEcAn.PEPRMT'))
 ```
 
+-   Or install from GitHub
 
+```         
+remotes::install_github("pecanproject/pecan", subdir = "base/all", ref = "develop", force = T)
+remotes::install_github("pecanproject/pecan", subdir = "models/peprmt",
+                        ref = "develop")
+```
 
 (Note that the chunk above does not run automatically since it will overwrite a version of PEcAn you installed by other methods. Run it by hand when needed.)
-
 
 ```{r}
 #Set working directory
 here::i_am("models/peprmt/demo_run/run_pecan_peprmt.qmd")
 ```
 
-- A valid `pecan.xml` configuration file or use the example provided: `pecan/models/peprmt/demo_run/settings.xml`
+-   A valid `pecan.xml` configuration file or use the example provided: `pecan/models/peprmt/demo_run/settings.xml`
 
 ## How to Use This Notebook
 
@@ -156,7 +161,7 @@ Editing the more interesting settings to change the PFT (`settings$pfts`) or ext
 
 The directory structure created by PEcAn for this demo run will look like this:
 
-```
+```         
 demo_outdir/               # Root output directory
 ├── run/                   # Configuration & execution metadata
 │   ├── runs.txt           # List of run IDs (one per model realization)
@@ -190,21 +195,19 @@ This section executes the actual model simulations and retrieves the results. Th
 PEcAn.workflow::runModule_start_model_runs(settings)
 ```
 
-
 This step generates raw model outputs in model-specific format (in this case, `out.csv`) as well as log files.
 
 # Extract Model Results and Prepare for Analysis
 
 After the model simulation completes, we need to extract the results and prepare them for analysis. This involves:
 
-1. Reading the run ID
-2. Setting up output paths
-3. Defining time period
-4. Loading model output
-5. Convert to a standard format
+1.  Reading the run ID
+2.  Setting up output paths
+3.  Defining time period
+4.  Loading model output
+5.  Convert to a standard format
 
-Here we read output one site at a time to account for differing simulation periods.
-For runs where all sites have the same dates, it should also work to pass the entire runid vector to a single `read.output` call.
+Here we read output one site at a time to account for differing simulation periods. For runs where all sites have the same dates, it should also work to pass the entire runid vector to a single `read.output` call.
 
 ```{r get-plot-vars}
 runid <- read.csv(file.path(settings$outdir, "runs_manifest.csv"))$run_id
@@ -226,7 +229,7 @@ model_output <- purrr::map2_dfr(
 available_vars <- names(model_output)[!names(model_output) %in% c("posix", "time_bounds")]
 ```
 
-Running this code will convert model specific output files into a standardized netCDF ([year].nc) that can be downloaded for visualization and analysis (R, Matlab, ncview, panoply, etc). This is a key step, because this standardization enables PEcAn to apply downstream analyses to outputs from different ecosystem models.
+Running this code will convert model specific output files into a standardized netCDF (\[year\].nc) that can be downloaded for visualization and analysis (R, Matlab, ncview, panoply, etc). This is a key step, because this standardization enables PEcAn to apply downstream analyses to outputs from different ecosystem models.
 
 # Display Available Model Variables
 
@@ -262,71 +265,57 @@ This section provides examples of how to create time series plots of different m
 library("tidyverse")
 model_output |>
   mutate(site_id = sub("ENS-\\d+-", "", run_id)) |>
-  select("site_id", "run_id", "posix", "GPP", "NEE") |>
-  pivot_longer(cols = c("GPP", "NEE"), names_to = "flux") |>
+  select("site_id", "run_id", "posix", "GPP", "NEE", "TotalResp") |>
+  pivot_longer(cols = c("TotalResp", "GPP", "NEE"), names_to = "flux") |>
   ggplot() +
-    aes(x = posix, y = value, color = flux, group = run_id) +
-    facet_wrap(~site_id) +
-    geom_line() +
-    xlab("Date") +
-    ylab("Carbon Flux (kg C m-2 s-1)") +
-    ggtitle("Carbon Fluxes Over Time") +
-    theme_bw()
+  aes(x = posix, y = value, color = flux, group = run_id) +
+  facet_grid(flux~site_id) +
+  geom_line() +
+  xlab("Date") +
+  ylab("Carbon Flux (kg C m-2 s-1)") +
+  ggtitle("Carbon Fluxes Over Time") +
+  theme_bw()+
+  theme(legend.position = "none")
 
-plot(model_output$posix, model_output$GPP,
-  type = "l",
-  col = "green",
-  xlab = "Date",
-  ylab = "Carbon Flux (kg C m-2 s-1)",
-  main = "Carbon Fluxes Over Time"
-)
-lines(model_output$posix, model_output$NPP, col = "blue")
-legend("topright", legend = c("GPP", "NPP"), col = c("green", "blue"), lty = 1)
+min(model_output$posix)
 ```
 
-## Plot Carbon Pools
+## Plot Methane emissions
 
-```{r plot-carbon-pools}
-# Plot Total Live Biomass and Total Soil Carbon
-plot(model_output$posix, model_output$TotLivBiom,
-  type = "l",
-  col = "darkgreen",
-  xlab = "Date",
-  ylab = "Carbon Pool (kg C m-2)",
-  main = "Carbon Pools Over Time"
-)
-lines(model_output$posix, model_output$TotSoilCarb, col = "brown")
-legend("topright", legend = c("Total Live Biomass", "Total Soil Carbon"), col = c("darkgreen", "brown"), lty = 1)
+```{r plot-methane}
+model_output |>
+  mutate(site_id = sub("ENS-\\d+-", "", run_id)) |>
+  select("site_id", "run_id", "posix", "CH4_flux") |>
+  ggplot() +
+  aes(x = posix, y = CH4_flux, group = run_id) +
+  facet_wrap(~site_id, nrow = 1) +
+  geom_line() +
+  xlab("Date") +
+  ylab("Methane Flux (kg C m-2 s-1)") +
+  ggtitle("Methane Fluxes Over Time") +
+  theme_bw()+
+  theme(legend.position = "none")
 ```
 
-## Plot Water Variables
+## Plot soil carbon
 
-```{r plot-water-variables}
-# Plot Soil Moisture and Snow Water Equivalent
-plot(model_output$posix, model_output$SoilMoist,
-  type = "l",
-  col = "blue",
-  xlab = "Date",
-  ylab = "Soil Moisture (kg m-2)",
-  main = "Soil Moisture Over Time"
-)
-lines(model_output$posix, model_output$SWE, col = "lightblue")
-legend("topright", legend = c("Soil Moisture", "Snow Water Equivalent"), col = c("blue", "lightblue"), lty = 1)
-```
-
-## Plot LAI and Biomass
-
-```{r plot-lai-biomass}
-# Plot Leaf Area Index (LAI) and Above Ground Wood
-plot(model_output$posix, model_output$LAI,
-  type = "l",
-  col = "darkgreen",
-  xlab = "Date",
-  ylab = "LAI (m2 m-2)",
-  main = "Leaf Area Index Over Time"
-)
-lines(model_output$posix, model_output$AbvGrndWood, col = "brown")
-legend("topright", legend = c("LAI", "Above Ground Wood"), col = c("darkgreen", "brown"), lty = 1)
+```{r plot-soil-carbon}
+model_output |>
+  mutate(site_id = sub("ENS-\\d+-", "", run_id)) |>
+  select("site_id", "run_id", "posix", "slow_soil_pool_carbon_content",
+         "fast_soil_pool_carbon_content") |>
+  pivot_longer(cols = c("slow_soil_pool_carbon_content",
+                        "fast_soil_pool_carbon_content"), 
+         names_to = "flux") |>
+  ggplot() +
+  aes(x = posix, y = value, color = flux, group = run_id) +
+  facet_grid(flux~site_id, scales = "free_y") +
+  geom_line() +
+  xlab("Date") +
+  ylab("Carbon Flux (kg C m-2 s-1)") +
+  ggtitle("Carbon Fluxes Over Time") +
+  theme_bw()+
+  theme(legend.position = "none")
 ```
 
 # Conclusion
@@ -346,6 +335,7 @@ If you want to remove all files and directories created by this workflow and sta
 ```
 
 # Session Info
+
 This section prints your R session information for reproducibility.
 
 ```{r session-info}

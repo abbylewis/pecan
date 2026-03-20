@@ -1,0 +1,3 @@
+main:
+  script: /projectnb/dietzelab/ccmmf/usr/ashiklom/pecan/cimis-et-complete/modules/data.land/inst/irrigation-statewide/_targets.R
+  store: /projectnb/dietzelab/ccmmf/usr/ashiklom/pecan/cimis-et-complete/modules/data.land/inst/irrigation-statewide/_targets/

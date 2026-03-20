@@ -1,0 +1,161 @@
+#!/usr/bin/env Rscript
+
+library(targets)
+library(tarchetypes)
+library(crew)
+library(crew.cluster)
+
+root_dir <- here::here("modules/data.land/inst/irrigation-statewide/")
+logdir <- file.path(root_dir, "_logs")
+dir.create(logdir, showWarnings = FALSE, recursive = TRUE)
+
+n_parcels <- Sys.getenv("N_PARCELS", 1000)
+if (tolower(n_parcels) == "all") {
+  n_parcels <- NULL
+} else {
+  n_parcels <- as.integer(n_parcels)
+}
+batch_size <- as.integer(Sys.getenv("BATCH_SIZE", 100))
+n_remote_workers <- as.integer(Sys.getenv("N_REMOTE_WORKERS", 10))
+n_local_workers <- as.integer(Sys.getenv("NSLOTS", 1))
+exec_type <- Sys.getenv("EXEC_TYPE", "local")
+event_filename <- Sys.getenv("EVENT_FILENAME", "irrigation_small.parquet")
+
+stopifnot(exec_type %in% c("cluster", "local"))
+
+ctrl_local <- crew_controller_local(
+  name = "local",
+  workers = n_local_workers
+)
+
+ctrl_sge <- crew_controller_sge(
+  name = "sge",
+  workers = n_remote_workers,
+  options_cluster = crew_options_sge(
+    envvars = TRUE, # Needed for pixi
+    log_output = logdir
+  )
+)
+
+res_local <- tar_resources(
+  crew = tar_resources_crew(controller = "local")
+)
+res_sge <- tar_resources(
+  crew = tar_resources_crew(controller = "sge")
+)
+
+res_default <- if (exec_type == "local") {
+  message("Running locally")
+  res_local
+} else if (exec_type == "cluster") {
+  message("Running via SGE cluster")
+  res_sge
+} else {
+  stop("Unknown exec_type ", shQuote(exec_type))
+}
+
+tar_option_set(
+  controller = crew_controller_group(ctrl_local, ctrl_sge),
+  resources = res_default,
+  packages = c("ggplot2", "rlang", "PEcAn.data.land"),
+  imports = c("PEcAn.data.land")
+)
+
+if (exec_type == "cluster") {
+  tar_option_set(storage = "worker", retrieval = "worker")
+}
+
+tar_source(file.path(root_dir, "R"))
+
+list(
+  tar_target(crops_path, path.expand(Sys.getenv("LANDIQ_CROPS"))),
+  tar_target(mslsp_path, path.expand(Sys.getenv("LANDIQ_TIMESERIES"))),
+  tar_target(cimis_etref_path, path.expand(Sys.getenv("CIMIS_ETREF"))),
+  tar_target(chirps_precip_path, path.expand(Sys.getenv("CHIRPS_PRECIP"))),
+  tar_target(ssurgo_weights_path, path.expand(Sys.getenv("SSURGO_WEIGHTS"))),
+  tar_target(ssurgo_gdb_path, path.expand(Sys.getenv("SSURGO_GDB"))),
+
+  tar_target(event_output_dir, path.expand(Sys.getenv("EVENT_OUTPUT_DIR"))),
+
+  tar_target(validated_paths, {
+    stopifnot(
+      file.exists(crops_path),
+      dir.exists(mslsp_path),
+      length(list.files(mslsp_path, "\\.parquet")) == 7,
+      dir.exists(cimis_etref_path),
+      dir.exists(chirps_precip_path),
+      file.exists(ssurgo_weights_path),
+      dir.exists(ssurgo_gdb_path)
+    )
+    dir.create(event_output_dir, showWarnings = FALSE, recursive = TRUE)
+    TRUE
+  }),
+
+  tar_target(parcel_ids, get_parcel_ids(crops_path, n_parcels)),
+
+  tar_target(
+    parcel_id_batches,
+    split_into_batches(parcel_ids, batch_size),
+    iteration = "list"
+  ),
+
+  tar_target(
+    phenology,
+    get_phenology(mslsp_path, parcel_id_batches),
+    pattern = map(parcel_id_batches),
+    format = "parquet"
+  ),
+
+  tar_target(
+    etref,
+    get_etref(cimis_etref_path, parcel_id_batches),
+    pattern = map(parcel_id_batches),
+    format = "parquet"
+  ),
+
+  tar_target(
+    precip,
+    get_precip(chirps_precip_path, parcel_id_batches),
+    pattern = map(parcel_id_batches),
+    format = "parquet"
+  ),
+
+  tar_target(
+    crop_info,
+    get_crop_info(crops_path, parcel_id_batches),
+    pattern = map(parcel_id_batches),
+    format = "parquet"
+  ),
+
+  tar_target(
+    crops_with_soil,
+    add_soil_awc(crop_info, ssurgo_weights_path, ssurgo_gdb_path),
+    pattern = map(crop_info),
+    format = "parquet"
+  ),
+
+  tar_target(
+    complete_crop_timeseries,
+    make_crop_timeseries(crops_with_soil, phenology, precip, etref),
+    pattern = map(crops_with_soil, phenology, precip, etref),
+    format = "parquet"
+  ),
+
+  tar_target(
+    parcel_waterbalance,
+    apply_water_balance(complete_crop_timeseries, "parcel_id"),
+    pattern = map(complete_crop_timeseries),
+    format = "parquet"
+  ),
+
+  tar_target(
+    irr_events,
+    make_event_df(
+      parcel_waterbalance,
+      file.path(event_output_dir, event_filename)
+    ),
+    format = "file"
+  ),
+
+  NULL
+)

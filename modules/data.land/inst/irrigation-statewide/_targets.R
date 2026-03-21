@@ -9,21 +9,56 @@ root_dir <- here::here("modules/data.land/inst/irrigation-statewide/")
 logdir <- file.path(root_dir, "_logs")
 dir.create(logdir, showWarnings = FALSE, recursive = TRUE)
 
-n_parcels <- Sys.getenv("N_PARCELS", 1000)
+tar_project <- Sys.getenv("TAR_PROJECT", "main")
+proj_defaults <- list(
+  small = list(
+    n_parcels = 1000,
+    batch_size = 100,
+    n_remote_workers = 1,  # dummy value
+    exec_type = "local",
+    event_filename = "irrigation_1000.parquet"
+  ),
+  medium = list(
+    n_parcels = 10000,
+    batch_size = 1000,
+    n_remote_workers = 15,
+    exec_type = "cluster",
+    event_filename = "irrigation_10000.parquet"
+  )
+)
+proj_defaults[["main"]] <- proj_defaults[["small"]]
+
+n_parcels <- Sys.getenv(
+  "N_PARCELS",
+  proj_defaults[[tar_project]][["n_parcels"]]
+)
 if (tolower(n_parcels) == "all") {
   n_parcels <- NULL
 } else {
   n_parcels <- as.integer(n_parcels)
 }
-batch_size <- as.integer(Sys.getenv("BATCH_SIZE", 100))
-n_remote_workers <- as.integer(Sys.getenv("N_REMOTE_WORKERS", 10))
+batch_size <- as.integer(Sys.getenv(
+  "BATCH_SIZE",
+  proj_defaults[[tar_project]][["batch_size"]]
+))
+n_remote_workers <- as.integer(Sys.getenv(
+  "N_REMOTE_WORKERS",
+  proj_defaults[[tar_project]][["n_remote_workers"]]
+))
 n_local_workers <- as.integer(Sys.getenv("NSLOTS", 1))
-exec_type <- Sys.getenv("EXEC_TYPE", "local")
-event_filename <- Sys.getenv("EVENT_FILENAME", "irrigation_small.parquet")
+exec_type <- Sys.getenv(
+  "EXEC_TYPE",
+  proj_defaults[[tar_project]][["exec_type"]]
+)
+event_filename <- Sys.getenv(
+  "EVENT_FILENAME",
+  proj_defaults[[tar_project]][["event_filename"]]
+)
 
 stopifnot(exec_type %in% c("cluster", "local"))
 
 message(glue::glue(
+  "PROJECT: {tar_project}\n",
   "Running {n_parcels} parcels in batches of {batch_size} parcels each.\n",
   "Execution type: {exec_type} with ",
   if (exec_type == "local") {
@@ -32,7 +67,8 @@ message(glue::glue(
     "{n_remote_workers} workers.\n"
   },
   "Output will be saved to ",
-  "{file.path(Sys.getenv('EVENT_OUTPUT_DIR'), event_filename)}"
+  "{file.path(Sys.getenv('EVENT_OUTPUT_DIR'), event_filename)}\n",
+  "Targets output will be stored in ", tar_config_get("store")
 ))
 
 ctrl_local <- crew_controller_local(
@@ -45,7 +81,17 @@ ctrl_sge <- crew_controller_sge(
   workers = n_remote_workers,
   options_cluster = crew_options_sge(
     envvars = TRUE, # Needed for pixi
-    log_output = logdir
+    log_output = logdir,
+    script_lines = c(
+      # Try to prevent multiple threads
+      "#$ -pe omp 1",
+      "export OMP_NUM_THREADS=1",
+      "export OPENBLAS_NUM_THREADS=1",
+      "export MKL_NUM_THREADS=1",
+      "export RCPP_PARALLEL_NUM_THREADS=1",
+      "export GOTO_NUM_THREADS=1",
+      "export USE_SIMPLE_THREADED_LEVEL3=1"
+    )
   )
 )
 

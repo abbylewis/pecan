@@ -56,7 +56,7 @@ make_crop_timeseries <- function(crops_with_soil, phenology, precip, etref) {
       by = c("parcel_id", "date")
     ) |>
     dplyr::arrange(.data$parcel_id, .data$date) |>
-    tidyr::fill(.data$etref_mm_day) |>
+    tidyr::fill("etref_mm_day") |>
     dplyr::mutate(
       etc_mm_day = eto_to_etc_bism(
         eto = .data$etref_mm_day,

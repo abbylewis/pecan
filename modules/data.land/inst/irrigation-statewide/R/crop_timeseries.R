@@ -47,14 +47,26 @@ make_crop_timeseries <- function(crops_with_soil, phenology, precip, etref) {
       )
   }
 
-  complete_crop_timeseries <- crop_soil_timeseries |>
-    dplyr::left_join(precip, by = c("parcel_id", "date")) |>
+  start_date <- min(crop_soil_timeseries[["date"]])
+  end_date <- max(crop_soil_timeseries[["date"]])
+
+  complete_crop_timeseries <- precip |>
+    dplyr::filter(
+      .data$date >= .env$start_date,
+      .data$date <= .env$end_date
+    ) |>
     dplyr::left_join(
       dplyr::select(etref, -"year"),
       by = c("parcel_id", "date")
     ) |>
     dplyr::arrange(.data$parcel_id, .data$date) |>
     tidyr::fill("etref_mm_day") |>
+    dplyr::left_join(crop_soil_timeseries, by = c("parcel_id", "date")) |>
+    tidyr::replace_na(list(canopy_cover = 0)) |>
+    tidyr::fill(
+      c("whc_min_frac", "whc_mm", "crop_name"),
+      .direction = "downup"
+    ) |>
     dplyr::mutate(
       etc_mm_day = eto_to_etc_bism(
         eto = .data$etref_mm_day,

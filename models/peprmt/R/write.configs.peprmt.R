@@ -98,6 +98,38 @@ write.config.PEPRMT <- function(defaults, trait.values, settings, run.id) {
   # config.file.name <- paste0("CONFIG.", run.id, ".txt")
   # writeLines(config.text, con = paste(outdir, config.file.name, sep = ""))
 
+
+  # If more than one PFT passed, lump all together
+  # (complaining if any names are repeated)
+  trait_values <- Reduce(trait.values, f = append)
+  trait_names <- names(trait_values)
+  dup_traitnames <- trait_names[duplicated(trait_names)]
+  if (length(dup_traitnames) > 0) {
+    PEcAn.logger::logger.warn(
+      "Multiple trait values given for parameters",
+      paste(dQuote(dup_traitnames), collapse = ", "),
+      "write.config.PEPRMT will use the value it sees first"
+    )
+  }
+
+  GPP_names <- c("GPP_a0", "GPP_a1", "GPP_Ha", "GPP_Hd")
+  Reco_names <- c("Reco_Ea_som", "Reco_kM_som",
+                  "Reco_Ea_labile", "Reco_kM_labile")
+  CH4_names <- paste("CH4", 1:8, sep = "_") # TODO get meaningful names from Patty
+
+  missing_traitnames <- setdiff(c(GPP_names, Reco_names, CH4_names), trait_names)
+  if (length(missing_traitnames) > 0) {
+    PEcAn.logger::logger.error(
+      "Parameters missing from trait.values",
+      sQuote(missing_traitnames)
+    )
+  }
+
+  jobsh <- gsub("@GPP_THETA@", paste(trait_values[GPP_names], collapse = ", "), jobsh)
+  jobsh <- gsub("@RECO_THETA@", paste(trait_values[Reco_names], collapse = ", "), jobsh)
+  jobsh <- gsub("@CH4_THETA@", paste(trait_values[CH4_names], collapse = ", "), jobsh)
+
+
   # yes, this will be replaced with real params once demo is working
   run_data <- PEPRMT::example_data |>
     dplyr::filter(.data$site == settings$run$site$id)

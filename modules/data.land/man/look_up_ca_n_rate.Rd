@@ -3,6 +3,15 @@
 \name{look_up_ca_n_rate}
 \alias{look_up_ca_n_rate}
 \title{Look up California N application rates by crop}
+\source{
+Rosenstock, T. S., Liptzin, D., Six, J., & Tomich, T. P. (2013).
+  Nitrogen fertilizer use in California: Assessing the data, trends and a
+  way forward. California Agriculture, 67(1).
+  \url{https://escholarship.org/uc/item/5mk2q1sm}
+
+Meyer, R. D., Marcum, D. B., Orloff, S. B., & Schmierer, J. L.
+  (2007). Alfalfa fertilization strategies. UC ANR Publication 8296.
+}
 \usage{
 look_up_ca_n_rate(crop, pft_group = NULL, unit = c("g_m2", "lbs_acre"))
 }
@@ -16,14 +25,13 @@ plant functional type group (e.g. "row", "woody", "rice").}
 which columns appear as `min_n` and `max_n` in the output.}
 }
 \value{
-A data frame with columns: `pft_group`, `crop`, `min_n`, `max_n`,
+A tibble with columns: `pft_group`, `crop`, `min_n`, `max_n`,
   `source`. The `min_n` and `max_n` columns are in the requested unit.
-  Returns an empty data frame (with a warning) if no match is found.
+  Returns an empty tibble (with warning) if no match is found.
 }
 \description{
-Returns recommended nitrogen application rate ranges for California crops,
-based on CDFA-FREP guidelines and UC ANR publications. Rates are provided
-in both imperial (lbs N/acre) and SI (g N/m2) units.
+Returns recommended nitrogen application rate ranges for California crops.
+Rates are provided in both imperial (lbs N/acre) and SI (g N/m2) units.
 }
 \details{
 Matching is case-insensitive. Exact matches are returned directly.
@@ -34,7 +42,7 @@ possible crops and an empty data frame is returned.
 look_up_ca_n_rate("Tomatoes, Processing")
 look_up_ca_n_rate("corn")
 look_up_ca_n_rate("wheat", unit = "lbs_acre")
-look_up_ca_n_rate("pistachio", pft_group = "woody")
+look_up_ca_n_rate("pistachios", pft_group = "woody")
 
 }
 \seealso{

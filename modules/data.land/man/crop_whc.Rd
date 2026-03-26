@@ -18,8 +18,8 @@ A tibble with one row per crop and the following columns:
 }
 \source{
 Allen, R. G., Pereira, L. S., Raes, D., & Smith, M.
-\emph{FAO Irrigation and Drainage Paper No. 56}.
-https://www.professormendoncauenf.com.br/wp-content/uploads/2021/03/ag_fao_56_ingles.pdf
+\emph{FAO Irrigation and Drainage Paper No. 56: Crop evapotranspiration}. Chapter 8. Table 22.
+https://www.fao.org/4/x0490e/x0490e0e.htm#chapter%208%20%20%20etc%20under%20soil%20water%20stress%20conditions
 }
 \usage{
 crop_whc

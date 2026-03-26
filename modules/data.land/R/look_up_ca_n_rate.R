@@ -69,7 +69,7 @@ look_up_ca_n_rate <- function(
         "No N application rate found for crop '", crop, "'"
       )
     }
-    return(tibble::tibble(
+    return(dplyr::tibble(
       pft_group = character(),
       crop = character(),
       min_n = numeric(),
@@ -173,7 +173,7 @@ look_up_ca_compost_amendment <- function(
         "No compost amendment found for material '", material, "'"
       )
     }
-    return(tibble::tibble(
+    return(dplyr::tibble(
       material = character(), cn_min = numeric(), cn_max = numeric(),
       cn_avg = numeric(), c_pct = numeric(),
       n_pct = numeric(), pan_pct = numeric(), n_class = character(),

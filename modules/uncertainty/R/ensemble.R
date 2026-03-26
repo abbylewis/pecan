@@ -1,34 +1,35 @@
-##' Reads output from model ensemble
-##'
-##' Reads output for an ensemble of length specified by \code{ensemble.size} and bounded by \code{start.year} 
-##' and \code{end.year}
-##' @title Read ensemble output
-##' @return a list of ensemble model output 
-##' @param ensemble.size the number of ensemble members run
-##' @param pecandir specifies where pecan writes its configuration files
-##' @param outdir directory with model output to use in ensemble analysis
-##' @param start.year first year to include in ensemble analysis
-##' @param end.year last year to include in ensemble analysis
-##' @param variable target variables for ensemble analysis
-##' @param ens.run.ids dataframe. Must contain a column named "id" giving the run IDs to be read.
-##'   If NULL, will attempt to read IDs from a file named "samples.Rdata" in \code{pecandir}
-##' @export
-##' @author Ryan Kelly, David LeBauer, Rob Kooper
+#' Reads output from model ensemble
+#'
+#' Reads output for an ensemble of length specified by \code{ensemble.size} and bounded by \code{start.year}
+#' and \code{end.year}
+#'
+#' @param ensemble.size the number of ensemble members run
+#' @param pecandir specifies where pecan writes its configuration files
+#' @param outdir directory with model output to use in ensemble analysis
+#' @param start.year first year to include in ensemble analysis
+#' @param end.year last year to include in ensemble analysis
+#' @param variable target variables for ensemble analysis
+#' @param ens.run.ids dataframe. Must contain a column named "id" giving the run IDs to be read.
+#'   If NULL, will attempt to read IDs from a file named "samples.Rdata" in \code{pecandir}
+#'
+#' @return a list of ensemble model output
+#' @export
+#' @author Ryan Kelly, David LeBauer, Rob Kooper
 #--------------------------------------------------------------------------------------------------#
-read.ensemble.output <- function(ensemble.size, pecandir, outdir, start.year, end.year, 
+read.ensemble.output <- function(ensemble.size, pecandir, outdir, start.year, end.year,
                                  variable, ens.run.ids = NULL) {
-  
+
   # load manifest
   if (is.null(ens.run.ids)) {
     manifest <- utils::read.csv(file.path(pecandir, "runs_manifest.csv"), stringsAsFactors = FALSE)
     ens.run.ids <- manifest[manifest$type == "Ensemble", ]
   }
-  
+
   expr <- variable$expression
   variables <- variable$variables
-  
+
   ensemble.output <- list()
-  
+
   # handles both (manifest has 'run_id', legacy 'ens.run.ids' might have 'id')
   run_ids <- ens.run.ids$run_id %||% ens.run.ids$id
   for (i in seq_along(run_ids)) {
@@ -36,47 +37,45 @@ read.ensemble.output <- function(ensemble.size, pecandir, outdir, start.year, en
 
     # We pass the whole 'variables' vector once, avoiding repeated file open/close.
     out.tmp <- PEcAn.utils::read.output(
-      runid = run.id, 
-      outdir = file.path(outdir, run.id), 
-      start.year = start.year, 
-      end.year = end.year, 
+      runid = run.id,
+      outdir = file.path(outdir, run.id),
+      start.year = start.year,
+      end.year = end.year,
       variables = variables
     )
-    
+
     # Assign loaded variables to local environment for evaluation
     for (var in names(out.tmp)) {
       assign(var, out.tmp[[var]])
     }
-    
+
     # derivation & aggregation
     out <- eval(parse(text = expr))
-    ensemble.output[[as.character(i)]] <- mean(out, na.rm = TRUE) 
+    ensemble.output[[as.character(i)]] <- mean(out, na.rm = TRUE)
   }
-  
+
   return(ensemble.output)
 } # read.ensemble.output
 
 
-##' Get parameter values used in ensemble
-##'
-##' Returns a matrix of randomly or quasi-randomly sampled trait values 
-##' to be assigned to traits over several model runs.
-##' given the number of model runs and a list of sample distributions for traits
-##' The model run is indexed first by model run, then by trait
-##' 
-##' @title Get Ensemble Samples
-##' @name get.ensemble.samples
-##' @param ensemble.size number of runs in model ensemble
-##' @param pft.samples random samples from parameter distribution, e.g. from a MCMC chain  
-##' @param env.samples env samples
-##' @param method the method used to generate the ensemble samples. Random generators: uniform, uniform with latin hypercube permutation. Quasi-random generators: halton, sobol, torus. Random generation draws random variates whereas quasi-random generation is deterministic but well equidistributed. Default is uniform. For small ensemble size with relatively large parameter number (e.g ensemble size < 5 and # of traits > 5) use methods other than halton. 
-##' @param param.names a list of parameter names that were fitted either by MA or PDA, important argument, if NULL parameters will be resampled independently
-##' @param ... Other arguments passed on to the sampling method
-##' 
-##' @return matrix of (quasi-)random samples from trait distributions
-##' @export
-##' @author David LeBauer, Istem Fer
-get.ensemble.samples <- function( ensemble.size, pft.samples, env.samples, 
+#' Get parameter values used in ensemble
+#'
+#' Returns a matrix of randomly or quasi-randomly sampled trait values
+#' to be assigned to traits over several model runs.
+#' given the number of model runs and a list of sample distributions for traits
+#' The model run is indexed first by model run, then by trait
+#'
+#' @param ensemble.size number of runs in model ensemble
+#' @param pft.samples random samples from parameter distribution, e.g. from a MCMC chain
+#' @param env.samples env samples
+#' @param method the method used to generate the ensemble samples. Random generators: uniform, uniform with latin hypercube permutation. Quasi-random generators: halton, sobol, torus. Random generation draws random variates whereas quasi-random generation is deterministic but well equidistributed. Default is uniform. For small ensemble size with relatively large parameter number (e.g ensemble size < 5 and # of traits > 5) use methods other than halton.
+#' @param param.names a list of parameter names that were fitted either by MA or PDA, important argument, if NULL parameters will be resampled independently
+#' @param ... Other arguments passed on to the sampling method
+#'
+#' @return matrix of (quasi-)random samples from trait distributions
+#' @export
+#' @author David LeBauer, Istem Fer
+get.ensemble.samples <- function( ensemble.size, pft.samples, env.samples,
                                  method = "random", param.names = NULL, ...) {
 
   # Define supported methods
@@ -193,42 +192,54 @@ get.ensemble.samples <- function( ensemble.size, pft.samples, env.samples,
 } # get.ensemble.samples
 
 
-##' Write ensemble config files
-##'
-##' Writes config files for use in meta-analysis and returns a list of run ids.
-##' Given a pft.xml object, a list of lists as supplied by get.sa.samples, 
-##' a name to distinguish the output files, and the directory to place the files.
-##'
-##' @param input_design design matrix describing sampled inputs (see
-##'   `run.write.configs()`). Columns named after `settings$run$inputs` tags give
-##'   1-based indices into each input's `path` list and rows follow run order.
-##'   Requires `nrow(input_design) >= ensemble.size`;
-##'   extra rows are ignored.
-##' @param ensemble.size size of ensemble
-##' @param defaults pft
-##' @param ensemble.samples list of lists supplied by \link{get.ensemble.samples}
-##' @param settings list of PEcAn settings
-##' @param model name of model to be run, e.g. "ED2" or "SIPNET"
-##' @param clean remove old output first?
-##' @param write.to.db logical: Record this run in BETY?
-##' @param restart In case this is a continuation of an old simulation. restart needs to be a list with name tags of runid, inputs, new.params (parameters), new.state (initial condition), ensemble.id (ensemble id), start.time and stop.time.See Details.
-##' @param rename Decide if we want to rename previous output files, for example convert from sipnet.out to sipnet.2020-07-16.out.
-##'
-##' @return list, containing $runs = data frame of runids, $ensemble.id = the ensemble ID for these runs and $samples with ids and samples used for each tag.  Also writes sensitivity analysis configuration files as a side effect
-##' @details The restart functionality is developed using model specific functions by calling write_restart.modelname function. First, you need to make sure that this function is already exist for your desired model.See here \url{https://pecanproject.github.io/pecan-documentation/latest/pecan-models.html}
-##' new state is a dataframe with a different column for each state variable. The number of the rows in this dataframe needs to be the same as the ensemble size.
-##' The state variables that you can use for setting up initial conditions are model specific. Check the documentation of the write_restart.<modelname> function for the model you are using.
-##' The units for the state variables need to be in the PEcAn standard units which can be found in \link[PEcAn.utils]{standard_vars}.
-##' new.params also has similar structure to ensemble.samples which is sent as an argument.
-##'
-##' @importFrom dplyr %>%
-##' @importFrom rlang .data %||%
-##' @export
-##' @author David LeBauer, Carl Davidson, Hamze Dokoohaki
+#' Write ensemble config files
+#'
+#' Writes config files for use in meta-analysis and returns a list of run ids.
+#' Given a pft.xml object, a list of lists as supplied by get.sa.samples,
+#' a name to distinguish the output files, and the directory to place the files.
+#'
+#' The restart functionality is developed using model specific functions by calling write_restart.modelname function.
+#' First, you need to make sure that this function is already exist for your desired model.
+#' See here \url{https://pecanproject.github.io/pecan-documentation/latest/pecan-models.html}.
+#' new state is a dataframe with a different column for each state variable.
+#' The number of the rows in this dataframe needs to be the same as the ensemble size.
+#' The state variables that you can use for setting up initial conditions are model specific.
+#' Check the documentation of the write_restart.<modelname> function for the model you are using.
+#' The units for the state variables need to be in the PEcAn standard units which can be found in \link[PEcAn.utils]{standard_vars}.
+#' new.params also has similar structure to ensemble.samples which is sent as an argument.
+#'
+#' @param input_design design matrix describing sampled inputs (see
+#'   `run.write.configs()`). Columns named after `settings$run$inputs` tags give
+#'   1-based indices into each input's `path` list and rows follow run order.
+#'   Requires `nrow(input_design) >= ensemble.size`;
+#'   extra rows are ignored.
+#' @param ensemble.size size of ensemble
+#' @param defaults pft
+#' @param ensemble.samples list of lists supplied by \link{get.ensemble.samples}
+#' @param settings list of PEcAn settings
+#' @param model name of model to be run, e.g. "ED2" or "SIPNET"
+#' @param clean remove old output first?
+#' @param write.to.db logical: Record this run in BETY?
+#' @param restart In case this is a continuation of an old simulation.
+#'  Needs to be a list with name tags of runid, inputs, new.params (parameters),
+#'  new.state (initial condition), ensemble.id (ensemble id), start.time and stop.time.
+#'  See Details.
+#' @param rename Decide if we want to rename previous output files, for example convert from sipnet.out to sipnet.2020-07-16.out.
+#'
+#' @return list, containing
+#'  $runs = data frame of runids,
+#'  $ensemble.id = the ensemble ID for these runs,
+#'  and $samples with ids and samples used for each tag.
+#'  Also writes sensitivity analysis configuration files as a side effect
+#'
+#' @importFrom dplyr %>%
+#' @importFrom rlang .data %||%
+#' @export
+#' @author David LeBauer, Carl Davidson, Hamze Dokoohaki
 
-write.ensemble.configs <- function(input_design , ensemble.size, defaults, ensemble.samples, settings, model, 
+write.ensemble.configs <- function(input_design , ensemble.size, defaults, ensemble.samples, settings, model,
                                    clean = FALSE, write.to.db = TRUE, restart = NULL, rename = FALSE) {
-  
+
   # Check for required paths
   for (input_tag in names(settings$run$inputs)) {
     input <- settings$run$inputs[[input_tag]]

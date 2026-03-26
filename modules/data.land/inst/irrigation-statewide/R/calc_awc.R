@@ -66,17 +66,26 @@ add_soil_awc <- function(
       rooting_depth_cm = .data$rooting_depth_m * 100,
       .keep = "unused"
     ) |>
+    # Aggregate horizons (by component)
     dplyr::summarize(
-      whc_mm = calc_effective_awc(
+      whc_mm_cmp = calc_effective_awc(
         .data$hzdept_r,
         .data$hzdepb_r,
         .data$awc_r,
         .data$rooting_depth_cm
       ),
-      .by = c("parcel_id", "mukey", "cokey", "area_m2", "weight")
+      .by = c("parcel_id", "mukey", "cokey", "area_m2", "weight", "comppct_r")
     ) |>
+    # Aggregate components (by mapping unit)
     dplyr::summarize(
-      whc_mm = sum(.data$whc_mm * .data$weight),
+      whc_mm_mu = sum(
+        .data$whc_mm_cmp * .data$comppct_r / sum(.data$comppct_r)
+      ),
+      .by = c("parcel_id", "mukey", "area_m2", "weight")
+    ) |>
+    # Aggregate mapping units (by parcel)
+    dplyr::summarize(
+      whc_mm = sum(.data$whc_mm_mu * .data$weight),
       .by = "parcel_id"
     )
 

@@ -44,6 +44,7 @@ Imports:
     sf,
     stringr,
     terra,
+    tibble,
     tidyr,
     tidyselect,
     XML (>= 3.98-1.4)

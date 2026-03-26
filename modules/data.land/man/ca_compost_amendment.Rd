@@ -5,8 +5,7 @@
 \alias{ca_compost_amendment}
 \title{California organic amendment (compost) properties}
 \format{
-A tibble with one row per amendment material and the following
-  columns:
+A tibble with 32 rows and the following columns:
 \describe{
   \item{material}{\code{character}. Amendment material name.}
   \item{cn_min, cn_max, cn_avg}{\code{numeric}. Carbon-to-nitrogen ratio
@@ -26,7 +25,17 @@ A tibble with one row per amendment material and the following
     Total carbon in SI units (g C/m\eqn{^2}).}
   \item{total_n_min_g_m2, total_n_max_g_m2}{\code{numeric}.
     Total nitrogen in SI units (g N/m\eqn{^2}).}
+  \item{source}{\code{character}. Short citation for the data source.}
 }
+}
+\source{
+Eghball, B. Composting Manure and Other Organic Residues.
+  University of Nebraska-Lincoln Extension, Publication G2222.
+  \url{https://extensionpubs.unl.edu/publication/g2222/na/html/view}
+
+Rynk, R. (ed.) Compost Production and Use in Sustainable
+  Farming Systems. NC State Extension.
+  \url{https://content.ces.ncsu.edu/compost-production-and-use-in-sustainable-farming-systems}
 }
 \usage{
 ca_compost_amendment
@@ -34,9 +43,9 @@ ca_compost_amendment
 \description{
 Properties of organic amendment materials used in California agriculture,
 including C:N ratios, carbon and nitrogen content, plant-available nitrogen
-(PAN), and application rates. Data sourced from NRCS Practice Standard 808
-and CDFA Healthy Soils Program guidelines. Developed specifically for
-California agricultural contexts.
+(PAN), and application rates. Some materials appear in multiple rows when
+values are reported by different sources (e.g. Corn stalks, Cow manure,
+Vegetable waste). The \code{source} column disambiguates these.
 }
 \seealso{
 \code{\link{look_up_ca_compost_amendment}} for looking up

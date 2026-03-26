@@ -1,3 +1,7 @@
+```{r setup, include=FALSE}
+set.seed(20260325)
+```
+
 ## Demo 01: Basic Run PEcAn {#demo-1}
 
 > [!WARNING]

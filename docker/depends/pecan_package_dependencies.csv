@@ -268,7 +268,7 @@
 "neonstore","*","modules/data.land","Suggests",FALSE
 "neonUtilities","*","modules/data.land","Suggests",FALSE
 "nimble","*","modules/assim.sequential","Imports",FALSE
-"nneo","*","modules/data.atmosphere","Imports",FALSE
+"nneo","*","modules/data.atmosphere","Suggests",FALSE
 "optparse","*","base/settings","Imports",FALSE
 "parallel","*","modules/assim.batch","Imports",FALSE
 "parallel","*","modules/data.atmosphere","Suggests",FALSE

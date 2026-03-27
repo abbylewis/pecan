@@ -95,6 +95,9 @@ First, we need to load the PEcAn R packages. These packages provide all the func
 ```{r libraries}
 # Load the PEcAn.all package, which includes all necessary PEcAn functionality
 library("PEcAn.all")
+set.seed(20260326)
+logger.setUseConsole(console = TRUE, stderr = FALSE)
+logger.setLevel("INFO")
 ```
 
 # Load PEcAn Settings File

@@ -1,143 +1,24 @@
 #!/usr/bin/env Rscript
 
-# devtools::install("~/projects/pecan/sipnet-events/modules/data.remote", upgrade = FALSE)
-# devtools::install("~/projects/pecan/sipnet-events/base/workflow", upgrade = FALSE)
-# devtools::install("~/projects/pecan/sipnet-events/models/sipnet", upgrade = FALSE)
+devtools::load_all("~/projects/pecan/sipnet-events/modules/data.land")
+devtools::load_all("~/projects/pecan/sipnet-events/models/sipnet")
 
-# devtools::load_all("~/projects/pecan/sipnet-events/modules/data.land")
-# devtools::load_all("~/projects/pecan/sipnet-events/models/sipnet")
+config <- config::get(file = "modules/data.land/inst/sipnet-restart-workflow/config.yml")
 
-# Pick a parcel from irrigation
-pid <- 39011
+outdir_root <- config[["outdir_root"]]
 
-irrigation_path <- "/projectnb/dietzelab/ccmmf/usr/ashiklom/event-outputs/irrigation_10000.parquet"
+binary <- config[["sipnet_binary"]]
+stopifnot(file.exists(binary))
 
-# Find the closest design point to that parcel to use existing met
-parcel_path <- "/projectnb/dietzelab/ccmmf/LandIQ-harmonized-v4.1/parcels.gpkg"
-parcel <- sf::read_sf(
-  parcel_path,
-  query = glue::glue("SELECT * FROM parcels WHERE parcel_id = {pid}")
-)
+site_id <- config[["site_id"]]
 
-dp_path <- "/projectnb/dietzelab/ccmmf/management/irrigation/design_points.csv"
-design_points <- read.csv(dp_path) |>
-  sf::st_as_sf(coords = c("lon", "lat"), crs = 4326) |>
-  sf::st_transform(sf::st_crs(parcel))
-dp_idx <- sf::st_nearest_feature(parcel, design_points)
-site_id <- design_points[dp_idx, ][["id"]]
+events_json_file <- fs::path(outdir_root, "events.json")
+events <- jsonlite::read_json(events_json_file, simplifyVector = FALSE)
 
-# site1 <- "~/projects/pecan/sipnet-events/modules/data.land/inst/events_fixtures/events_site1.json"
-# site1_multi <- "~/projects/pecan/sipnet-events/modules/data.land/inst/events_fixtures/events_site1_multi.json"
-# site_12 <- "~/projects/pecan/sipnet-events/modules/data.land/inst/events_fixtures/events_site1_site2.json"
-
-binary <- "/projectnb/dietzelab/ccmmf/usr/ashiklom/pecan/sipnet/sipnet"
-met <- file.path(
-  "/projectnb/dietzelab/ccmmf/ensemble/ERA5_SIPNET",
-  site_id,
-  "ERA5.1.2016-01-01.2024-12-31.clim"
-)
-stopifnot(file.exists(met))
-
-# Make the events.json
-planting <- fs::dir_ls(
-  "/projectnb/dietzelab/ccmmf/management/event_files",
-  regexp = "planting_statewide_.*\\.parquet"
-) |>
-  arrow::open_dataset() |>
-  dplyr::collect() |>
-  dplyr::filter(.data$site_id == as.character(.env$pid)) |>
-  dplyr::mutate(date = as.Date(.data$date)) |>
-  tibble::as_tibble()
-
-code_pft_mapping <- planting |>
-  dplyr::distinct(crop_code = .data$code, .data$PFT)
-
-planting_events <- planting |>
-  dplyr::select(
-    "site_id", "event_type", "date",
-    "crop_code" = "code",
-    "leaf_c_kg_m2" = "C_LEAF",
-    "wood_c_kg_m2" = "C_STEM",
-    "fine_root_c_kg_m2" = "C_FINEROOT",
-    "coarse_root_c_kg_m2" = "C_COARSEROOT",
-    "leaf_n_kg_m2" = "N_LEAF",
-    "wood_n_kg_m2" = "N_STEM",
-    "fine_root_n_kg_m2" = "N_FINEROOT",
-    "coarse_root_n_kg_m2" = "N_COARSEROOT"
-  )
-
-# Harvest
-mslsp_path <- "/projectnb/dietzelab/ccmmf/management/phenology/matched_landiq_mslsp_v4.1"
-phenology <- fs::dir_ls(mslsp_path, glob = "*.parquet") |>
-  arrow::open_dataset() |>
-  dplyr::filter(.data$parcel_id == .env$pid, !is.na(.data$mslsp_cycle)) |>
-  dplyr::collect() |>
-  tibble::as_tibble() |>
-  dplyr::arrange(.data$year, .data$mslsp_cycle) |>
-  dplyr::relocate(
-    "year", "mslsp_cycle", dplyr::starts_with("landiq_"),
-  )
-
-# Dummy values for testing
-harvest_events <- phenology |>
-  dplyr::mutate(
-    event_type = "harvest",
-    site_id = as.character(.data$parcel_id),
-    frac_above_removed_0to1 = 0.85
-  ) |>
-  dplyr::select(
-    "site_id", "event_type", "date" = mslsp_OGMn, "frac_above_removed_0to1"
-  )
-
-start_date <- min(planting$date)
-end_date <- max(harvest$date)
-
-irrigation_events <- arrow::open_dataset(irrigation_path) |>
-  dplyr::filter(
-    .data$parcel_id == .env$pid,
-    .data$ens_id == "irr_ens_001"
-  ) |>
-  dplyr::select(-"ens_id") |>
-  dplyr::collect() |>
-  tibble::as_tibble() |>
-  dplyr::filter(.data$date <= .env$end_date) |>
-  dplyr::mutate(
-    event_type = "irrigation",
-    site_id = as.character(.data$parcel_id),
-    .keep = "unused"
-  ) |>
-  dplyr::relocate("site_id", "event_type", "date")
-
-make_event_list <- function(df) {
-  df2list <- function(df) {
-    as.list(df) |> purrr::list_transpose()
-  }
-  df |>
-    tidyr::nest(.by = "site_id", .key = "events") |>
-    dplyr::mutate(events = purrr::map(.data$events, df2list))
-}
-
-planting_n <- make_event_list(planting_events)
-harvest_n <- make_event_list(harvest_events)
-irrigation_n <- make_event_list(irrigation_events)
-all_events <- planting_n |>
-  dplyr::full_join(harvest_n, by = "site_id") |>
-  dplyr::full_join(irrigation_n, by = "site_id") |>
-  dplyr::mutate(
-    events = dplyr::starts_with("events") |>
-      dplyr::across() |>
-      purrr::pmap(c) |>
-      purrr::map(unname),
-    .keep = "unused"
-  )
-
-jsonlite::toJSON(all_events, pretty = TRUE, auto_unbox = TRUE)
+dates <- purrr::
 
 ################################################################################
-events_json <- site1
-
-outdir <- normalizePath("_test/segments")
-dir.create(outdir, showWarnings = FALSE)
+outdir <- fs::path(outdir_root, "segments") |> fs::dir_create()
 
 settings <- PEcAn.settings::as.Settings(list(
   outdir = file.path(outdir, "out"),
@@ -168,7 +49,6 @@ settings <- PEcAn.settings::as.Settings(list(
   )
 ))
 
-events <- jsonlite::fromJSON(events_json, simplifyVector = FALSE)
 # TODO: Iterate over events
 site_events_obj <- events[[1]]
 

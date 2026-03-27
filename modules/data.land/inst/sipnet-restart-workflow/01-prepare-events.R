@@ -22,13 +22,6 @@ if (is.null(site_id)) {
   site_id <- design_points[dp_idx, ][["id"]]
 }
 
-met <- file.path(
-  config[["met_dir"]],
-  site_id,
-  "ERA5.1.2016-01-01.2024-12-31.clim"
-)
-stopifnot(file.exists(met))
-
 # Make the events.json
 planting <- fs::dir_ls(
   config[["planting_events_dir"]],
@@ -114,7 +107,7 @@ planting_n <- make_event_list(planting_events)
 harvest_n <- make_event_list(harvest_events)
 irrigation_n <- make_event_list(irrigation_events)
 all_events <- dplyr::bind_rows(planting_n, harvest_n, irrigation_n) |>
-  dplyr::summarize(events = list(c(events)), .by = "site_id") |>
+  dplyr::summarize(events = list(purrr::list_c(.data$events)), .by = "site_id") |>
   dplyr::mutate(pecan_events_version = "0.1.1", .before = "site_id")
 
 outdir_root <- fs::dir_create(config[["outdir_root"]])

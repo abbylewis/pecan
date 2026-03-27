@@ -15,7 +15,20 @@ site_id <- config[["site_id"]]
 events_json_file <- fs::path(outdir_root, "events.json")
 events <- jsonlite::read_json(events_json_file, simplifyVector = FALSE)
 
-dates <- purrr::
+all_dates <- events |>
+  purrr::pluck(1, "events") |>
+  purrr::map_chr("date") |>
+  as.Date()
+
+start_date <- min(all_dates)
+end_date <- max(all_dates)
+
+met <- file.path(
+  config[["met_dir"]],
+  site_id,
+  "ERA5.1.2016-01-01.2024-12-31.clim"
+)
+stopifnot(file.exists(met))
 
 ################################################################################
 outdir <- fs::path(outdir_root, "segments") |> fs::dir_create()
@@ -49,6 +62,14 @@ settings <- PEcAn.settings::as.Settings(list(
   )
 ))
 
+crop_cycles <- events_to_crop_cycle_starts(events_json_file)
+# Empty example
+# crop_cycles <- tibble::tibble(
+#   site_id = character(0),
+#   date = as.Date(NULL),
+#   crop_code = character(0)
+# )
+
 # TODO: Iterate over events
 site_events_obj <- events[[1]]
 
@@ -56,15 +77,6 @@ site_id <- site_events_obj[["site_id"]]
 site_events_list <- site_events_obj[["events"]]
 site_events_common <- site_events_obj
 site_events_common[["events"]] <- NULL
-
-crop_cycles <- events_to_crop_cycle_starts(site1_multi)
-
-# Empty example
-# crop_cycles <- tibble::tibble(
-#   site_id = character(0),
-#   date = as.Date(NULL),
-#   crop_code = character(0)
-# )
 
 # Get segments
 segments <- tibble::tibble(
@@ -95,20 +107,24 @@ for (isegment in seq_len(nrow(segments))) {
 
   # Segment-separated events file
   eventfile <- file.path(segment_dir, "events.json")
-  segment_event_obj <- list(c(site_events_common, events = list(events_sub)) )
-  jsonlite::write_json(segment_event_obj, eventfile, auto_unbox = TRUE)
+  segment_event_obj <- list(c(site_events_common, events = list(events_sub)))
+  jsonlite::write_json(segment_event_obj, eventfile, auto_unbox = TRUE, pretty = TRUE)
 
   segment_eventfile <- PEcAn.SIPNET::write.events.SIPNET(eventfile, segment_dir)
 
+  metpath <- settings[[c("run", "inputs", "met", "path")]]
+  met_segment_file <- file.path(segment_dir, "met.clim")
+
   # Subset the met to only the dates in this segment. SIPNET does not respect
   # start/end date, only the dates in the .clim file.
-  met_orig <- read.table(settings[[c("run", "inputs", "met", "path")]])
+  # TODO: Use `split_inputs.SIPNET` here instead...
+
+  met_orig <- read.table(metpath)
   met_segment <- met_orig |>
     # Create a date from the year + DOY
     dplyr::mutate(date = as.Date(paste0(V2, "-01-01")) + V3) |>
     dplyr::filter(date >= dstart, date <= dend) |>
     dplyr::select(-c("date"))
-  met_segment_file <- file.path(segment_dir, "met.clim")
   write.table(
     met_segment,
     met_segment_file,

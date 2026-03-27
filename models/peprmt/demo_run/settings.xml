@@ -10,12 +10,8 @@
  <rundir>output/run</rundir>
  <pfts>
   <pft>
-   <name>soil</name>
-   <outdir>raw-data/pfts/soil/</outdir>
-  </pft>
-  <pft>
    <name>default</name>
-   <outdir>data/pfts/default/</outdir>
+   <posterior.files>raw-data/pfts/default/post.distns.RData</posterior.files>
   </pft>
  </pfts>
  <ensemble>
@@ -47,7 +43,6 @@
     <lon>-122.114</lon>
     <site.pft>
      <veg>default</veg>
-     <soil>soil</soil>
     </site.pft>
     <ERA5_grid_cell>37.5N_122W</ERA5_grid_cell>
     <name>US_EDN</name>
@@ -105,7 +100,6 @@
     <lon>-122.026</lon>
     <site.pft>
      <veg>default</veg>
-     <soil>soil</soil>
     </site.pft>
     <ERA5_grid_cell>38N_122W</ERA5_grid_cell>
     <name>US_SRR</name>
@@ -163,7 +157,6 @@
     <lon>-75.437</lon>
     <site.pft>
      <veg>default</veg>
-     <soil>soil</soil>
     </site.pft>
     <ERA5_grid_cell>39N_75.5W</ERA5_grid_cell>
     <name>US_STJ</name>
@@ -221,7 +214,6 @@
     <lon>-90.4449</lon>
     <site.pft>
      <veg>default</veg>
-     <soil>soil</soil>
     </site.pft>
     <ERA5_grid_cell>29.5N_90.5W</ERA5_grid_cell>
     <name>US_LA1</name>
@@ -279,7 +271,6 @@
     <lon>-70.8382</lon>
     <site.pft>
      <veg>default</veg>
-     <soil>soil</soil>
     </site.pft>
     <ERA5_grid_cell>42.5N_71W</ERA5_grid_cell>
     <name>US_PLM</name>

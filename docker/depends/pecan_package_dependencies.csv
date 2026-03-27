@@ -604,6 +604,7 @@
 "stats","*","modules/data.remote","Suggests",FALSE
 "stats","*","modules/photosynthesis","Imports",FALSE
 "stats","*","modules/rtm","Imports",FALSE
+"SticsOnR","*","models/stics","Suggests",FALSE
 "SticsRFiles","*","models/stics","Suggests",FALSE
 "stringi","*","base/logger","Imports",FALSE
 "stringi","*","base/utils","Imports",FALSE

@@ -1,0 +1,95 @@
+[workspace]
+authors = ["Alexey Shiklomanov <alexey.shiklomanov@gmail.com>"]
+channels = ["conda-forge"]
+name = "cimis-et-complete"
+platforms = ["linux-64"]
+version = "0.1.0"
+
+[tasks]
+[tasks.install_package]
+args = [{arg = "pkg"}]
+cmd = 'Rscript -e "install.packages(\"{{ pkg }} \")"'
+
+[tasks.rdinst]
+args = [{arg = "path"}]
+cmd = 'Rscript -e "devtools::install(\"{{ path }}\", upgrade = FALSE)"'
+
+[tasks.rdoc]
+args = [{arg = "path"}]
+cmd = 'Rscript -e "devtools::document(\"{{ path }}\")"'
+
+[tasks.inst_local]
+depends-on = [
+  {task = "rdinst", args = ["base/logger"]},
+  {task = "rdinst", args = ["base/utils"]},
+  {task = "rdinst", args = ["base/remote"]},
+  {task = "rdinst", args = ["base/db"]},
+  {task = "rdinst", args = ["modules/data.land"]},
+  {task = "rdinst", args = ["modules/data.atmosphere"]},
+  {task = "rdinst", args = ["models/sipnet"]},
+]
+
+[tasks.targets]
+args = [{arg = "tar_project", default = "small"}]
+cmd = "TAR_PROJECT={{ tar_project }} Rscript -e 'targets::tar_make()'"
+
+[tasks.outdated]
+args = [{arg = "tar_project", default = "small"}]
+cmd = "TAR_PROJECT={{ tar_project }} Rscript -e 'targets::tar_outdated()'"
+
+[tasks.target_build]
+depends-on = [
+  {task = "rdinst", args = ["modules/data.land"]},
+  {task = "targets"}
+]
+
+[dependencies]
+r = ">=4"
+r-roxygen2 = "==7.3.3"
+r-abind = ">=1.4.5"
+r-arrow = "*"
+r-coda = "*"
+r-curl = "*"
+r-dbplyr = ">=2.4.0"
+r-devtools = "*"
+r-dplyr = ">=1.1.2"
+r-dplR = "*"
+r-foreach = "*"
+r-fs = "*"
+r-future = "*"
+r-furrr = "*"
+r-httr = "*"
+r-httr2 = "*"
+r-jsonlite = "*"
+r-lubridate = "*"
+r-magrittr = "*"
+r-nanoarrow = "*"
+r-ncdf4 = ">=1.15"
+r-purrr = "*"
+r-rlang = "*"
+r-sf = "*"
+r-stringi = "*"
+r-stringr = "*"
+r-terra = "*"
+r-testthat = "*"
+r-tibble = "*"
+r-tidyr = "*"
+r-tidyselect = "*"
+r-withr = "*"
+r-xml = ">=3.98"
+r-dbi = "*"
+r-glue = "*"
+"r-R.utils" = "*"
+r-units = "*"
+r-urltools = "*"
+r-languageserver = ">=0.3.17,<0.4"
+r-targets = ">=1.12.0,<2"
+r-here = ">=1.0.2,<2"
+r-tarchetypes = ">=0.14.0,<0.15"
+r-ggplot2 = ">=4.0.2,<5"
+r-mirai = ">=2.6.1,<3"
+r-clustermq = ">=0.9.8,<0.10"
+r-crew = ">=1.3.0,<2"
+"r-crew.cluster" = ">=0.4.0,<0.5"
+air = ">=0.8.2,<0.9"
+r-visnetwork = ">=2.1.4,<3"

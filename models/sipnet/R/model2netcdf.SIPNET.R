@@ -81,7 +81,7 @@ model2netcdf.SIPNET <- function(outdir, sitelat, sitelon, start_date, end_date, 
     token_matches <- gregexpr("\\S+", raw_header, perl = TRUE)
     proc_header <- regmatches(raw_header, token_matches)[[1]]
     col_ends <- token_matches[[1]] + attr(token_matches[[1]], "match.length") - 1
-    col_starts <- c(1, head(col_ends, -1) + 1)
+    col_starts <- c(1, utils::head(col_ends, -1) + 1)
     col_widths <- col_ends - col_starts + 1
     result <- utils::read.fwf(
       textConnection(raw_body),

@@ -1,3 +1,11 @@
+.gwp_values <- list(
+  AR4 = c(CH4 = 25, N2O = 298),
+  AR5 = c(CH4 = 28, N2O = 265),
+  AR6 = c(CH4 = 29.8, N2O = 273)
+)
+
+.co2_per_c <- 44 / 12
+
 #' Convert SOC change and greenhouse gas fluxes to CO2 equivalents
 #'
 #' Converts soil organic carbon (SOC) stock change and CH4/N2O fluxes to
@@ -45,14 +53,6 @@
 #' co2e(delta_soc = 1, ch4 = 0.1, n2o = 0.01)
 #'
 #' @export
-.gwp_values <- list(
-  AR4 = c(CH4 = 25, N2O = 298),
-  AR5 = c(CH4 = 28, N2O = 265),
-  AR6 = c(CH4 = 29.8, N2O = 273)
-)
-
-.co2_per_c <- 44 / 12
-
 co2e <- function(delta_soc = 0, ch4 = 0, n2o = 0, gwp = "AR6") {
   gwp <- match.arg(toupper(gwp), choices = names(.gwp_values))
 
@@ -60,5 +60,6 @@ co2e <- function(delta_soc = 0, ch4 = 0, n2o = 0, gwp = "AR6") {
   co2_ch4 <- ch4 * .gwp_values[[gwp]][["CH4"]]
   co2_n2o <- n2o * .gwp_values[[gwp]][["N2O"]]
 
-  co2_soc + co2_ch4 + co2_n2o
+  co2_sum <- co2_soc + co2_ch4 + co2_n2o
+  return(co2_sum)
 }

@@ -1,11 +1,13 @@
 # PEcAn.data.land 1.9.0.9000
 
+## Added
+
+* Added `co2e()` function for converting SOC change, CH4, and N2O to CO2-equivalent emissions using IPCC Global Warming Potential values.
+
 ## Fixed
 
 * `soil2netcdf()` no longer drops depth information for soils with only one layer. (#3785)
 * `soil_params()` where bulk density is not specified by the user now look up `soil_bulk_density` from the soil type (as always intended) instead of always reporting 1350 kg/m3 because of a flow control typo. (#3776)
-
-## Added
 
 * Datasets
   *  `landiq_crop_mapping_codes` dataset mapping LandIQ crop classification codes to human-readable crop names.

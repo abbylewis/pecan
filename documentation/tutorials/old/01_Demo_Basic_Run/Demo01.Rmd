@@ -1,6 +1,3 @@
-```{r setup, include=FALSE}
-```
-
 ## Demo 01: Basic Run PEcAn {#demo-1}
 
 > [!WARNING]

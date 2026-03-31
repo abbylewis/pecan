@@ -2,8 +2,6 @@
 
 ## Added
 
-* Added `co2e()` function for converting SOC change, CH4, and N2O to CO2-equivalent emissions using IPCC Global Warming Potential values.
-
 ## Fixed
 
 * `soil2netcdf()` no longer drops depth information for soils with only one layer. (#3785)
@@ -17,6 +15,7 @@
 * Functions
   *  `look_up_ca_n_rate()` for looking up crop-specific N application rates by name (exact match first, partial match suggestions on miss).
   *  `look_up_ca_compost_amendment()` for looking up organic amendment properties by material name.
+  *  `to_co2e()` for converting SOC change, CH4, and N2O to CO2-equivalent emissions using IPCC Global Warming Potential values.
 
 ## Changed
 

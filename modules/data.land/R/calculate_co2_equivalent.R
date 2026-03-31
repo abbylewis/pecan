@@ -18,7 +18,8 @@
 #'   Positive values indicate soil carbon gain; negative values indicate loss.
 #' @param ch4 Numeric. Methane emissions as mass of CH4.
 #' @param n2o Numeric. Nitrous oxide emissions as mass of N2O.
-#' @param gwp Character. IPCC report containing GWP values used: "AR4", "AR5", or "AR6".
+#' @param gwp Character. IPCC report containing GWP100 values used: "AR6",
+#'   "AR5", or "AR4".
 #'
 #' @return Numeric. Total CO2-equivalent emissions as mass of CO2e, expressed
 #'   on the same spatial and temporal basis as the inputs. 
@@ -53,15 +54,18 @@
 #' California Air Resources Board (CARB), 2025. Greenhouse Gas Global Warming Potentials. https://ww2.arb.ca.gov/ghg-gwps
 #'
 #' @examples
-#' co2e(delta_soc = 1)
-#' co2e(ch4 = 1)
-#' co2e(n2o = 1)
+#' to_co2e(delta_soc = 1)
+#' to_co2e(ch4 = 1)
+#' to_co2e(n2o = 1)
 #' # return total over all sources
-#' co2e(delta_soc = 1, ch4 = 0.1, n2o = 0.01)
+#' to_co2e(delta_soc = 1, ch4 = 0.1, n2o = 0.01)
 #'
 #' @export
-co2e <- function(delta_soc = 0, ch4 = 0, n2o = 0, gwp = "AR6") {
-  gwp <- match.arg(toupper(gwp), choices = names(.gwp_values))
+to_co2e <- function(delta_soc = 0,
+                    ch4 = 0,
+                    n2o = 0,
+                    gwp = c("AR6", "AR5", "AR4")) {
+  gwp <- match.arg(gwp)
 
   co2_soc <- -delta_soc * .co2_per_c
   co2_ch4 <- ch4 * .gwp_values[[gwp]][["CH4"]]

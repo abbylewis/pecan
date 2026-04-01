@@ -187,7 +187,8 @@ Construct.H.multisite <- function(site.ids, var.names, obs.t.mean){
     site.ind <- which(names(obs.t.mean)==site.id)
     if(length(site.ind) > 0){
       obs <- obs.t.mean[[site.ind]]
-      var.ind <- which(names(obs)==var.name)
+      # var.ind <- which(names(obs)==var.name)
+      var.ind <- which(grepl(var.name, names(obs)))
       if(length(var.ind) > 0){
         #write observation and the index into the matrix.
         H.pre.matrix[i,]$obs <- obs[[var.ind]]

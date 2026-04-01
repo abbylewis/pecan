@@ -14,10 +14,20 @@ sda_matchparam <- function(settings, ensemble.samples, site.ids, nens){
   new.params <- list()
   all.pft.names <- names(ensemble.samples)
   
+  # Determines whether settings are single-site (list contains "run" directly) 
+  # or multi-site (list contains multiple settings)
+  single_site <- "run" %in% names(settings)
+  
+  # If it is a single site, convert to a list 
+  if (single_site) {
+    settings <- list(settings)  
+    site.ids <- list(site.ids)  
+  }
+  
   #loop over each site.
   for (i in seq_along(site.ids)) {
     #match pft name
-    site.pft.name <- settings[[i]]$run$site$site.pft$pft.name
+    site.pft.name <- unlist(settings[[i]]$run$site$site.pft)
     if(is.null(site.pft.name)){
       site_pft = utils::read.csv(settings[[i]]$run$inputs$pft.site$path)
       site.pft.name = site_pft$pft[site_pft$site == settings[[i]]$run$site$id]

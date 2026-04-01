@@ -529,6 +529,21 @@ else if (lifeform == 2) {
   }
   }
 
+// --- NEW: Heartwood non-negative floor (allow heart->sap, but never below 0) ---
+if (cmass_heart + cmass_heart_inc < 0.0) {
+  // The amount of heartwood that needs to be removed exceeds the existing heartwood -> Cut the heartwood to 0
+  double deficit = -(cmass_heart + cmass_heart_inc);
+  cmass_heart_inc = -cmass_heart;                     // heart -> 0
+  
+  // 同量回调 sapwood 的增量：不能再用心材来“补”sap 了
+  cmass_sap_inc -= deficit;
+  // 若这会把 sapwood 也打成负数，则把 sapwood 裁到 0，多余记入 exceeds_cmass
+  if (cmass_sap + cmass_sap_inc < 0.0) {
+    exceeds_cmass += -(cmass_sap + cmass_sap_inc);
+    cmass_sap_inc = -cmass_sap;
+  }
+}
+
 // Check C budget after allocation
 
 // maximum carbon mismatch

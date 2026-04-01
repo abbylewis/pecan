@@ -37,7 +37,7 @@
 #' @import nimble furrr
 #' @export
 #' 
-sda.enkf.multisite <- function(settings, 
+sda.enkf.multisite_hoptest <- function(settings, 
                                obs.mean, 
                                obs.cov, 
                                Q = NULL, 
@@ -57,6 +57,7 @@ sda.enkf.multisite <- function(settings,
                                             run_parallel = TRUE,
                                             MCMC.args = NULL),
                                ...) {
+  
   #add if/else for when restart points to folder instead if T/F set restart as T
   if(is.list(restart)){
     old.dir <- restart$filepath
@@ -206,6 +207,7 @@ sda.enkf.multisite <- function(settings,
   register.xml <- system.file(paste0("register.", model, ".xml"), package = paste0("PEcAn.", model))
   register <- XML::xmlToList(XML::xmlParse(register.xml))
   no_split <- !as.logical(register$exact.dates)
+  # no_split <- TRUE
   
   if (!exists(my.split_inputs)  &  !no_split) {
     PEcAn.logger::logger.warn(my.split_inputs, "does not exist")
@@ -245,6 +247,7 @@ sda.enkf.multisite <- function(settings,
           
         }
       } else{
+        inputs <- settings$run$inputs$met$path
         inputs.split <- inputs
       }
       settings
@@ -280,7 +283,7 @@ sda.enkf.multisite <- function(settings,
       #assuming that will only use previous unconstrained forecast runs for first run with SDA which means we are at t=1
       #sim.time<-seq_len(nt)
       #create params object using previous forecast ensemble members
-      new.params <- sda_matchparam(settings, ensemble.samples, site.ids, nens)
+      new.params <- PEcAnAssimSequential:::sda_matchparam(settings, ensemble.samples, site.ids, nens)
       
       #create inputs object for met using previous forecast ensemble members
       ####add function here, pause on this feature until we add feature to model runs that saves driver ensemble members
@@ -456,16 +459,16 @@ sda.enkf.multisite <- function(settings,
         #put building of X into a function that gets called
         max_t <- 0
         while("try-error" %in% class(
-          try(reads <- build_X(out.configs = out.configs, 
-                               settings = settings, 
-                               new.params = new.params, 
-                               nens = nens, 
-                               read_restart_times = read_restart_times, 
-                               outdir = outdir, 
-                               t = t, 
-                               var.names = var.names, 
+          try(reads <- PEcAnAssimSequential:::build_X(out.configs = out.configs,
+                               settings = conf.settings,
+                               new.params = new.params,
+                               nens = nens,
+                               read_restart_times = read_restart_times,
+                               outdir = outdir,
+                               t = t,
+                               var.names = var.names,
                                my.read_restart = my.read_restart,
-                               restart_flag = restart_flag), silent = T))
+                               restart_flag = restart_flag)))
         ){
           Sys.sleep(10)
           max_t <- max_t + 1
@@ -495,7 +498,7 @@ sda.enkf.multisite <- function(settings,
         # this matrix looks like this
         #         GWBI    AbvGrndWood   GWBI    AbvGrndWood
         #[1,]  3.872521     37.2581  3.872521     37.2581
-        # But therer is an attribute called `Site` which tells yout what column is for what site id - check out attr (X,"Site")
+        # But there is an attribute called `Site` which tells you what column is for what site id - check out attr (X,"Site")
         if (multi.site.flag){
           X <- X %>%
           purrr::map_dfc(~.x) %>% 
@@ -766,5 +769,39 @@ sda.enkf.multisite <- function(settings,
 #      unlink(list.files(outdir, "*.nc", recursive = TRUE, full.names = TRUE))
 #    }
       ## MCD: I commented the above "if" out because if you are restarting from a previous forecast, this might delete the files in that earlier folder
-  } ### end loop over time
+      
+      
+      # # Added in the for(t in 1:nt) loop of sda.enkf_MultiSite.R:
+      # if (t == 2) {
+      #   hop_test_dir <- file.path(settings$outdir, "hop_test_snapshot_t2")
+      #   dir.create(hop_test_dir, showWarnings = FALSE)
+      #   
+      #   # Copy all LPJ-GUESS status files to the snapshot directory
+      #   state_files <- list.files(
+      #     path = file.path(settings$modeloutdir, runid),
+      #     pattern = "guess\\..*\\.bin",
+      #     full.names = TRUE
+      #   )
+      #   file.copy(state_files, hop_test_dir)
+      #   
+      #   PEcAn.logger::logger.info("Hop test: the state file was saved to ", hop_test_dir)
+      # }
+      
+      # Suppose that hop test is triggered at t=2
+      if (t == 2 && control$hop_test) {
+        # Save the current state to the specified directory
+        hop_test_dir <- file.path(settings$outdir, "hop_test_snapshot")
+        dir.create(hop_test_dir, showWarnings = FALSE)
+        file.copy(
+          list.files(settings$outdir, full.names = TRUE, recursive = TRUE),
+          hop_test_dir,
+          recursive = TRUE
+        )
+        PEcAn.logger::logger.info("Hop test: Saved state at t=2. Manually restart from this snapshot.")
+        break  # Exit loop to simulate "`stop`"
+      }
+      
+      
+      } ### end loop over time
 } # sda.enkf
+# 

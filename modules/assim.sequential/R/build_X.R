@@ -18,51 +18,101 @@
 #'
 #' @return X ready to be passed to SDA Analysis code
 build_X <- function(out.configs, settings, new.params, nens, read_restart_times, outdir, t = 1, var.names, my.read_restart, restart_flag = FALSE){
-  if(t == 1 & restart_flag){
-    reads <-
-      furrr::future_pmap(list(out.configs %>% `class<-`(c("list")), settings, new.params),function(configs,my_settings,siteparams) {
-        # Loading the model package - this is required bc of the furrr
-        #library(paste0("PEcAn.",settings$model$type), character.only = TRUE)
-        #source("~/pecan/models/sipnet/R/read_restart.SIPNET.R")
-        
-        X_tmp <- vector("list", 2)
-        
-        for (i in seq_len(nens)) {
-          X_tmp[[i]] <- do.call( my.read_restart,
-                                 args = list(
-                                   outdir = outdir,
-                                   runid = my_settings$run$id[i] %>% as.character(),
-                                   stop.time = read_restart_times[t+1],
-                                   settings = my_settings,
-                                   var.names = var.names,
-                                   params = siteparams[[i]]
-                                 )
-          )
-          
-        }
-        return(X_tmp)
-      })
+
+  # Single site: Parallel by ensemble
+  if (length(settings) == 1) {
     
-  }else{
-    reads <-
-      furrr::future_pmap(list(out.configs %>% `class<-`(c("list")), settings, new.params),function(configs,my_settings,siteparams) {
+    my_settings <- settings[[1]]
+    cfg         <- out.configs[[1]]
+    siteparams  <- new.params[[1]]
+    
+    ens_ids <- seq_len(nens)
+    
+    if (t == 1 && restart_flag) {
+      reads_site <- furrr::future_map(ens_ids, function(i) {
+        library(paste0("PEcAn.", my_settings$model$type), character.only = TRUE)
+        runid_i <- as.character(my_settings$run$id[i])
         
-        X_tmp <- vector("list", 2)
-        
-        for (i in seq_len(nens)) {
-          X_tmp[[i]] <- do.call( my.read_restart,
-                                 args = list(
-                                   outdir = outdir,
-                                   runid = configs$runs$id[i] %>% as.character(),
-                                   stop.time = read_restart_times[t+1],
-                                   var.names = var.names,
-                                   params = siteparams[[i]]
-                                 )
+        do.call(
+          my.read_restart,
+          args = list(
+            outdir    = outdir,
+            runid     = runid_i,
+            stop.time = read_restart_times[t + 1],
+            settings  = my_settings,
+            var.names = var.names,
+            params    = siteparams[[i]]
           )
-          
-        }
-        return(X_tmp)
+        )
       })
+      
+    } else {
+      reads_site <- furrr::future_map(ens_ids, function(i) {
+        
+        library(paste0("PEcAn.", my_settings$model$type), character.only = TRUE)
+        runid_i <- as.character(cfg$runs$id[i])
+        
+        do.call(
+          my.read_restart,
+          args = list(
+            outdir    = outdir,
+            runid     = runid_i,
+            stop.time = read_restart_times[t + 1],
+            settings  = my_settings,
+            var.names = var.names,
+            params    = siteparams[[i]]
+          )
+        )
+      })
+    }
+    
+    reads <- list(reads_site)
+    
+    # Multi-site: Retain the original parallel writing method by site
+  } else {
+    
+    reads <-
+      furrr::future_pmap(
+        list(out.configs %>% `class<-`(c("list")),
+             settings,
+             new.params),
+        function(configs, my_settings, siteparams) {
+          
+          X_tmp <- vector("list", nens)
+          
+          if (t == 1 && restart_flag) {
+            for (i in seq_len(nens)) {
+              X_tmp[[i]] <- do.call(
+                my.read_restart,
+                args = list(
+                  outdir    = outdir,
+                  runid     = as.character(my_settings$run$id[i]),
+                  stop.time = read_restart_times[t + 1],
+                  settings  = my_settings,
+                  var.names = var.names,
+                  params    = siteparams[[i]]
+                )
+              )
+            }
+          } else {
+            for (i in seq_len(nens)) {
+              X_tmp[[i]] <- do.call(
+                my.read_restart,
+                args = list(
+                  outdir    = outdir,
+                  runid     = as.character(configs$runs$id[i]),
+                  stop.time = read_restart_times[t + 1],
+                  settings  = my_settings,
+                  var.names = var.names,
+                  params    = siteparams[[i]]
+                )
+              )
+            }
+          }
+          
+          return(X_tmp)
+        })
   }
+  
   return(reads)
 }

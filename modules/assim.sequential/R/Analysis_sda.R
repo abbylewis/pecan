@@ -186,7 +186,9 @@ GEF<-function(settings, Forecast, Observed, H, extraArg, nitr=50000, nburnin=100
     recompileGEF <- extraArg$recompileGEF
     
     ###TO DO: needs to recompile if there are new data sources
+    # use_tobit2space <- any(colSums(abs(X), na.rm = TRUE) == 0)
     if(TRUE){ #any(X==0,na.rm=T)
+    # if(use_tobit2space){
       #
     if(t == 1 | recompileTobit){
       #The purpose of this step is to impute data for mu.f 
@@ -345,21 +347,35 @@ GEF<-function(settings, Forecast, Observed, H, extraArg, nitr=50000, nburnin=100
     aqq <- diag(length(mu.f)) * bqq #Q
   }
   
-  ### create matrix the describes the support for each observed state variable at time t
-  interval <- matrix(NA, length(obs.mean[[t]]), 2)
-  # Each observe variable needs to have its own file tag under inputs
-  interval <-settings$state.data.assimilation$inputs %>%
-    purrr::map_dfr( ~ data.frame(
-      .x$'min_value' %>% as.numeric(),.x$'max_value' %>% as.numeric()
-    )) %>%
-    as.matrix()
-  
-  rownames(interval) <- names(input.vars)
-  
+  # ### create matrix the describes the support for each observed state variable at time t
+  # interval <- matrix(NA, length(obs.mean[[t]]), 2)
+  # # Each observe variable needs to have its own file tag under inputs
+  # interval <-settings$state.data.assimilation$inputs %>%
+  #   purrr::map_dfr( ~ data.frame(
+  #     .x$'min_value' %>% as.numeric(),.x$'max_value' %>% as.numeric()
+  #   )) %>%
+  #   as.matrix()
+  # 
+  # rownames(interval) <- names(input.vars)
+  ## ---- Build censoring interval from state.variables (not inputs) ----
+  sv <- settings$state.data.assimilation$state.variables
+    
+  interval <- purrr::map_dfr(
+      sv,
+      ~ data.frame(
+        min = as.numeric(.x$min_value),
+        max = as.numeric(.x$max_value)
+      )
+  ) %>% as.matrix()
+    
+  rownames(interval) <- sapply(sv, `[[`, "variable.name")
+    
   #### These vectors are used to categorize data based on censoring 
   #### from the interval matrix
   y.ind <- as.numeric(Y > interval[,1])
   y.censored <- as.numeric(ifelse(Y > interval[,1], Y, 0))
+  
+  has_censored <- any(y.ind == 0)
   
   if(sum(y.censored,na.rm=T)==0){
     PEcAn.logger::logger.warn('NO DATA. Check y.censored in Analysis_sda.R')
@@ -417,7 +433,7 @@ GEF<-function(settings, Forecast, Observed, H, extraArg, nitr=50000, nburnin=100
     if(X_fcomp_start != constants.tobit$X_fcomp_start) recompileGEF = TRUE
   }
   
-  if(t == 1 | recompileGEF){ 
+  if(t == 1 | recompileGEF){
     constants.tobit <- list(
       N = ncol(X),
       YN = length(y.ind),
@@ -495,12 +511,14 @@ GEF<-function(settings, Forecast, Observed, H, extraArg, nitr=50000, nburnin=100
     ## this is needed for correct indexing later
     samplerNumberOffset <- length(conf$getSamplers())
     
-    for(i in 1:length(y.ind)) {
-      node <- paste0('y.censored[',i,']')
-      conf$addSampler(node, 'toggle', control=list(type='RW'))
-      ## could instead use slice samplers, or any combination thereof, e.g.:
-      ##conf$addSampler(node, 'toggle', control=list(type='slice'))
-    }
+    # if (has_censored) {
+      for(i in 1:length(y.ind)) {
+        node <- paste0('y.censored[',i,']')
+        conf$addSampler(node, 'toggle', control=list(type='RW'))
+        ## could instead use slice samplers, or any combination thereof, e.g.:
+        ##conf$addSampler(node, 'toggle', control=list(type='slice'))
+      }
+    # }
     
     conf$printSamplers()
     ## can monitor y.censored, if you wish, to verify correct behaviour
@@ -511,13 +529,14 @@ GEF<-function(settings, Forecast, Observed, H, extraArg, nitr=50000, nburnin=100
     Cmodel <- compileNimble(model_pred)
     Cmcmc <- compileNimble(Rmcmc, project = model_pred)
     
-    for(i in 1:length(y.ind)) {
-      ## ironically, here we have to "toggle" the value of y.ind[i]
-      ## this specifies that when y.ind[i] = 1,
-      ## indicator variable is set to 0, which specifies *not* to sample
-      valueInCompiledNimbleFunction(Cmcmc$samplerFunctions[[samplerNumberOffset+i]], 'toggle', 1-y.ind[i])
-    }
-    
+    # if (has_censored) {
+      for(i in 1:length(y.ind)) {
+        ## ironically, here we have to "toggle" the value of y.ind[i]
+        ## this specifies that when y.ind[i] = 1,
+        ## indicator variable is set to 0, which specifies *not* to sample
+        valueInCompiledNimbleFunction(Cmcmc$samplerFunctions[[samplerNumberOffset+i]], 'toggle', 1-y.ind[i])
+      }
+    # }
   
     
   }else{
@@ -536,13 +555,14 @@ GEF<-function(settings, Forecast, Observed, H, extraArg, nitr=50000, nburnin=100
     # 
     # Cmodel$setInits(inits.pred())
     
-    for(i in 1:length(y.ind)) {
-      ## ironically, here we have to "toggle" the value of y.ind[i]
-      ## this specifies that when y.ind[i] = 1,
-      ## indicator variable is set to 0, which specifies *not* to sample
-      valueInCompiledNimbleFunction(Cmcmc$samplerFunctions[[samplerNumberOffset+i]], 'toggle', 1-y.ind[i])
-    }
-    
+    # if (has_censored) {
+      for(i in 1:length(y.ind)) {
+        ## ironically, here we have to "toggle" the value of y.ind[i]
+        ## this specifies that when y.ind[i] = 1,
+        ## indicator variable is set to 0, which specifies *not* to sample
+        valueInCompiledNimbleFunction(Cmcmc$samplerFunctions[[samplerNumberOffset+i]], 'toggle', 1-y.ind[i])
+      }
+    # }
   }
 
   dat.nchains <-

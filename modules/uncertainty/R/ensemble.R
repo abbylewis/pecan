@@ -212,7 +212,6 @@ get.ensemble.samples <- function(ensemble.size, pft.samples, env.samples,
 ##' @author David LeBauer, Carl Davidson, Hamze Dokoohaki
 write.ensemble.configs <- function(defaults, ensemble.samples, settings, model, 
                                    clean = FALSE, write.to.db = TRUE, restart = NULL, rename = FALSE) {
-  
   con <- NULL
   my.write.config <- paste("write.config.", model, sep = "")
   my.write_restart <- paste0("write_restart.", model)
@@ -340,7 +339,6 @@ write.ensemble.configs <- function(defaults, ensemble.samples, settings, model,
     # find all inputs that have an id
     inputs <- names(settings$run$inputs)
     inputs <- inputs[grepl(".id$", inputs)]
-    
     # write configuration for each run of the ensemble
     runs <- data.frame()
     for (i in seq_len(settings$ensemble$size)) {
@@ -435,8 +433,21 @@ write.ensemble.configs <- function(defaults, ensemble.samples, settings, model,
       # find the name of pfts defined in the body of pecan.xml
       defined.pfts <- settings$pfts %>% purrr::map('name') %>% unlist %>% as.character
       # subset ensemble samples based on the pfts that are specified in the site and they are also sampled from.
-      if (length(which(site.pfts.vec %in% defined.pfts)) > 0 )
-        new.params <- new.params %>% purrr::map(~list(.x[[which(site.pfts.vec %in% defined.pfts)]],restart=.x$restart))
+      if (length(which(site.pfts.vec %in% defined.pfts)) > 0 ){
+        
+        if (settings$model$type == "LPJGUESS"){
+          pfts_to_keep <- site.pfts.vec[site.pfts.vec %in% defined.pfts]
+          new.params <- new.params %>% purrr::map(function(param_set_for_one_ensemble) {
+            filtered_pfts <- param_set_for_one_ensemble[names(param_set_for_one_ensemble) %in% pfts_to_keep]
+            # Ensure that LPJGUESS_state is not lost and add it back to the filtered list
+            filtered_pfts$LPJGUESS_state <- param_set_for_one_ensemble$LPJGUESS_state
+            return(filtered_pfts)
+          })
+        }else{
+          new.params <- new.params %>% purrr::map(~list(.x[[which(site.pfts.vec %in% defined.pfts)]],restart=.x$restart))
+        }
+      }
+        
       # warn if there is a pft specified in the site but it's not defined in the pecan xml.
       if (length(which(!(site.pfts.vec %in% defined.pfts)))>0) 
         PEcAn.logger::logger.warn(paste0("The following pfts are specified for the siteid ", settings$run$site$id ," but they are not defined as a pft in pecan.xml:",

@@ -64,13 +64,23 @@ get.parameter.samples <- function(settings,
         distns$prior.distns <- distns$post.distns
       }
     } else {
+      
+      # load prior first (9)
+      load(file.path(outdirs[i], "prior.distns.Rdata"), envir = distns)
+      
       # Default to most recent posterior in the workflow, or the prior if there is none
       fname <- file.path(outdirs[i], "post.distns.Rdata")
+      # if (file.exists(fname)) {
+      #   load(fname, envir = distns)
+      #   distns$prior.distns <- distns$post.distns
+      # } else {
+      #   load(file.path(outdirs[i], "prior.distns.Rdata"), envir = distns)
+      # }
       if (file.exists(fname)) {
-        load(fname, envir = distns)
-        distns$prior.distns <- distns$post.distns
-      } else {
-        load(file.path(outdirs[i], "prior.distns.Rdata"), envir = distns)
+        tmp <- new.env()
+        load(fname, envir = tmp)  # loads tmp$post.distns
+        overlap <- intersect(rownames(tmp$post.distns), rownames(distns$prior.distns))
+        distns$prior.distns[overlap, ] <- tmp$post.distns[overlap, ]
       }
     }
     
@@ -103,7 +113,7 @@ get.parameter.samples <- function(settings,
     } else {
       ma.results <- FALSE
     }
-    
+
     pft.name <- unlist(pft.names[i])
     
     ### When no ma for a trait, sample from prior
@@ -157,6 +167,12 @@ get.parameter.samples <- function(settings,
                           samples.num, 
                           length(priors))
     }
+    ## make sure prior.distns columns are numeric
+    distns$prior.distns <- as.data.frame(distns$prior.distns, stringsAsFactors = FALSE)
+
+    distns$prior.distns$parama <- as.numeric(distns$prior.distns$parama)
+    distns$prior.distns$paramb <- as.numeric(distns$prior.distns$paramb)
+    distns$prior.distns$n <- as.numeric(distns$prior.distns$n)
     for (prior in priors) {
       if (prior %in% param.names[[i]]) {
         samples <- distns$trait.mcmc[[prior]] %>%
@@ -207,7 +223,8 @@ get.parameter.samples <- function(settings,
                                                env.samples, ens.sample.method, param.names)
     }
   }
-
   save(ensemble.samples, trait.samples, sa.samples, runs.samples, env.samples, 
-       file = file.path(settings$outdir, "samples.Rdata"))
+       file = file.path("/projectnb/dietzelab/yinghao/try/pft_TRY/ensembles_GooseEgg_3traits_7pft.Rdata"))
+  # save(ensemble.samples, trait.samples, sa.samples, runs.samples, env.samples, 
+  #      file = file.path(settings$outdir, "samples.Rdata"))
 } # get.parameter.samples

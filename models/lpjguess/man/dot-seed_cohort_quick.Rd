@@ -41,7 +41,4 @@ geometric relations (Eq.5/6) at the specified diameter (typically \code{min.diam
 and an extremely small density, so that area-based pools are negligible but the
 cohort is immediately eligible for size-nudge.
 }
-\details{
-
-}
 \keyword{internal}

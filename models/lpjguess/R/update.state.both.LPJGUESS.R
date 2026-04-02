@@ -72,7 +72,7 @@ update_state_both_LPJGUESS <- function(
         
         ind <- orig  
         
-        ## ===== stage A：biomass tuning =====
+        ## ===== stage A: biomass tuning =====
         max_frac <- 0.20                 
         min_frac <- 0.002                
         ok_allom <- TRUE
@@ -161,7 +161,7 @@ update_state_both_LPJGUESS <- function(
           } # if OK/else
         } # k loop (biomass)
         
-        ## ===== stageB：density tuning: Leave the remaining targets to densindiv=====
+        ## ===== stageB: density tuning: Leave the remaining targets to densindiv=====
         w_now <- AbvGrndWood(ind)
         lam_real <- w_now / w0
         lam_need <- lamPFT / max(lam_real, 1e-12)
@@ -224,10 +224,6 @@ update_state_both_LPJGUESS <- function(
         
         # write back
         model.state$Stand[[is]]$Patch[[ip]]$Vegetation$Individuals[[ii]] <- ind
-        if (trace) {
-          cat(sprintf("[OK] Stand %d Patch %d Indiv %d PFT %d | wood: %.4f -> %.4f (tgt %.4f) | dens λ: ~%.3f\n",
-                      is, ip, ii, pft_id, w0, w_fin, w_tgt, ifelse(abs(lam_need-1)>1e-6, last_ok, 1)))
-        }
       } # indiv
     } # patch
   } # stand

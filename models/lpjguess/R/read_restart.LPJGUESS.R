@@ -56,7 +56,7 @@ read_restart.LPJGUESS <- function(outdir, runid, stop.time, settings, var.names,
                         function(p) p$Vegetation$Individuals), recursive = FALSE)
   bad_idx <- which(!sapply(inds, function(ind) is.finite(ind$height)))
   length(bad_idx)  # See how many bad individuals there are
-  if (length(bad_idx)) str(inds[[bad_idx[1]]][c("indiv.pft.id","alive","height",
+  if (length(bad_idx)) utils::str(inds[[bad_idx[1]]][c("indiv.pft.id","alive","height",
                                                 "cmass_leaf","cmass_root","cmass_sap","cmass_heart")])
   
   

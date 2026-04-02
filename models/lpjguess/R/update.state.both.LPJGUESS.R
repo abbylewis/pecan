@@ -29,7 +29,6 @@
 ##' @return  And updated model state (as a big old list o' lists)
 ##' @export update_state_both_LPJGUESS 
 ##' @author Yinghao Sun
-## ---------- main ----------
 update_state_both_LPJGUESS <- function(
     model.state, pft.params,
     dens.initial, dens.target,
@@ -37,7 +36,7 @@ update_state_both_LPJGUESS <- function(
     AbvGrndWood.epsilon, trace, min.diam, HEIGHT_MAX = 150
 ) {
   
-  # 目标相对变化（PFT 级，落到每个个体上用）
+  # Target relative change 
   lambda_tot <- AbvGrndWood.target / AbvGrndWood.initial
   lambda_tot[!is.finite(lambda_tot)] <- 1
   
@@ -47,7 +46,6 @@ update_state_both_LPJGUESS <- function(
   for (is in 1:nstands) {
     npatches <- model.state$Stand[[is]]$npatches
     
-    # 活跃 PFT
     active.PFTs <- c()
     for (j in 1:length(model.state$Stand[[is]]$Standpft$active)) {
       if (model.state$Stand[[is]]$Standpft$active[[j]]) active.PFTs <- c(active.PFTs, j-1)
@@ -62,31 +60,29 @@ update_state_both_LPJGUESS <- function(
         pft_id <- orig$indiv.pft.id
         if (!pft_id %in% active.PFTs) stop(sprintf("Inactive PFT id=%d encountered.", pft_id))
         px <- pft_id + 1
-        
-        # 直径筛（cm）
+
         diam <- ((orig$height / pft.params[px,"k_allom2"])^(1.0 / pft.params[px,"k_allom3"])) * 100
         if (!(isTRUE(orig$alive) && is.finite(diam) && diam > min.diam)) next
         
-        # 该个体的初始与目标
+        # The initial and target of this individual
         w0      <- AbvGrndWood(orig) ; if (!is.finite(w0) || w0 <= 0) w0 <- 1e-8
         lamPFT  <- lambda_tot[px]
-        lamPFT  <- max(min(lamPFT, 100), 0.01)  # 总体上下限，避免极端
+        lamPFT  <- max(min(lamPFT, 100), 0.01)  
         w_tgt   <- w0 * lamPFT
         
-        ind <- orig  # 工作副本
+        ind <- orig  
         
-        ## ===== 阶段A：biomass 微调（最多 99 步）=====
-        max_frac <- 0.20                  # 单步最大相对改变量（相对当前 AGBwood）
-        min_frac <- 0.002                 # 单步最小相对改变量
+        ## ===== stage A：biomass tuning =====
+        max_frac <- 0.20                 
+        min_frac <- 0.002                
         ok_allom <- TRUE
         for (k in 1:99) {
           
           w_now <- AbvGrndWood(ind)
           diff  <- w_tgt - w_now
           rel   <- abs(diff) / max(w_tgt, .Machine$double.eps)
-          if (rel <= AbvGrndWood.epsilon) break  # 目标已到
+          if (rel <= AbvGrndWood.epsilon) break 
           
-          # 建议步长（比例步）
           prop  <- 0.35
           step  <- prop * diff
           cap   <- max_frac * max(w_now, 1e-8)
@@ -94,9 +90,8 @@ update_state_both_LPJGUESS <- function(
           step  <- max(-cap, min(cap, step))
           if (abs(step) < mmin) step <- sign(diff) * mmin
           
-          # 记录“前状态”，便于回退
+          # Record the previous state for easy rollback
           pre <- ind
-          # 跑一次分配
           adj <- adjust.biomass.LPJGUESS(
             individual = ind, biomass.inc = step,
             sla = pft.params[px,"sla"],
@@ -108,7 +103,6 @@ update_state_both_LPJGUESS <- function(
           )
           ind <- adj$individual
           
-          # 新形态
           allo <- allometry(
             cmass_leaf = ind$cmass_leaf, cmass_sap = ind$cmass_sap, cmass_heart = ind$cmass_heart,
             densindiv = ind$densindiv, age = ind$age, fpc = ind$fpc, deltafpc = ind$deltafpc,
@@ -120,7 +114,6 @@ update_state_both_LPJGUESS <- function(
           )
           
           if (identical(allo$error.string, "OK")) {
-            # 接受；更新几何量
             ind$height    <- allo$height
             ind$crownarea <- allo$crownarea
             ind$lai_indiv <- allo$lai_indiv
@@ -130,7 +123,6 @@ update_state_both_LPJGUESS <- function(
             ind$boleht    <- allo$boleht
             ok_allom <- TRUE
           } else {
-            # 回退并减半步长再试一次（最多再试 3 次）
             ok_allom <- FALSE
             try_ok <- FALSE
             step_try <- step
@@ -165,17 +157,18 @@ update_state_both_LPJGUESS <- function(
                 ok_allom <- TRUE ; try_ok <- TRUE ; break
               }
             } # kk
-            if (!try_ok) break  # 触到约束边界——转入阶段B
+            if (!try_ok) break  
           } # if OK/else
         } # k loop (biomass)
         
-        ## ===== 阶段B：density 微调（把剩余目标交给 densindiv）=====
+        ## ===== stageB：density tuning: Leave the remaining targets to densindiv=====
         w_now <- AbvGrndWood(ind)
         lam_real <- w_now / w0
         lam_need <- lamPFT / max(lam_real, 1e-12)
         
         if (abs(lam_need - 1) > AbvGrndWood.epsilon) {
-          # 单步极值，避免一口吃太多；然后二分搜可行区
+          # Single-step extreme value, avoid eating too much in one bite
+          # Then search the feasible area by binary search
           lam_need <- max(min(lam_need, 5.0), 0.2)
           
           lo <- 1.0 ; hi <- lam_need
@@ -222,14 +215,14 @@ update_state_both_LPJGUESS <- function(
           ind$boleht     <- last_res$boleht
         }
         
-        # 最终一次靠近目标的检验（不过分“死磕”，交给下一年吸收残差）
+        # The final test to approach the target (without being overly "stubborn", leave it to the next year to absorb residuals)
         w_fin <- AbvGrndWood(ind)
         if (abs(w_fin - w_tgt)/max(w_tgt,1e-12) > (3*AbvGrndWood.epsilon)) {
           stop(sprintf("update_state_LPJGUESS: indiv %d (PFT %d) could not reach target within tolerance after combo nudge.",
                        ii, pft_id))
         }
         
-        # 写回
+        # write back
         model.state$Stand[[is]]$Patch[[ip]]$Vegetation$Individuals[[ii]] <- ind
         if (trace) {
           cat(sprintf("[OK] Stand %d Patch %d Indiv %d PFT %d | wood: %.4f -> %.4f (tgt %.4f) | dens λ: ~%.3f\n",

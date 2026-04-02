@@ -102,14 +102,6 @@ TotalCarbon <- function(individual, include.debt = TRUE){
 ##'
 ##' @return A list representing the newly seeded individual with key state set
 ##' (geometry/pools) and derived quantities zeroed to be recomputed by daily/allometry.
-##'
-##' @details
-##' Height is computed as \eqn{h = k\_allom2 * (d\_m)^{k\_allom3}} (Eq.5),
-##' crown area as \eqn{\min(k\_allom1 * (d\_m)^{k\_rp}, crownarea\_max}} (Eq.6).
-##' Leaf mass per individual is \eqn{(LAI\_{indiv} * crownarea) / SLA}.
-##' Sapwood mass per individual follows the LPJ-GUESS proportionality with \code{k_latosa}.
-##' Area-scale pools are obtained by multiplying per-individual pools by \code{dens0}.
-##'
 ##' @keywords internal
 .seed_cohort_quick <- function(template, pft_row, pft_id,
                                dens0 = 1e-6, ltor_init = 1.0,
@@ -674,7 +666,6 @@ update_state_LPJGUESS <- function(model.state, pft.params, dens.initial, dens.ta
               gap <- target.AbvGrndWood - current_agb
               if (abs(gap) / max(abs(target.AbvGrndWood), .Machine$double.eps) <= AbvGrndWood.epsilon) {
                 result.code <- "FIRST"; break
-                # result.code <- "OK"; break 应该是OK?
               }
               
               ## ---- 1) Goal-oriented step size (with structural minimum and 30% upper limit) ----

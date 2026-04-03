@@ -87,18 +87,21 @@ segments <- tibble::tibble(
   start_date = c(start_date, crop_cycles[["date"]]),
   end_date = c(crop_cycles[["date"]] - 1, end_date)
 ) |>
-  dplyr::mutate(segment_id = dplyr::row_number())
+  dplyr::mutate(
+    segment_id = sprintf("%03d", dplyr::row_number()),
+    segment_dir = file.path(outdir, paste0("segment_", segment_id))
+  )
 
 ################################################################################
 
 for (isegment in seq_len(nrow(segments))) {
   message("Running segment ", isegment)
   segment <- segments[isegment, ]
-  segment_id <- sprintf("%03d", isegment)
+  segment_id <- segment[["segment_id"]]
   dstart <- segment[["start_date"]]
   dend <- segment[["end_date"]]
 
-  segment_dir <- file.path(outdir, paste0("segment_", segment_id))
+  segment_dir <- segment[["segment_dir"]]
   if (dir.exists(segment_dir)) {
     unlink(segment_dir, recursive = TRUE)
   }
@@ -128,14 +131,15 @@ for (isegment in seq_len(nrow(segments))) {
     overwrite = TRUE
   )
 
+  runid <- "1"
   # Segment-specific settings
   segment_outdir <- file.path(segment_dir, "out")
   dir.create(segment_outdir, showWarnings = FALSE, recursive = TRUE)
-  segment_outdir_withid <- file.path(segment_outdir, segment_id)
+  segment_outdir_withid <- file.path(segment_outdir, runid)
   # Don't need to create the outdir here because it is created by write.configs
   segment_rundir <- file.path(segment_dir, "run")
   dir.create(segment_rundir, showWarnings = FALSE, recursive = TRUE)
-  segment_rundir_withid <- file.path(segment_rundir, segment_id)
+  segment_rundir_withid <- file.path(segment_rundir, runid)
   dir.create(segment_rundir_withid, showWarnings = FALSE, recursive = TRUE)
 
   segment_settings <- settings
@@ -156,7 +160,7 @@ for (isegment in seq_len(nrow(segments))) {
   segment_settings[[c("model", "restart_out")]] <- restart_out
 
   # Write runs file
-  writeLines(segment_id, file.path(segment_rundir, "runs.txt"))
+  writeLines(runid, file.path(segment_rundir, "runs.txt"))
 
   # TODO: Logic to get the trait values corresponding to the segment's PFT.
   # 1. Cross-reference crop_code against PFT
@@ -167,7 +171,7 @@ for (isegment in seq_len(nrow(segments))) {
     defaults = settings[["pfts"]],
     trait.values = segment_traits,
     settings = segment_settings,
-    run.id = segment_id
+    run.id = runid
   )
 
   runs <- PEcAn.workflow::start_model_runs(segment_settings, write = FALSE)
@@ -183,5 +187,19 @@ for (isegment in seq_len(nrow(segments))) {
   )
 }
 
-# TODO: Post processing. Combine all the segments together and return output in
-# PEcAn standard.
+# TODO: Concatenate the NetCDF files. This is annoyingly hard in R (unless I use `stars`?)
+
+segment_ncfiles <- lapply(
+  segments[["segment_dir"]],
+  \(x) list.files(
+    file.path(x, "out", "1"),
+    pattern = "\\d+\\.nc",
+    full.names = TRUE
+  )
+) |>
+  do.call(what = c)
+
+segment_files_byyear <- split(segment_ncfiles, factor(basename(segment_ncfiles)))
+combined_outdir <- fs::dir_create(fs::path(outdir_root, "out"))
+names(segment_files_byyear) <- fs::path(combined_outdir, names(segment_files_byyear))
+results <- purrr::imap(segment_files_byyear, PEcAn.SIPNET::mergeNC)

@@ -286,11 +286,13 @@ model_output |>
   mutate(site_id = sub("ENS-\\d+-", "", run_id)) |>
   select("site_id", "run_id", "posix", "CH4_flux") |>
   ggplot() +
-  aes(x = posix, y = CH4_flux, group = run_id) +
+  aes(x = posix, 
+      y = CH4_flux * 1E6 * 60 * 60 * 24, # Convert from kg/m2/s to mg/m2/d
+      group = run_id) +
   facet_wrap(~site_id, nrow = 1) +
   geom_line() +
   xlab("Date") +
-  ylab("Methane Flux (kg C m-2 s-1)") +
+  ylab("Methane Flux (mg C m-2 d-1)") +
   ggtitle("Methane Fluxes Over Time") +
   theme_bw()+
   theme(legend.position = "none")

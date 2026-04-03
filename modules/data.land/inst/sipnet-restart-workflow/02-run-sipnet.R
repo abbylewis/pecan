@@ -150,14 +150,17 @@ for (isegment in seq_len(nrow(segments))) {
   segment_settings[[c("run", "end.date")]] <- dend
   segment_settings[[c("run", "inputs", "met", "path")]] <- met_segment_file
   segment_settings[[c("run", "inputs", "events")]] <- list(path = segment_eventfile)
+  if (is.null(segment_settings[[c("model", "options")]])) {
+    segment_settings[[c("model", "options")]] <- list()
+  }
 
   if (isegment > 1) {
     # For isegment > 1, we restart from the *previous* segment's restart.out
-    segment_settings[[c("model", "restart_in")]] <- restart_out
+    segment_settings[[c("model", "options", "RESTART_IN")]] <- restart_out
   }
   # ...and now, define a new restart.out for *this* segment
   restart_out <- file.path(segment_dir, "restart.out")
-  segment_settings[[c("model", "restart_out")]] <- restart_out
+  segment_settings[[c("model", "options", "RESTART_OUT")]] <- restart_out
 
   # Write runs file
   writeLines(runid, file.path(segment_rundir, "runs.txt"))

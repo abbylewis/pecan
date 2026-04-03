@@ -271,7 +271,7 @@ model_output |>
   facet_grid(flux~site_id) +
   geom_line() +
   xlab("Date") +
-  ylab("Carbon Flux (kg C m-2 s-1)") +
+  ylab(expression("Carbon Flux (kg C"~m^-2~s^-1*")")) +
   ggtitle("Carbon Fluxes Over Time") +
   theme_bw()+
   theme(legend.position = "none")
@@ -292,7 +292,7 @@ model_output |>
   facet_wrap(~site_id, nrow = 1) +
   geom_line() +
   xlab("Date") +
-  ylab("Methane Flux (mg C m-2 d-1)") +
+  ylab(expression("Methane Flux (mg C"~m^-2~d^-1*")")) +
   ggtitle("Methane Fluxes Over Time") +
   theme_bw()+
   theme(legend.position = "none")

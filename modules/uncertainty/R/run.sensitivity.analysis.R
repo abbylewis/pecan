@@ -33,8 +33,7 @@
 #'
 #' **Note:** This is a terminal step in the workflow — nothing downstream
 #' loads `sensitivity.results.*.Rdata` programmatically. The results are
-#' consumed by visualization or user inspection. A future improvement is to
-#' also return the results object so callers can use it directly.
+#' consumed by visualization or user inspection.
 #'
 #' @return Nothing (called for side effects). Saves `sensitivity.results` as
 #'   `sensitivity.results.*.Rdata` and optional PDF plots.

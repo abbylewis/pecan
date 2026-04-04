@@ -2,14 +2,13 @@
 ##'
 ##' @md
 ##' Queries BETYdb for trait observations and prior distributions for a single
-##' plant functional type (PFT). Results are saved to `.RData` and `.csv` files
+##' plant functional type (PFT). Results are saved to files
 ##' in the PFT output directory (`pft$outdir`), and also registered in the
 ##' database as posterior records when `write = TRUE`.
 ##'
 ##' @details
 ##' `pft` should be a list containing at least `name` and `outdir`, and
 ##' optionally `posteriorid` and `constants`.
-##' **BEWARE:** All existing files in `pft$outdir` will be deleted on entry.
 ##'
 ##' **File-based side effects (saved to `pft$outdir`):**
 ##' \describe{
@@ -47,9 +46,9 @@
 ##'   BETYdb.  Defaults to `FALSE`.
 ##' @param trait.names list of trait names to retrieve
 ##' @return The `pft` input list, updated with `pft$posteriorid` set to the
-##'   ID of the (possibly new) posterior record in BETYdb. Note: the function's
-##'   primary outputs (`trait.data`, `prior.distns`) are currently communicated
-##'   only through files saved in `pft$outdir`, not through the return value.
+##'   ID of the (possibly new) posterior record in BETYdb. The posterior ID can
+##'   be used to locate the output files (`trait.data.Rdata`, `prior.distns.Rdata`,
+##'   etc.) via BETYdb's `dbfiles` table.
 ##' @author David LeBauer, Shawn Serbin, Rob Kooper
 ##' @export
 get.trait.data.pft <-
@@ -66,10 +65,6 @@ get.trait.data.pft <-
   if (!file.exists(pft$outdir) && !dir.create(pft$outdir, recursive = TRUE)) {
     PEcAn.logger::logger.error(paste0("Couldn't create PFT output directory: ", pft$outdir))
   }
-
-  ## Remove old files.  Clean up.
-  old.files <- list.files(path = pft$outdir, full.names = TRUE, include.dirs = FALSE)
-  file.remove(old.files)
 
   # find appropriate pft
   pftres <- query_pfts(dbcon, pft[["name"]], modeltype)

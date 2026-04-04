@@ -210,14 +210,14 @@ check_consistent <- function(point, prior,
 #'     summarizing the fitted posterior distribution.}
 #'   \item{`post.distns.Rdata`}{Symlink to `post.distns.MA.Rdata`.}
 #'   \item{`jagged.data.Rdata`}{Contains `jagged.data`: a named list of data
-#'     frames (one per trait) after the greenhouse screening and JAGSification
-#'     transform applied by [jagify()].}
+#'     frames (one per trait) formatted for use in the JAGS meta-analysis
+#'     model (see [jagify()]).}
 #' }
 #'
 #' **Downstream contract:** The files `trait.mcmc.Rdata` and
 #' `post.distns.Rdata` are expected by [get.parameter.samples()] (in
 #' `PEcAn.uncertainty`), which loads them to generate ensemble and sensitivity
-#' analysis samples. This implicit file-based coupling is a refactoring target.
+#' analysis samples.
 #'
 #' **Note:** The core computation is performed by [meta_analysis_standalone()],
 #' which accepts and returns R objects directly — see its documentation for
@@ -231,8 +231,18 @@ check_consistent <- function(point, prior,
 #'   posteriors with new ones
 #'
 #' @return The `pft` list (invisibly), or `NA` if no trait data are available.
+#'   The returned `pft` list is a named list with the following elements:
+#'   \describe{
+#'     \item{`name`}{(character) PFT name, e.g. `"temperate.deciduous"`.}
+#'     \item{`outdir`}{(character) Path to directory where output files are
+#'       stored (trait data, priors, posteriors, MCMC samples).}
+#'     \item{`posteriorid`}{(integer) Row ID of the posterior record in
+#'       BETYdb's `posteriors` table.}
+#'     \item{`constants`}{(named list, optional) Trait values to treat as
+#'       fixed constants, bypassing the meta-analysis.}
+#'   }
 #'   The function's primary outputs are communicated through files saved in
-#'   `pft$outdir`, not through the return value.
+#'   `pft$outdir`.
 #'
 #' @inheritParams meta_analysis_standalone
 run.meta.analysis.pft <- function(pft, iterations, random = TRUE, threshold = 1.2, dbfiles, dbcon, use_ghs = TRUE, update = FALSE) {

@@ -1,5 +1,6 @@
 test_that("extract_chirps_remote returns data for single date", {
   skip_if_offline()
+  skip_on_ci()
 
   pts <- tibble::tibble(lon = c(-120, -110), lat = c(35, 40), site_id = 1:2)
 
@@ -16,6 +17,7 @@ test_that("extract_chirps_remote returns data for single date", {
 
 test_that("extract_chirps_remote handles multiple dates in same year", {
   skip_if_offline()
+  skip_on_ci()
 
   pts <- tibble::tibble(lon = c(-120, -110), lat = c(35, 40), site_id = 1:2)
   dates <- seq(as.Date("2020-06-01"), as.Date("2020-06-30"), by = "1 day")
@@ -31,6 +33,7 @@ test_that("extract_chirps_remote handles multiple dates in same year", {
 
 test_that("extract_chirps_remote handles dates spanning multiple years", {
   skip_if_offline()
+  skip_on_ci()
 
   pts <- tibble::tibble(lon = c(-120, -110), lat = c(35, 40), site_id = 1:2)
   dates <- c(
@@ -49,6 +52,7 @@ test_that("extract_chirps_remote handles dates spanning multiple years", {
 
 test_that("extract_chirps_remote output has correct structure", {
   skip_if_offline()
+  skip_on_ci()
 
   pts <- tibble::tibble(lon = c(-120, -110), lat = c(35, 40), site_id = 1:2)
   dates <- seq(as.Date("2020-06-01"), as.Date("2020-06-10"), by = "1 day")

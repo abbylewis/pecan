@@ -10,6 +10,7 @@ default:
   ic_dir: "/projectnb/dietzelab/ccmmf/ensemble/IC_files"
   planting_events_dir: "/projectnb/dietzelab/ccmmf/management/event_files"
   mslsp_path: "/projectnb/dietzelab/ccmmf/management/phenology/matched_landiq_mslsp_v4.1"
+  pft_dir: "..."
 
 ashiklom:
   irrigation_path: !expr path.expand("~/data/irrigation-events-out/irrigation_10000.parquet")
@@ -20,3 +21,4 @@ ashiklom:
   ic_dir: !expr path.expand("~/data/IC-site")
   planting_events_dir: !expr path.expand("~/data/event-files/planting")
   mslsp_path: !expr path.expand("~/data/matched_landiq_mslsp_v4.1")
+  pft_dir: !expr path.expand("~/data/pfts")

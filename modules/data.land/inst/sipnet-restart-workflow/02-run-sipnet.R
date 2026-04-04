@@ -19,6 +19,29 @@ site_lon <- dp_data[["lon"]]
 events_json_file <- fs::path(outdir_root, "events.json")
 events <- jsonlite::read_json(events_json_file, simplifyVector = FALSE)
 
+# Determine initial PFT
+events_df <- events |>
+  purrr::pluck(1, "events") |>
+  dplyr::bind_rows() |>
+  dplyr::arrange(.data$date)
+
+crop2pft <- function(crop_code) {
+  # crop_code <- c("F1", "R1", "G2", "F16")
+  cls <- substr(crop_code, 1, 1)
+  dplyr::case_when(
+    cls == "D" ~ "temperate.deciduous",
+    cls == "F" ~ "annual_crop",
+    cls == "G" ~ "grassland",
+    cls == "P" ~ "grassland",
+    cls == "R" ~ "grassland",
+    is.na(crop_code) ~ "soil",
+    TRUE ~ "UNKNOWN_PFT"
+  )
+}
+
+# Before first planting event, assume soil
+initial_pft <- "soil"
+
 all_dates <- events |>
   purrr::pluck(1, "events") |>
   purrr::map_chr("date") |>
@@ -41,18 +64,31 @@ icfile <- file.path(
 )
 stopifnot(file.exists(icfile))
 
+pft_dir <- config[["pft_dir"]]
+stopifnot(dir.exists(pft_dir))
+
 ################################################################################
 outdir <- fs::path(outdir_root, "segments")
 unlink(outdir, recursive = TRUE)
 
+pfts <- c("temperate.deciduous", "grass", "annual_crop") |>
+  purrr::map(~list(
+    name = .x,
+    posterior.files = file.path(pft_dir, .x, "post.distns.Rdata"),
+    outdir = paste0(file.path(pft_dir, .x), "/")
+  )) |>
+  c(list(list(name = "soil", outdir = file.path(pft_dir, "soil/"))))
+
+settings_outdir <- file.path(outdir, "out")
+dir.create(settings_outdir, showWarnings = FALSE, recursive = TRUE)
+settings_rundir <- file.path(outdir, "run")
+dir.create(settings_rundir, showWarnings = FALSE, recursive = TRUE)
+
 settings <- PEcAn.settings::as.Settings(list(
-  outdir = file.path(outdir, "out"),
-  rundir = file.path(outdir, "run"),
-  modeloutdir = file.path(outdir, "out"),
-  pfts = list(list(
-    name = "grassland",
-    constants = list(num = 1)
-  )),
+  outdir = settings_outdir,
+  modeloutdir = settings_outdir,
+  rundir = settings_rundir,
+  pfts = pfts,
   model = list(
     type = "SIPNET",
     binary = binary,
@@ -69,7 +105,10 @@ settings <- PEcAn.settings::as.Settings(list(
       id = site_id,
       name = site_id,
       lat = site_lat,
-      lon = site_lon
+      lon = site_lon,
+      site.pft = list(
+        soil = "soil"
+      )
     ),
     start.date = start_date,
     end.date = end_date,
@@ -102,11 +141,13 @@ site_events_common[["events"]] <- NULL
 # Get segments
 segments <- tibble::tibble(
   start_date = c(start_date, crop_cycles[["date"]]),
-  end_date = c(crop_cycles[["date"]] - 1, end_date)
+  end_date = c(crop_cycles[["date"]] - 1, end_date),
+  crop_code = c(NA_character_, crop_cycles[["crop_code"]])
 ) |>
   dplyr::mutate(
+    pft = crop2pft(.data$crop_code),
     segment_id = sprintf("%03d", dplyr::row_number()),
-    segment_dir = file.path(fs::path_abs(outdir), paste0("segment_", segment_id))
+    segment_dir = file.path(fs::path_abs(outdir), paste0("segment_", .data$segment_id))
   )
 
 ################################################################################

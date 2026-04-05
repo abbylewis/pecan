@@ -61,8 +61,9 @@ install.packages(c('PEcAn.all', 'PEcAn.PEPRMT'))
 
 -   Or install from GitHub
 
-```         
-remotes::install_github("pecanproject/pecan", subdir = "base/all", ref = "develop", force = T)
+```{r}         
+remotes::install_github("pecanproject/pecan", subdir = "base/all", 
+                        ref = "develop", force = T)
 remotes::install_github("pecanproject/pecan", subdir = "models/peprmt",
                         ref = "develop")
 ```
@@ -272,7 +273,7 @@ model_output |>
   facet_grid(flux~site_id) +
   geom_line() +
   xlab("Date") +
-  ylab("Carbon Flux (kg C m-2 s-1)") +
+  ylab(expression("Carbon Flux (kg C"~m^-2~s^-1*")")) +
   ggtitle("Carbon Fluxes Over Time") +
   theme_bw()+
   theme(legend.position = "none")
@@ -286,6 +287,23 @@ min(model_output$posix)
 model_output |>
   mutate(site_id = sub("ENS-\\d+-", "", run_id)) |>
   select("site_id", "run_id", "posix", "CH4_flux") |>
+  ggplot() +
+  aes(x = posix, 
+      y = CH4_flux * 1E6 * 60 * 60 * 24, # Convert from kg/m2/s to mg/m2/d
+      group = run_id) +
+  facet_wrap(~site_id, nrow = 1) +
+  geom_line() +
+  xlab("Date") +
+  ylab(expression("Methane Flux (mg C"~m^-2~d^-1*")")) +
+  ggtitle("Methane Fluxes Over Time") +
+  theme_bw()+
+  theme(legend.position = "none")
+
+model_output |>
+  mutate(site_id = sub("ENS-\\d+-", "", run_id)) |>
+  select("site_id", "run_id", "posix", "CH4_flux") |>
+  group_by(run_id) %>%
+  filter(!posix %in% posix[1:150]) %>%
   ggplot() +
   aes(x = posix, y = CH4_flux, group = run_id) +
   facet_wrap(~site_id, nrow = 1) +

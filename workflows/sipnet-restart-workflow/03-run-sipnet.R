@@ -5,15 +5,15 @@ if (FALSE) {
   devtools::install("modules/data.land", upgrade = FALSE)
 }
 
-source("workflows/sipnet-restart-workflow/81-utils.R")
+source("workflows/sipnet-restart-workflow/utils.R")
 
 config <- config::get(file = "workflows/sipnet-restart-workflow/config.yml")
 
 outdir_root <- config[["outdir_root"]]
 
-events_json_file <- file.path(outdir_root, "events.json")
-
 settings_raw <- PEcAn.settings::read.settings(file.path(outdir_root, "settings.xml"))
+
+# Delete existing outdir so we always start fresh
 unlink(settings_raw$outdir, recursive = TRUE)
 dir.create(settings_raw$outdir, recursive = TRUE, showWarnings = FALSE)
 
@@ -34,8 +34,9 @@ inputs_runs <- file.path(settings$outdir, "runs_manifest.csv") |>
 
 write.csv(inputs_runs, file = file.path(settings$outdir, "inputs_runs.csv"))
 
-# Begin loop
+# Loop over runs. Within each run, loop over segments. Individual runs should
+# be naively parallelizable and therefore suitable for `clustermq`, etc.
 for (irun in seq_len(nrow(inputs_runs))) {
   run_row <- inputs_runs[irun, ]
-  run_sipnet_segmented(settings, run_row, events_json_file)
+  run_sipnet_segmented(settings, run_row)
 }

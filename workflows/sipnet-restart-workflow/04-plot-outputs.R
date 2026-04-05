@@ -48,4 +48,10 @@ plt <- results |>
   theme(legend.position = "bottom")
 plt
 
-ggsave("~/Pictures/restarts.png", plt, width = 12, height = 9, units = "in")
+ggsave(
+  file.path(outdir_root, "restarts.png"),
+  plt,
+  width = 12,
+  height = 9,
+  units = "in"
+)

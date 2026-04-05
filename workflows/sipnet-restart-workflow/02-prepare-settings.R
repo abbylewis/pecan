@@ -21,9 +21,15 @@ dp_data <- read.csv(config[["dp_path"]]) |>
 site_lat <- dp_data[["lat"]]
 site_lon <- dp_data[["lon"]]
 
-events_json_file <- file.path(outdir_root, "events.json")
-sipnet_eventfile <- PEcAn.SIPNET::write.events.SIPNET(events_json_file, outdir_root)
-events <- jsonlite::read_json(events_json_file, simplifyVector = FALSE)
+events_dir <- file.path(outdir_root, "events")
+events_files <- list.files(events_dir, recursive = TRUE, full.names = TRUE)
+events_json_files <- as.list(grepv(".*\\.json$", events_files))
+names(events_json_files) <- paste0("path", seq_along(events_json_files))
+sipnet_eventfiles <- as.list(grepv(".*\\.sipnet/events-.*\\.in", events_files))
+names(sipnet_eventfiles) <- paste0("path", seq_along(sipnet_eventfiles))
+
+# HACK: Get the start and end date from the limits of the first event file.
+events <- jsonlite::read_json(events_json_files[[1]], simplifyVector = FALSE)
 
 all_dates <- events |>
   purrr::pluck(1, "events") |>
@@ -105,7 +111,10 @@ settings_raw <- PEcAn.settings::as.Settings(list(
     inputs = list(
       met = list(path = metfiles),
       poolinitcond = list(path = icfiles),
-      events = list(path = sipnet_eventfile)
+      events = list(
+        path = sipnet_eventfiles,
+        source = events_json_files
+      )
     )
   ),
   host = list(

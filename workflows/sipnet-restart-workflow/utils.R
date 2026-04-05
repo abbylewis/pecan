@@ -5,7 +5,7 @@
 #' @param inputs named list of input indices (one row of the sample design)
 subset_paths <- function(settings, path_nums) {
   for (input in names(path_nums)) {
-    if (!(input %in% names(settings$run$inputs))) {
+    if (!is.list(settings$run$inputs[[input]])) {
       next
     }
     path_idx <- path_nums[[input]]
@@ -14,11 +14,32 @@ subset_paths <- function(settings, path_nums) {
       PEcAn.logger::logger.severe("No path at input ", sQuote(input), " index ", path_idx)
     }
     settings$run$inputs[[input]]$path <- all_paths[[path_idx]]
+    # If we define a list of `source`s, also try to subset that (if the lengths
+    # match). This is especially useful for processing events (because we store
+    # the original JSON path in the `source`).
+    if (!is.list(settings$run$inputs[[input]]$source)) {
+      next
+    }
+    all_source_paths <- settings$run$inputs[[input]]$source
+    n_source <- length(all_source_paths)
+    n_path <- length(all_paths)
+    if (n_source != n_path) {
+      PEcAn.logger::logger.warn(sprintf(
+        paste(
+          "For input %s, number of paths (%d) ",
+          "is not equal to number of sources (%d). ",
+          "Assuming these are different things and therefore leaving sources as is."
+        ),
+        input, n_path, n_source
+      ))
+      next
+    }
+    settings$run$inputs[[input]]$source <- all_source_paths[[path_idx]]
   }
   settings
 }
 
-crop2pft <- function(crop_code) {
+crop2pft_example <- function(crop_code) {
   # crop_code <- c("F1", "R1", "G2", "F16")
   cls <- substr(crop_code, 1, 1)
   dplyr::case_when(
@@ -35,8 +56,7 @@ crop2pft <- function(crop_code) {
 run_sipnet_segmented <- function(
   settings,
   run_row,
-  events_json_file,
-  crop2pft = crop2pft
+  crop2pft = crop2pft_example
 ) {
   run_id <- run_row[["run_id"]]
   run_dir <- file.path(settings$rundir, run_id)
@@ -51,8 +71,9 @@ run_sipnet_segmented <- function(
   ensemble_samples <- PEcAn.utils::load_local(ens_samples_file)[["ens.samples"]]
   run_traits <- lapply(ensemble_samples, \(dat) dat[run_row[["param"]], ])
 
-  # TODO: Store this in settings or something?
-  crop_cycles <- PEcAn.data.land::events_to_crop_cycle_starts(events_json_file)
+  crop_cycles <- PEcAn.data.land::events_to_crop_cycle_starts(
+    run_settings$run$inputs$events$source
+  )
 
   # Get segments
   segments <- data.frame(
@@ -144,6 +165,7 @@ run_sipnet_segmented <- function(
     )
   }
 
+  # Get the list of all segment output NetCDFs
   segment_ncfiles <- lapply(
     segments[["segment_dir"]],
     \(x) {
@@ -156,6 +178,7 @@ run_sipnet_segmented <- function(
   ) |>
     do.call(what = c)
 
+  # ...and concatenate them together into annual NetCDFs.
   segment_files_byyear <- split(
     segment_ncfiles,
     factor(basename(segment_ncfiles))

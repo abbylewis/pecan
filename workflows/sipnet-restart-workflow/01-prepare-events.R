@@ -23,18 +23,16 @@ if (is.null(site_id)) {
 }
 
 # Make the events.json
-planting <- fs::dir_ls(
+planting <- list.files(
   config[["planting_events_dir"]],
-  regexp = "planting_statewide_.*\\.parquet"
+  "planting_statewide_.*\\.parquet",
+  full.names = TRUE
 ) |>
   arrow::open_dataset() |>
   dplyr::collect() |>
   dplyr::filter(.data$site_id == as.character(.env$pid)) |>
   dplyr::mutate(date = as.Date(.data$date)) |>
   tibble::as_tibble()
-
-code_pft_mapping <- planting |>
-  dplyr::distinct(crop_code = .data$code, .data$PFT)
 
 planting_events <- planting |>
   dplyr::select(
@@ -78,21 +76,26 @@ end_date <- max(harvest_events$date)
 
 irrigation_path <- config[["irrigation_path"]]
 
-irrigation_events <- arrow::open_dataset(irrigation_path) |>
-  dplyr::filter(
-    .data$parcel_id == .env$pid,
-    .data$ens_id == "irr_ens_001"
-  ) |>
-  dplyr::select(-"ens_id") |>
+irrigation_events_raw <- arrow::open_dataset(irrigation_path) |>
+  dplyr::filter(.data$parcel_id == .env$pid) |>
   dplyr::collect() |>
-  tibble::as_tibble() |>
+  tibble::as_tibble()
+
+# Irrigation events include uncertainty ensembles, so we process them
+# accordingly.
+irrigation_events_all <- irrigation_events_raw |>
   dplyr::filter(.data$date <= .env$end_date) |>
   dplyr::mutate(
     event_type = "irrigation",
-    site_id = as.character(.data$parcel_id),
-    .keep = "unused"
+    site_id = as.character(.data$parcel_id)
   ) |>
+  dplyr::select(-c("parcel_id")) |>
   dplyr::relocate("site_id", "event_type", "date")
+
+irrigation_events_list <- split(
+  dplyr::select(irrigation_events_all, -"ens_id"),
+  irrigation_events_all[["ens_id"]]
+)
 
 make_event_list <- function(df) {
   df2list <- function(df) {
@@ -105,11 +108,46 @@ make_event_list <- function(df) {
 
 planting_n <- make_event_list(planting_events)
 harvest_n <- make_event_list(harvest_events)
-irrigation_n <- make_event_list(irrigation_events)
-all_events <- dplyr::bind_rows(planting_n, harvest_n, irrigation_n) |>
-  dplyr::summarize(events = list(purrr::list_c(.data$events)), .by = "site_id") |>
-  dplyr::mutate(pecan_events_version = "0.1.1", .before = "site_id")
+irrigation_n_list <- purrr::map(irrigation_events_list, make_event_list)
 
-outdir_root <- fs::dir_create(config[["outdir_root"]])
-events_json_file <- fs::path(outdir_root, "events.json")
-jsonlite::write_json(all_events, events_json_file, pretty = TRUE, auto_unbox = TRUE)
+make_all_events <- function(...) {
+  dplyr::bind_rows(...) |>
+    dplyr::summarize(events = list(purrr::list_c(.data$events)), .by = "site_id") |>
+    dplyr::mutate(pecan_events_version = "0.1.1", .before = "site_id")
+}
+
+# NOTE: This only works if we each event type has either 1 ensemble or the same
+# number of ensembles. For varying names of ensembles, we need a more
+# sophisticated strategy.
+all_events_list <- purrr::pmap(
+  list(list(planting_n), list(harvest_n), irrigation_n_list),
+  make_all_events
+)
+
+outdir_root <- config[["outdir_root"]]
+events_dir <- file.path(outdir_root, "events")
+dir.create(events_dir, showWarnings = FALSE, recursive = TRUE)
+
+names(all_events_list) <- file.path(
+  events_dir,
+  paste0(gsub("^irr_", "event_", names(irrigation_events_list)), ".json")
+)
+
+purrr::iwalk(
+  all_events_list,
+  jsonlite::write_json,
+  pretty = TRUE,
+  auto_unbox = TRUE
+)
+
+# NOTE: Right now, `write.events.SIPNET` has no way to customize the filename,
+# only the output directory. So we have to create a bunch of individual
+# directories here, with each one containing one SIPNET event file (but
+# possibly for multiple sites).
+sipnet_event_dirs <- gsub("\\.json$", ".sipnet", names(all_events_list))
+
+purrr::walk2(
+  names(all_events_list),
+  sipnet_event_dirs,
+  PEcAn.SIPNET::write.events.SIPNET
+)

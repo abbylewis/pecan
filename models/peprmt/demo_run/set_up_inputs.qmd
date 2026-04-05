@@ -131,14 +131,14 @@ Reco_Ea_som,norm,18.4,1,NA
 Reco_kM_som,unif,1000,12000,NA
 Reco_Ea_labile,norm,11.7,2,NA
 Reco_kM_labile,unif,10,100,NA
-CH4_1,norm,82.0,1,NA
-CH4_2,norm,17.4,1,NA
-CH4_3,norm,86.7,1,NA
-CH4_4,norm,23.4,1,NA
-CH4_5,norm,91.2,1,NA
-CH4_6,norm,23.5,1,NA
-CH4_7,norm,100.0,1,NA
-CH4_8,norm,0.20,1,NA)",
+Ea_SOM_CH4,norm,82.0,1,NA
+kMSOM_CH4,norm,17.4,1,NA
+Ea_labile_CH4,norm,86.7,1,NA
+kMlabile_CH4,norm,23.4,1,NA
+Ea_oxi_CH4,norm,91.2,1,NA
+kMoxi_CH4,norm,23.5,1,NA
+kISO4,norm,100.0,1,NA
+kINO3,norm,0.20,1,NA)",
   row.names = "param"
 )
 demo_pft_dir <- file.path("data", "pfts", "default_marginal")

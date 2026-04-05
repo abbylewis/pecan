@@ -69,7 +69,8 @@ write.config.PEPRMT <- function(defaults, trait.values, settings, run.id) {
   GPP_names <- c("GPP_a0", "GPP_a1", "GPP_Ha", "GPP_Hd")
   Reco_names <- c("Reco_Ea_som", "Reco_kM_som",
                   "Reco_Ea_labile", "Reco_kM_labile")
-  CH4_names <- paste("CH4", 1:8, sep = "_") # TODO get meaningful names from Patty
+  CH4_names <- c("Ea_SOM_CH4", "kMSOM_CH4", "Ea_labile_CH4", "kMlabile_CH4",
+                 "Ea_oxi_CH4", "kMoxi_CH4", "kISO4", "kINO3")
   missing_traitnames <- setdiff(c(GPP_names, Reco_names, CH4_names), trait_names)
   if (length(missing_traitnames) > 0) {
     PEcAn.logger::logger.error(

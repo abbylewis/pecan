@@ -96,12 +96,57 @@ write.config.PEPRMT <- function(defaults, trait.values, settings, run.id) {
   
   #-----------------------------------------------------------------------
   # config.file.name <- paste0("CONFIG.", run.id, ".txt")
-  # writeLines(config.text, con = paste(outdir, config.file.name, sep = ""))
-
+  # writeLines(config.text, con = paste(outdir, config.file.name, sep = "")
+  
+  # Load met data
+  loaded_met <- PEcAn.data.atmosphere::download.ERA5_cds(outfolder = rundir, 
+                                           start_date = settings$run$start.date,
+                                           end_date = settings$run$end.date,
+                                           extent = c(settings$run$site$lon,
+                                                      settings$run$site$lon,
+                                                      settings$run$site$lat, 
+                                                      settings$run$site$lat),
+                                           user = "abigail.sl.lewis@gmail.com",
+                                           key = Sys.getenv("key"),
+                                           variables = c("2m_temperature",
+                                                         "surface_pressure")
+                                           )
+  
+  nc_path <- loaded_met[[1]]$file
+  in.path <- dirname(nc_path)
+  in.prefix <- "ERA5_"
+  opened <- ncdf4::nc_open(nc_path)
+  result <- met2model.PEPRMT(in.path, in.prefix, outfolder = rundir, 
+                             start_date = settings$run$start.date, 
+                             end_date = settings$run$end.date)
+  final.nc.files <- extract.nc.ERA5(slat = settings$run$site$lat, 
+                                    slon = settings$run$site$lon, 
+                                    in.path, 
+                                    start_date = settings$run$start.date, 
+                                    end_date = settings$run$end.date, 
+                                    outfolder = in.path, 
+                                    in.prefix = "ERA5_", 
+                                    newsite = settings$run$site$id)
+  AmeriFlux_met_ensemble(site_id = settings$run$site$id,
+                         start_date = settings$run$start.date,
+                         end_date = settings$run$end.date, 
+                         outfolder = in.path,
+                         ameriflux_username = "pattyoikawa", 
+                         ameriflux_useremail = "patty.oikawa@csueastbay.edu",
+                         overwrite = FALSE, 
+                         verbose = T, 
+                         format = NULL,
+                         n_ens = 10, 
+                         w_len = 30,
+                         era5_user = "abigail.sl.lewis@gmail.com",
+                         era5_key = Sys.getenv("key"),
+                         threshold = 0.5,
+                         dirs = NULL)
+  
   # yes, this will be replaced with real params once demo is working
   run_data <- PEPRMT::example_data |>
     dplyr::filter(.data$site == settings$run$site$id)
-
+  
   utils::write.csv(run_data, file.path(rundir, "run_data.csv"), row.names = FALSE)
   writeLines(jobsh, con = file.path(rundir, "job.sh"))
   Sys.chmod(file.path(rundir, "job.sh"))

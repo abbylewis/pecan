@@ -116,7 +116,7 @@ First we'll write marginal distributions. The format is an R data file (conventi
 * `parama` and `paramb`, the first two moments of the distribution. For `norm` and friends these are mean and sd, for `unif` they are max and min, for `gamma` they are shape and rate, and so on.
 * `n`, the number of datapoints used to estimate this point. Usually NA in a file not created by formal meta-analysis, and not used by the model-specific sampling processes.
 
-The means shown here were retrieved 2026-03-03 from the default values used in `PEPRPMT::run_PRPMT()`. These were calibrated in Oikawa et al 2024 but not all variances are reported there. For demonstration purposes I estimated variance parameters by visual comparison to the histograms in Oikawa 2024 (for the parameters that appear there) or by arbitrarily setting sd to 1 (for CH4 parameters). TODO: Update this.
+The means shown here were retrieved 2026-03-03 from the default values used in `PEPRPMT::run_PEPRMT()`. These were calibrated in Oikawa et al 2024 but not all variances are reported there. For demonstration purposes I estimated variance parameters by visual comparison to the histograms in Oikawa 2024 (for the parameters that appear there) or by arbitrarily setting sd to 1 (for CH4 parameters). TODO: Update this.
 
 
 ```{r pft-marginal}
@@ -146,6 +146,11 @@ dir.create(demo_pft_dir, recursive = TRUE)
 save(
   post.distns,
   file = file.path(demo_pft_dir, "post.distns.RData"))
+#Also save for other demos
+demo_dir <- file.path("raw-data", "pfts", "default")
+save(
+  post.distns,
+  file = file.path(demo_dir, "post.distns.RData"))
 ```
 
 Let's run this!

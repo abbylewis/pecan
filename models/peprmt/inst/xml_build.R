@@ -7,26 +7,28 @@ library(PEcAn.settings)
 ## Config section -- edit for your project
 options <- list(
   optparse::make_option("--n_ens",
-    default = 20,
+    default = 3,
     help = "number of ensemble simulations per site"
   ),
   optparse::make_option("--n_met",
     default = 10,
     help = "number of met files available (ensemble will sample from all)"
   ),
-  optparse::make_option("--start_date",
-    default = "2016-01-01",
+  optparse::make_option(
+    "--start_date",
+    default = "2016-01-01", 
     help = paste(
       "Date to begin simulations.",
       "Ensure your IC files are valid for this date"
     )
   ),
-  optparse::make_option("--end_date",
+  optparse::make_option(
+    "--end_date",
     default = "2024-12-31",
     help = "Date to end simulations"
   ),
   optparse::make_option("--met_dir",
-    default = "data/ERA5_PEPRMT",
+    default = "data/met",
     help = paste(
       "Directory containing climate data.",
       "Should contain subdirs named by site id"
@@ -54,7 +56,7 @@ options <- list(
     )
   ),
   optparse::make_option("--output_file",
-    default = "settings.xml",
+    default = "settings_asl.xml",
     help = "path to write output XML"
   ),
   optparse::make_option("--output_dir_name",
@@ -102,13 +104,13 @@ site_info <- site_info |>
     name = id
   )
 
-settings <- read.settings(args$template_file) |>
+settings_init <- read.settings(args$template_file) |>
   setDates(args$start_date, args$end_date)
-settings$info$notes <- paste("Compiled from", args$template_file,
-                             "at", Sys.time())
 
-settings$ensemble$size <- args$n_ens
-# settings$run$inputs$poolinitcond$ensemble <- args$n_ens
+settings_init$info$notes <- paste("Compiled from", args$template_file,
+                                  "at", Sys.time())
+
+settings_init$ensemble$size <- args$n_ens
 
 # Hack: setEnsemblePaths leaves all path components other than siteid
 # identical across sites.
@@ -124,41 +126,77 @@ id2grid <- function(s) {
   }
   s
 }
+# Also replace start and end dates
+dates2grid <- function(s) {
+  for (p in seq_along(s$run$inputs$met$path)) {
+    s$run$inputs$met$path[[p]] <- gsub(
+      pattern = "DATES-HERE",
+      replacement = paste0(s$run$site$met.start, ".",
+                           s$run$site$met.end),
+      x = s$run$inputs$met$path[[p]]
+    )
+  }
+  s
+}
 
 add_soil_pft <- function(s) {
   s$run$site$site.pft <- list(veg = s$run$site$site.pft, soil = "soil")
   s
 }
 
-settings <- settings |>
+# settings$run$inputs$poolinitcond$ensemble <- args$n_ens
+
+settings <- settings_init |>
+  
+  # Set where demo outputs go
+  # setOutDir("output") |>
+  
+  # Set ensemble dates
+  # Note the run dates differ by site (overridden below);
+  # for ensemble we take a range that includes all.
+  setDates(min(site_info$met.start), max(site_info$met.end)) |>
+  
+  
+  # Takes all sites listed in site_info.csv,
+  # adds empty path templates to each `run$site.[siteid]`
   createMultiSiteSettings(site_info) |>
+  
+  # Set run start and end dates to match available met data
+  # (as hard-coded in site-info.csv -- consider getting from elsewhere?)
+  # If dates were equal for all sites, setDates() above this would handle this
+  papply(function(s) {
+    s$run$start.date <- s$run$site$met.start
+    s$run$end.date <- s$run$site$met.end
+    s$run
+    s
+  })  |>
   setEnsemblePaths(
     n_reps = args$n_met,
     input_type = "met",
-    path = args$met_dir,
-    d1 = args$start_date |> as.Date() |> format("%Y-%m"),
-    d2 = args$end_date |> as.Date() |> format("%Y-%m"),
-    path_template = "{path}/ERA5_{id}/ERA5.{n}.{d1}.{d2}.dat"
+    path = file.path("data", "met"),
+    d1 = "DATES-HERE",
+    path_template = "{path}/ERA5_{id}/ERA5.{n}.{d1}.dat"
   ) |>
   papply(id2grid) |>
+  papply(dates2grid) #|>
   # setEnsemblePaths(
   #   n_reps = args$n_ens,
   #   input_type = "poolinitcond",
   #   path = args$ic_dir,
   #   path_template = "{path}/{id}/IC_site_{id}_{n}.nc"
   # ) |>
-  setEnsemblePaths(
-    n_reps = args$n_ens,
-    input_type = "soil_physics",
-    path = args$soil_dir,
+  #setEnsemblePaths(
+  #  n_reps = args$n_ens,
+  #  input_type = "soil_physics",
+  #  path = args$soil_dir,
     # n+1 bc current implementation of extract_soil_gSSURGO saves a
     # gSSURGO_soil_1.nc containing pseudo-layers from _every_
     # soil type found at site, then at least n more files after that
     # ("at least" bc it also writes at least 1 file per soil type)
     # TODO
-    path_template = "{path}/{id}/gSSURGO_soil_{n+1}.nc"
-  ) |>
-  papply(add_soil_pft)
+  #  path_template = "{path}/{id}/gSSURGO_soil_{n+1}.nc"
+  #) |>
+  #papply(add_soil_pft)
 
 # Update just the first component of the output directory,
 # in all four places it's used.

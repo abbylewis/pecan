@@ -215,7 +215,7 @@ check_consistent <- function(point, prior,
 #' }
 #'
 #' **Downstream contract:** The files `trait.mcmc.Rdata` and
-#' `post.distns.Rdata` are expected by [get.parameter.samples()] (in
+#' `post.distns.Rdata` are expected by \link[PEcAn.uncertainty]{get.parameter.samples} (in
 #' `PEcAn.uncertainty`), which loads them to generate ensemble and sensitivity
 #' analysis samples.
 #'

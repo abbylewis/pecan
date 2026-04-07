@@ -46,13 +46,13 @@ Run sensitivity analysis on finished model runs
 \details{
 \strong{Upstream contract (reads from \code{settings$outdir}):}
 \describe{
-\item{\code{samples.Rdata}}{Produced by \code{\link[=get.parameter.samples]{get.parameter.samples()}}. Loaded to
+\item{\code{samples.Rdata}}{Produced by \code{\link[PEcAn.uncertainty]{get.parameter.samples}}. Loaded to
 obtain \code{trait.samples}, \code{trait.names}, \code{pft.names}, and \code{sa.run.ids}.}
-\item{\verb{sensitivity.samples.<id>.Rdata}}{Produced by \code{\link[=run.write.configs]{run.write.configs()}}.
+\item{\verb{sensitivity.samples.<id>.Rdata}}{Produced by \code{\link[PEcAn.workflow]{run.write.configs}}.
 If present, overrides \code{sa.run.ids} and \code{sa.samples} from
 \code{samples.Rdata}.}
 \item{\verb{sensitivity.output.<var>.<years>.<id>.Rdata}}{Produced by
-\code{\link[=get.results]{get.results()}}. Contains \code{sensitivity.output}: a named list
+\code{\link[PEcAn.uncertainty]{get.results}}. Contains \code{sensitivity.output}: a named list
 (PFT -> matrix) of model outputs for each SA run.}
 }
 

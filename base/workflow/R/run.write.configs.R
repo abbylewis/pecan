@@ -9,8 +9,8 @@
 #' @details
 #' **Upstream contract (reads from `settings$outdir`):**
 #' \describe{
-#'   \item{`samples.Rdata`}{Produced by `get.parameter.samples()` in
-#'     `PEcAn.uncertainty`. Contains 5 bundled objects: `trait.samples`,
+#'   \item{`samples.Rdata`}{Produced by \code{\link[PEcAn.uncertainty]{get.parameter.samples}}.
+#'     Contains 5 bundled objects: `trait.samples`,
 #'     `sa.samples`, `ensemble.samples`, `runs.samples`, `env.samples`.
 #'     This function loads `trait.samples` and `sa.samples` to build
 #'     model configuration files. If `input_design` contains a `param`
@@ -32,9 +32,9 @@
 #' }
 #'
 #' **Downstream contract:** The `sensitivity.samples.*.Rdata` and
-#' `ensemble.samples.*.Rdata` files are loaded by `get.results()` (in
-#' `PEcAn.uncertainty`) to match model outputs to their corresponding
-#' parameter sets. This implicit file-based coupling is a refactoring target.
+#' `ensemble.samples.*.Rdata` files are loaded by \code{\link[PEcAn.uncertainty]{get.results}}
+#'  to match model outputs to their corresponding
+#'  parameter sets. This implicit file-based coupling is a refactoring target.
 #'
 #' The default value for `posterior.files` is NA, in which case the
 #'    most recent posterior or prior (in that order) for the workflow is used.
@@ -47,7 +47,7 @@
 #' @param ensemble.size number of ensemble runs
 #' @param input_design Input design data.frame coordinating input files across
 #'   runs. Contains columns for each sampled input (met, param, etc.) with row
-#'   indices, as documented in `runModule.run.write.configs()`.
+#'   indices, as documented in \code{\link[PEcAn.workflow]{runModule.run.write.configs}}.
 #' @param write should the runs be written to the database?
 #' @param posterior.files Filenames for posteriors for drawing samples for
 #'   ensemble and sensitivity analysis (e.g. `post.distns.Rdata`, or

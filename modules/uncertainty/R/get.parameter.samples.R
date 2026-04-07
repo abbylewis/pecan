@@ -4,13 +4,13 @@
 #' Loads posterior distributions and MCMC chain results from disk, generates
 #' parameter samples for ensemble and sensitivity analysis runs, and optionally
 #' saves results to `samples.Rdata`. This is the backward-compatible wrapper
-#' that delegates computation to [get_parameter_samples()].
+#' that delegates computation to \code{\link[PEcAn.uncertainty]{get_parameter_samples}}.
 #'
 #' @details
 #' **Upstream contract (reads from each PFT's `outdir`):**
 #' \\describe{
 #'   \\item{`post.distns.Rdata` or `prior.distns.Rdata`}{Posterior (or prior)
-#'     distribution summaries produced by [run.meta.analysis.pft()]. A data
+#'     distribution summaries produced by \code{\link[PEcAn.MA]{run.meta.analysis.pft}}. A data
 #'     frame with columns `distn`, `parama`, `paramb`, `n`.}
 #'   \\item{`trait.mcmc.Rdata`}{(Optional) MCMC chain samples from the
 #'     meta-analysis. Named list of `mcmc.list` objects, one per trait.
@@ -35,9 +35,9 @@
 #'     }}
 #' }
 #'
-#' **Downstream contract:** `samples.Rdata` is loaded by [run.write.configs()]
+#' **Downstream contract:** `samples.Rdata` is loaded by \code{\link[PEcAn.workflow]{run.write.configs}}
 #' (in `PEcAn.workflow`) to generate model configuration files. It is also
-#' loaded by [get.results()] and [run.sensitivity.analysis()] to retrieve
+#' loaded by \code{\link[PEcAn.uncertainty]{get.results}} and \code{\link[PEcAn.uncertainty]{run.sensitivity.analysis}} to retrieve
 #' sample metadata for post-processing. This implicit file-based coupling is
 #' a refactoring target.
 #'

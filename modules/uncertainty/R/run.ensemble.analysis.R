@@ -9,7 +9,7 @@
 #' **Upstream contract (reads from `settings$outdir`):**
 #' \describe{
 #'   \item{`ensemble.output.<var>.<years>.<id>.Rdata`}{Produced by
-#'     [get.results()]. Contains `ensemble.output`: a numeric vector of
+#'     \code{\link[PEcAn.uncertainty]{get.results}}. Contains `ensemble.output`: a numeric vector of
 #'     model output values, one per ensemble member.}
 #' }
 #'
@@ -34,7 +34,7 @@
 #' @param ensemble.id database ID, taken from settings if not specified
 #' @param variable variable name to process, taken from settings if not specified
 #' @param start.year,end.year taken from settings if not specified
-#' @param ... additional arguments passed to [ensemble.ts()]
+#' @param ... additional arguments passed to \code{\link[PEcAn.uncertainty]{ensemble.ts}}
 #'
 #' @return Nothing (called for side effects). Creates ensemble plots as PDF
 #'   files and optionally saves time series analysis results.

@@ -35,7 +35,7 @@ Convert priors / MCMC samples to parameter sample chains
 \strong{Upstream contract (reads from each PFT's \code{outdir}):}
 \\describe{
 \\item{\code{post.distns.Rdata} or \code{prior.distns.Rdata}}{Posterior (or prior)
-distribution summaries produced by \code{\link[=run.meta.analysis.pft]{run.meta.analysis.pft()}}. A data
+distribution summaries produced by \code{\link[PEcAn.MA]{run.meta.analysis.pft}}. A data
 frame with columns \code{distn}, \code{parama}, \code{paramb}, \code{n}.}
 \\item{\code{trait.mcmc.Rdata}}{(Optional) MCMC chain samples from the
 meta-analysis. Named list of \code{mcmc.list} objects, one per trait.
@@ -60,9 +60,9 @@ metadata).
 }}
 }
 
-\strong{Downstream contract:} \code{samples.Rdata} is loaded by \code{\link[=run.write.configs]{run.write.configs()}}
+\strong{Downstream contract:} \code{samples.Rdata} is loaded by \code{\link[PEcAn.workflow]{run.write.configs}}
 (in \code{PEcAn.workflow}) to generate model configuration files. It is also
-loaded by \code{\link[=get.results]{get.results()}} and \code{\link[=run.sensitivity.analysis]{run.sensitivity.analysis()}} to retrieve
+loaded by \code{\link[PEcAn.uncertainty]{get.results}} and \code{\link[PEcAn.uncertainty]{run.sensitivity.analysis}} to retrieve
 sample metadata for post-processing. This implicit file-based coupling is
 a refactoring target.
 }

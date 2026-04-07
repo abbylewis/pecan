@@ -186,7 +186,7 @@ check_consistent <- function(point, prior,
 #' #' Run Bayesian meta-analysis for a single PFT (file-based wrapper)
 #'
 #' @md
-#' Thin wrapper around [meta_analysis_standalone()] that reads trait data and
+#' Thin wrapper around \code{\link[PEcAn.MA]{meta_analysis_standalone}} that reads trait data and
 #' priors from disk, runs the meta-analysis, and saves results back to disk.
 #' Also registers result files in the BETYdb posteriors table.
 #'
@@ -194,9 +194,9 @@ check_consistent <- function(point, prior,
 #' **Upstream contract (reads from `pft$outdir`):**
 #' \describe{
 #'   \item{`trait.data.Rdata`}{Named list of data frames produced by
-#'     [get.trait.data.pft()]. Loaded into `trait_env$trait.data`.}
+#'     \code{\link[PEcAn.DB]{get.trait.data.pft}}. Loaded into `trait_env$trait.data`.}
 #'   \item{`prior.distns.Rdata`}{Data frame of prior distributions produced by
-#'     [get.trait.data.pft()]. Loaded into `prior_env$prior.distns`.}
+#'     \code{\link[PEcAn.DB]{get.trait.data.pft}}. Loaded into `prior_env$prior.distns`.}
 #' }
 #'
 #' **File-based side effects (saved to `pft$outdir`):**
@@ -206,20 +206,20 @@ check_consistent <- function(point, prior,
 #'     JAGS. Each element has columns `beta.o` (overall mean) and optionally
 #'     `sd.o` (overall SD).}
 #'   \item{`post.distns.MA.Rdata`}{Contains `post.distns`: a data frame with
-#'     one row per trait and columns `distn`, `parama`, `paramb`, `n`
+#'     one row per trait and columns `distn`, `parama`, `paramb`, `n`}
 #'     summarizing the fitted posterior distribution.}
 #'   \item{`post.distns.Rdata`}{Symlink to `post.distns.MA.Rdata`.}
 #'   \item{`jagged.data.Rdata`}{Contains `jagged.data`: a named list of data
 #'     frames (one per trait) formatted for use in the JAGS meta-analysis
-#'     model (see [jagify()]).}
+#'     model (see \code{\link[PEcAn.MA]{jagify}}).}
 #' }
 #'
 #' **Downstream contract:** The files `trait.mcmc.Rdata` and
-#' `post.distns.Rdata` are expected by \link[PEcAn.uncertainty]{get.parameter.samples} (in
+#' `post.distns.Rdata` are expected by \code{\link[PEcAn.uncertainty]{get.parameter.samples}} (in
 #' `PEcAn.uncertainty`), which loads them to generate ensemble and sensitivity
 #' analysis samples.
 #'
-#' **Note:** The core computation is performed by [meta_analysis_standalone()],
+#' **Note:** The core computation is performed by \code{\link[PEcAn.MA]{meta_analysis_standalone}},
 #' which accepts and returns R objects directly — see its documentation for
 #' the pure-function interface.
 #'
@@ -352,8 +352,8 @@ run.meta.analysis.pft <- function(pft, iterations, random = TRUE, threshold = 1.
 ##' Run meta-analysis across all PFTs
 ##'
 ##' @md
-##' Iterates over a list of PFTs and runs [run.meta.analysis.pft()] for each
-##' one. This is the main entry point called by [runModule.run.meta.analysis()].
+##' Iterates over a list of PFTs and runs \code{\link[PEcAn.MA]{run.meta.analysis.pft}} for each
+##' one. This is the main entry point called by \code{\link[PEcAn.MA]{runModule.run.meta.analysis}}.
 ##'
 ##' This will use the following items from settings:
 ##' - `settings$pfts`
@@ -365,7 +365,7 @@ run.meta.analysis.pft <- function(pft, iterations, random = TRUE, threshold = 1.
 ##' @param database database connection parameters
 ##' @param update logical: Rerun the meta-analysis if result files already exist?
 ##' @param threshold Gelman-Rubin convergence diagnostic, passed on to
-##'   [pecan.ma.summary()]
+##'  \code{\link{pecan.ma.summary}}
 ##' @inheritParams meta_analysis_standalone
 ##' @inheritParams run.meta.analysis.pft
 ##'

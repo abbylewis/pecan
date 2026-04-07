@@ -39,10 +39,10 @@ Read model output and save parsed results for sensitivity and ensemble analyses
 \describe{
 \item{\verb{sensitivity.samples.<id>.Rdata} or \code{samples.Rdata}}{Loaded to
 obtain \code{sa.run.ids}, \code{pft.names}, \code{trait.names}, and \code{sa.samples} for
-sensitivity analysis. Produced by \code{\link[=run.write.configs]{run.write.configs()}}.}
+sensitivity analysis. Produced by \code{\link[PEcAn.workflow]{run.write.configs}}.}
 \item{\verb{ensemble.samples.<id>.Rdata} or \code{samples.Rdata}}{Loaded to obtain
 \code{ens.run.ids}, \code{pft.names}, and \code{trait.names} for ensemble analysis.
-Produced by \code{\link[=run.write.configs]{run.write.configs()}}.}
+Produced by \code{\link[PEcAn.workflow]{run.write.configs}}.}
 }
 
 \strong{File-based side effects (saved to \code{settings$outdir}):}
@@ -57,8 +57,8 @@ ensemble member. One file per variable/year combination.}
 }
 
 \strong{Downstream contract:} \code{sensitivity.output.*.Rdata} is loaded by
-\code{\link[=run.sensitivity.analysis]{run.sensitivity.analysis()}}. \code{ensemble.output.*.Rdata} is loaded by
-\code{\link[=run.ensemble.analysis]{run.ensemble.analysis()}}. Both use these files to compute diagnostics
+\code{\link[PEcAn.uncertainty]{run.sensitivity.analysis}}. \code{ensemble.output.*.Rdata} is loaded by
+\code{\link[PEcAn.uncertainty]{run.ensemble.analysis}}. Both use these files to compute diagnostics
 and plots. This implicit file-based coupling is a refactoring target.
 }
 \author{

@@ -20,7 +20,7 @@ run.write.configs(
 
 \item{input_design}{Input design data.frame coordinating input files across
 runs. Contains columns for each sampled input (met, param, etc.) with row
-indices, as documented in \code{runModule.run.write.configs()}.}
+indices, as documented in \code{\link[PEcAn.workflow]{runModule.run.write.configs}}.}
 
 \item{write}{should the runs be written to the database?}
 
@@ -41,8 +41,8 @@ Write model-specific run scripts and configuration files
 \details{
 \strong{Upstream contract (reads from \code{settings$outdir}):}
 \describe{
-\item{\code{samples.Rdata}}{Produced by \code{get.parameter.samples()} in
-\code{PEcAn.uncertainty}. Contains 5 bundled objects: \code{trait.samples},
+\item{\code{samples.Rdata}}{Produced by \code{\link[PEcAn.uncertainty]{get.parameter.samples}}.
+Contains 5 bundled objects: \code{trait.samples},
 \code{sa.samples}, \code{ensemble.samples}, \code{runs.samples}, \code{env.samples}.
 This function loads \code{trait.samples} and \code{sa.samples} to build
 model configuration files. If \code{input_design} contains a \code{param}
@@ -64,8 +64,8 @@ appended across ensemble and SA analyses.}
 }
 
 \strong{Downstream contract:} The \code{sensitivity.samples.*.Rdata} and
-\code{ensemble.samples.*.Rdata} files are loaded by \code{get.results()} (in
-\code{PEcAn.uncertainty}) to match model outputs to their corresponding
+\code{ensemble.samples.*.Rdata} files are loaded by \code{\link[PEcAn.uncertainty]{get.results}}
+to match model outputs to their corresponding
 parameter sets. This implicit file-based coupling is a refactoring target.
 
 The default value for \code{posterior.files} is NA, in which case the

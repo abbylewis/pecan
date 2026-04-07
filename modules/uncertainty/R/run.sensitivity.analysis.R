@@ -8,13 +8,13 @@
 #' @details
 #' **Upstream contract (reads from `settings$outdir`):**
 #' \describe{
-#'   \item{`samples.Rdata`}{Produced by [get.parameter.samples()]. Loaded to
+#'   \item{`samples.Rdata`}{Produced by \code{\link[PEcAn.uncertainty]{get.parameter.samples}}. Loaded to
 #'     obtain `trait.samples`, `trait.names`, `pft.names`, and `sa.run.ids`.}
-#'   \item{`sensitivity.samples.<id>.Rdata`}{Produced by [run.write.configs()].
+#'   \item{`sensitivity.samples.<id>.Rdata`}{Produced by \code{\link[PEcAn.workflow]{run.write.configs}}.
 #'     If present, overrides `sa.run.ids` and `sa.samples` from
 #'     `samples.Rdata`.}
 #'   \item{`sensitivity.output.<var>.<years>.<id>.Rdata`}{Produced by
-#'     [get.results()]. Contains `sensitivity.output`: a named list
+#'     \code{\link[PEcAn.uncertainty]{get.results}}. Contains `sensitivity.output`: a named list
 #'     (PFT -> matrix) of model outputs for each SA run.}
 #' }
 #'

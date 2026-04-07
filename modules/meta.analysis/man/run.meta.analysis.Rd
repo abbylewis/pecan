@@ -23,7 +23,7 @@ run.meta.analysis(
 \item{random}{(boolean; default = TRUE) Should random effects be used?}
 
 \item{threshold}{Gelman-Rubin convergence diagnostic, passed on to
-\code{\link[=pecan.ma.summary]{pecan.ma.summary()}}}
+\code{\link{pecan.ma.summary}}}
 
 \item{dbfiles}{(character) directory where previous results are found}
 

@@ -25,7 +25,7 @@ run.ensemble.analysis(
 
 \item{start.year, end.year}{taken from settings if not specified}
 
-\item{...}{additional arguments passed to \code{\link[=ensemble.ts]{ensemble.ts()}}}
+\item{...}{additional arguments passed to \code{\link[PEcAn.uncertainty]{ensemble.ts}}}
 }
 \value{
 Nothing (called for side effects). Creates ensemble plots as PDF
@@ -38,7 +38,7 @@ Run ensemble analysis on finished model runs
 \strong{Upstream contract (reads from \code{settings$outdir}):}
 \describe{
 \item{\verb{ensemble.output.<var>.<years>.<id>.Rdata}}{Produced by
-\code{\link[=get.results]{get.results()}}. Contains \code{ensemble.output}: a numeric vector of
+\code{\link[PEcAn.uncertainty]{get.results}}. Contains \code{ensemble.output}: a numeric vector of
 model output values, one per ensemble member.}
 }
 

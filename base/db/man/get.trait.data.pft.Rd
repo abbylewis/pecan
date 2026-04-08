@@ -64,7 +64,7 @@ detect changes between runs.}
 }
 
 \strong{Downstream contract:} The files \code{trait.data.Rdata} and
-\code{prior.distns.Rdata} are expected by \code{\link[PEcAn.MA]{run.meta.analysis.pft}}, which
+\code{prior.distns.Rdata} are expected by \code{run.meta.analysis.pft}, which
 loads them from \code{pft$outdir}. This implicit file-based coupling means
 the two functions must agree on directory path and object names. A future
 refactoring goal is to pass these objects directly via function arguments

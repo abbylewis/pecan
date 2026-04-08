@@ -56,5 +56,35 @@ The function's primary outputs are communicated through files saved in
 #' Run Bayesian meta-analysis for a single PFT (file-based wrapper)
 }
 \details{
+\strong{Upstream contract (reads from \code{pft$outdir}):}
+\describe{
+\item{\code{trait.data.Rdata}}{Named list of data frames produced by
+\code{\link[PEcAn.DB]{get.trait.data.pft}}. Loaded into \code{trait_env$trait.data}.}
+\item{\code{prior.distns.Rdata}}{Data frame of prior distributions produced by
+\code{\link[PEcAn.DB]{get.trait.data.pft}}. Loaded into \code{prior_env$prior.distns}.}
+}
 
+\strong{File-based side effects (saved to \code{pft$outdir}):}
+\describe{
+\item{\code{trait.mcmc.Rdata}}{Contains \code{trait.mcmc}: a named list of
+\code{mcmc.list} objects (one per trait) with posterior MCMC samples from
+JAGS. Each element has columns \code{beta.o} (overall mean) and optionally
+\code{sd.o} (overall SD).}
+\item{\code{post.distns.MA.Rdata}}{Contains \code{post.distns}: a data frame with
+one row per trait and columns \code{distn}, \code{parama}, \code{paramb}, \code{n}
+summarizing the fitted posterior distribution.}
+\item{\code{post.distns.Rdata}}{Symlink to \code{post.distns.MA.Rdata}.}
+\item{\code{jagged.data.Rdata}}{Contains \code{jagged.data}: a named list of data
+frames (one per trait) formatted for use in the JAGS meta-analysis
+model (see \code{\link[PEcAn.MA]{jagify}}).}
+}
+
+\strong{Downstream contract:} The files \code{trait.mcmc.Rdata} and
+\code{post.distns.Rdata} are expected by \code{\link[PEcAn.uncertainty]{get.parameter.samples}} (in
+\code{PEcAn.uncertainty}), which loads them to generate ensemble and sensitivity
+analysis samples.
+
+\strong{Note:} The core computation is performed by \code{\link[PEcAn.MA]{meta_analysis_standalone}},
+which accepts and returns R objects directly — see its documentation for
+the pure-function interface.
 }

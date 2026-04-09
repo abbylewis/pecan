@@ -32,6 +32,8 @@ planting <- list.files(
   dplyr::collect() |>
   dplyr::filter(.data$site_id == as.character(.env$pid)) |>
   dplyr::mutate(date = as.Date(.data$date)) |>
+  # Start no earlier than 2016 because our met doesn't go back before 2015
+  dplyr::filter(date >= as.Date("2016-01-01")) |>
   tibble::as_tibble()
 
 planting_events <- planting |>
@@ -61,14 +63,15 @@ phenology <- fs::dir_ls(mslsp_path, glob = "*.parquet") |>
   )
 
 # Dummy values for testing
-harvest_events <- phenology |>
-  dplyr::mutate(
-    event_type = "harvest",
-    site_id = as.character(.data$parcel_id),
-    frac_above_removed_0to1 = 0.85
-  ) |>
+harvest_dir <- config[["harvest_events_dir"]]
+pidc <- as.character(pid)
+harvest_events <- list.files(harvest_dir, "*.parquet", full.names = TRUE) |>
+  arrow::open_dataset() |>
+  dplyr::filter(.data$site_id == .env$pidc) |>
+  dplyr::collect() |>
+  tibble::as_tibble() |>
   dplyr::select(
-    "site_id", "event_type", "date" = mslsp_OGMn, "frac_above_removed_0to1"
+    "site_id", "event_type", "date", dplyr::starts_with("frac_")
   )
 
 start_date <- min(planting$date)

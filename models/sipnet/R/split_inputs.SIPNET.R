@@ -83,6 +83,8 @@ split_sipnet_events <- function(start.time, stop.time, eventfile, overwrite = FA
 ##' @importFrom dplyr %>%
 ##' @export
 split_sipnet_met <- function(start.time, stop.time, met, overwrite = FALSE, outpath = NULL) {
+  start.time <- coerce_to_datetime(start.time)
+  stop.time <- coerce_to_datetime(stop.time)
   path <- dirname(met)
   prefix <- sub(".clim", "", basename(met), fixed = TRUE)
   if(is.null(outpath)){
@@ -130,3 +132,21 @@ split_sipnet_met <- function(start.time, stop.time, met, overwrite = FALSE, outp
   #settings$run$inputs$met$path <- file
   return(file)
 } # split_inputs.SIPNET
+
+coerce_to_datetime <- function(x) {
+  if (inherits(x, "POSIXt")) {
+    return(x)
+  }
+  xname <- deparse(substitute(x))
+  if (!inherits(x, "Date")) {
+    PEcAn.logger::logger.severe(
+      "Invalid ", xname, " : ", x,
+      " (class: ", class(x), ")"
+    )
+  }
+  PEcAn.logger::logger.warn(paste0(
+    xname, " is a date, but this function expects a datetime. ",
+    "Coercing to datetime by setting to midnight UTC."
+  ))
+  as.POSIXct(x)
+}

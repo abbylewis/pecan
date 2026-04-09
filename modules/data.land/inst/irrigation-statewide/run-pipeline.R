@@ -3,6 +3,11 @@
 #' author: "Alexey N. Shiklomanov"
 #' ---
 
+Sys.setenv(
+  "TAR_PROJECT" = "all",
+  "OMP_NUM_THREADS" = 1
+)
+
 library(targets)
 
 # devtools::document("modules/data.land")
@@ -10,6 +15,7 @@ library(targets)
 
 #' Run the pipeline. Targets that are already up-to-date will be skipped.
 tar_make()
+
 if (interactive()) {
   tar_load_everything()
 }

@@ -28,8 +28,8 @@ proj_defaults <- list(
   all = list(
     n_parcels = "all",
     batch_size = 5000,
-    n_remote_workers = 24,
-    exec_type = "cluster",
+    n_remote_workers = 60,
+    exec_type = "local",
     event_filename = "irrigation_all.parquet"
   )
 )
@@ -98,7 +98,9 @@ ctrl_sge <- crew_controller_sge(
       "echo 'PIXI environment:'",
       "env | grep PIXI",
       "echo 'R .libPaths():'",
-      "Rscript -e '.libPaths()'"
+      "Rscript -e '.libPaths()'",
+      # prevent arrow parallelism
+      "export OMP_NUM_THREADS=1"
     )
   )
 )
@@ -215,13 +217,32 @@ list(
   ),
 
   tar_target(
-    irr_events,
+    irr_events_df,
     make_event_df(
       parcel_waterbalance,
-      file.path(event_output_dir, event_filename),
       n_ensemble = 20,
       frac_uncertainty = 0.1
     ),
+    pattern = map(parcel_waterbalance),
+    format = "parquet"
+  ),
+
+  tar_target(
+    irr_events_files,
+    {
+      parcel_ids <- unique(irr_events_df[["parcel_id"]])
+      pid_min <- min(parcel_ids)
+      pid_max <- max(parcel_ids)
+      out_dir <- file.path(
+        event_output_dir,
+        gsub("\\.parquet$", "", event_filename)
+      )
+      dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)
+      out_file <- file.path(out_dir, sprintf("%d_%d.parquet", pid_min, pid_max))
+      arrow::write_parquet(irr_events_df, out_file)
+      out_file
+    },
+    pattern = map(irr_events_df),
     format = "file"
   ),
 

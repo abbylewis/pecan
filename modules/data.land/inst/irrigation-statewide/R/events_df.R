@@ -2,7 +2,6 @@
 
 make_event_df <- function(
   parcel_waterbalance,
-  outfile,
   n_ensemble = NULL,
   frac_uncertainty = 0.1
 ) {
@@ -21,8 +20,7 @@ make_event_df <- function(
     dplyr::select("parcel_id", "date", "amount_mm" = "irr", "method")
 
   if (is.null(n_ensemble)) {
-    arrow::write_parquet(irr_events, outfile)
-    return(invisible(outfile))
+    return(irr_events)
   }
 
   # Crude uncertainty propagation. We apply a uniform uncertainty multiplier
@@ -51,6 +49,5 @@ make_event_df <- function(
     ) |>
     dplyr::relocate("parcel_id", "ens_id", "date")
 
-  arrow::write_parquet(irr_events_unc, outfile)
-  invisible(outfile)
+  irr_events_unc
 }

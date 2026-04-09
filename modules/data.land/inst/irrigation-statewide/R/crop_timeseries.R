@@ -1,5 +1,8 @@
 #!/usr/bin/env Rscript
 
+# Sys.setenv(TAR_PROJECT = "small")
+# targets::tar_load(c(crops_with_soil, phenology, precip, etref))
+
 make_crop_timeseries <- function(crops_with_soil, phenology, precip, etref) {
   crop_cols <- c(
     "parcel_id",

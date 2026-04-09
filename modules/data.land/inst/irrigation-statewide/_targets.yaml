@@ -7,3 +7,6 @@ small:
 medium:
   inherits: main
   store: /projectnb/dietzelab/ccmmf/usr/ashiklom/pecan/cimis-et-complete/modules/data.land/inst/irrigation-statewide/_targets_medium/
+all:
+  inherits: main
+  store: /projectnb/dietzelab/ccmmf/usr/ashiklom/pecan/cimis-et-complete/modules/data.land/inst/irrigation-statewide/_targets_all/

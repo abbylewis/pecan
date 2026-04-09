@@ -28,16 +28,22 @@ names(events_json_files) <- paste0("path", seq_along(events_json_files))
 sipnet_eventfiles <- as.list(grepv(".*\\.sipnet/events-.*\\.in", events_files))
 names(sipnet_eventfiles) <- paste0("path", seq_along(sipnet_eventfiles))
 
-# HACK: Get the start and end date from the limits of the first event file.
+# NOTE: We start from the first planting (after 2016) and end at the last harvest
 events <- jsonlite::read_json(events_json_files[[1]], simplifyVector = FALSE)
 
-all_dates <- events |>
-  purrr::pluck(1, "events") |>
+planting_dates <- events |>
+  purrr::chuck(1, "events") |>
+  purrr::keep(\(x) x$event_type == "planting") |>
   purrr::map_chr("date") |>
   as.Date()
+start_date <- min(planting_dates)
 
-start_date <- min(all_dates)
-end_date <- max(all_dates)
+harvest_dates <- events |>
+  purrr::pluck(1, "events") |>
+  purrr::keep(\(x) x$event_type == "harvest") |>
+  purrr::map_chr("date") |>
+  as.Date()
+end_date <- max(harvest_dates)
 
 met_dir <- sprintf(
   "%sN_%sW",

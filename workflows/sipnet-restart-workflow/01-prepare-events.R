@@ -36,6 +36,9 @@ planting <- list.files(
   dplyr::filter(date >= as.Date("2016-01-01")) |>
   tibble::as_tibble()
 
+# Start date is the first planting (after 2016)
+start_date <- min(planting$date)
+
 planting_events <- planting |>
   dplyr::select(
     "site_id", "event_type", "date",
@@ -50,31 +53,33 @@ planting_events <- planting |>
     "coarse_root_n_kg_m2" = "N_COARSEROOT"
   )
 
-# Harvest
-mslsp_path <- config[["mslsp_path"]]
-phenology <- fs::dir_ls(mslsp_path, glob = "*.parquet") |>
-  arrow::open_dataset() |>
-  dplyr::filter(.data$parcel_id == .env$pid, !is.na(.data$mslsp_cycle)) |>
-  dplyr::collect() |>
-  tibble::as_tibble() |>
-  dplyr::arrange(.data$year, .data$mslsp_cycle) |>
-  dplyr::relocate(
-    "year", "mslsp_cycle", dplyr::starts_with("landiq_"),
-  )
+# Phenology is not currently used...
+# mslsp_path <- config[["mslsp_path"]]
+# phenology <- fs::dir_ls(mslsp_path, glob = "*.parquet") |>
+#   arrow::open_dataset() |>
+#   dplyr::filter(.data$parcel_id == .env$pid, !is.na(.data$mslsp_cycle)) |>
+#   dplyr::collect() |>
+#   tibble::as_tibble() |>
+#   dplyr::arrange(.data$year, .data$mslsp_cycle) |>
+#   dplyr::relocate(
+#     "year", "mslsp_cycle", dplyr::starts_with("landiq_"),
+#   )
 
-# Dummy values for testing
 harvest_dir <- config[["harvest_events_dir"]]
 pidc <- as.character(pid)
 harvest_events <- list.files(harvest_dir, "*.parquet", full.names = TRUE) |>
   arrow::open_dataset() |>
-  dplyr::filter(.data$site_id == .env$pidc) |>
+  dplyr::filter(
+    .data$site_id == .env$pidc,
+    .data$date >= .env$start_date
+  ) |>
   dplyr::collect() |>
   tibble::as_tibble() |>
   dplyr::select(
     "site_id", "event_type", "date", dplyr::starts_with("frac_")
   )
 
-start_date <- min(planting$date)
+# End with the final harvest
 end_date <- max(harvest_events$date)
 
 irrigation_path <- config[["irrigation_path"]]
@@ -87,7 +92,10 @@ irrigation_events_raw <- arrow::open_dataset(irrigation_path) |>
 # Irrigation events include uncertainty ensembles, so we process them
 # accordingly.
 irrigation_events_all <- irrigation_events_raw |>
-  dplyr::filter(.data$date <= .env$end_date) |>
+  dplyr::filter(
+    .data$date >= .env$start_date,
+    .data$date <= .env$end_date
+  ) |>
   dplyr::mutate(
     event_type = "irrigation",
     site_id = as.character(.data$parcel_id)

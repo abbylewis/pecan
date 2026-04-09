@@ -75,21 +75,19 @@ run_sipnet_segmented <- function(
 
   crop_cycles <- PEcAn.data.land::events_to_crop_cycle_starts(
     run_settings$run$inputs$events$source
-  )
+  ) |>
+    dplyr::ungroup()
 
   # Get segments
-  segments <- data.frame(
-    start_date = c(as.Date(run_settings$run$start.date), crop_cycles[["date"]]),
-    end_date = c(crop_cycles[["date"]] - 1, as.Date(run_settings$run$end.date)),
-    crop_code = c(NA_character_, crop_cycles[["crop_code"]])
-  )
-  segments[["pft"]] <- crop2pft(segments[["crop_code"]])
-  segments[["segment_id"]] <- sprintf("%03d", seq_len(nrow(segments)))
   segment_rootdir <- file.path(file.path(run_dir, "segments"))
-  segments[["segment_dir"]] <- file.path(
-    segment_rootdir,
-    sprintf("segment_%s", segments[["segment_id"]])
-  )
+  segments <- crop_cycles |>
+    dplyr::rename(start_date = "date") |>
+    dplyr::mutate(
+      end_date = dplyr::lead(.data$start_date - 1, default = as.Date(run_settings$run$end.date)),
+      pft = crop2pft(.data$crop_code),
+      segment_id = sprintf("%03d", dplyr::row_number()),
+      segment_dir = file.path(segment_rootdir, sprintf("segment_%s", .data$segment_id))
+    )
 
   for (isegment in seq_len(nrow(segments))) {
     segment <- segments[isegment, ]

@@ -48,5 +48,6 @@ find_crop_changes <- function(event_df) {
     dplyr::mutate(crop_cycle_id = dplyr::consecutive_id(.data$site_id, .data$crop_code)) |>
     dplyr::group_by(.data$site_id, .data$crop_cycle_id) |>
     dplyr::slice_min(.data$date) |>
+    dplyr::ungroup() |>
     dplyr::select("site_id", "date", "crop_code")
 }

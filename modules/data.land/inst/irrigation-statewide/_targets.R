@@ -16,21 +16,21 @@ proj_defaults <- list(
     batch_size = 100,
     n_remote_workers = 1,  # dummy value
     exec_type = "local",
-    event_filename = "irrigation_1000.parquet"
+    event_filename = "irrigation_1000"
   ),
   medium = list(
     n_parcels = 10000,
     batch_size = 1000,
     n_remote_workers = 15,
     exec_type = "cluster",
-    event_filename = "irrigation_10000.parquet"
+    event_filename = "irrigation_10000"
   ),
   all = list(
     n_parcels = "all",
     batch_size = 5000,
     n_remote_workers = 60,
     exec_type = "local",
-    event_filename = "irrigation_all.parquet"
+    event_filename = "irrigation_all"
   )
 )
 proj_defaults[["main"]] <- proj_defaults[["small"]]
@@ -218,31 +218,13 @@ list(
 
   tar_target(
     irr_events_df,
-    make_event_df(
+    make_event_df_parquet(
+      file.path(event_output_dir, event_filename),
       parcel_waterbalance,
       n_ensemble = 20,
       frac_uncertainty = 0.1
     ),
     pattern = map(parcel_waterbalance),
-    format = "parquet"
-  ),
-
-  tar_target(
-    irr_events_files,
-    {
-      parcel_ids <- unique(irr_events_df[["parcel_id"]])
-      pid_min <- min(parcel_ids)
-      pid_max <- max(parcel_ids)
-      out_dir <- file.path(
-        event_output_dir,
-        gsub("\\.parquet$", "", event_filename)
-      )
-      dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)
-      out_file <- file.path(out_dir, sprintf("%d_%d.parquet", pid_min, pid_max))
-      arrow::write_parquet(irr_events_df, out_file)
-      out_file
-    },
-    pattern = map(irr_events_df),
     format = "file"
   ),
 

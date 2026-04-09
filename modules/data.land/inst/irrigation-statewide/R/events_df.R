@@ -1,5 +1,20 @@
 #!/usr/bin/env Rscript
 
+make_event_df_parquet <- function(output_dir, ..., out_file = NULL) {
+  result <- make_event_df(...)
+  if (is.null(out_file)) {
+    pid_min <- min(result[["parcel_id"]], na.rm = TRUE)
+    pid_max <- max(result[["parcel_id"]], na.rm = TRUE)
+    dir.create(output_dir, showWarnings = FALSE, recursive = TRUE)
+    out_file <- file.path(
+      output_dir,
+      sprintf("%d_%d.parquet", pid_min, pid_max)
+    )
+  }
+  arrow::write_parquet(result, out_file)
+  invisible(out_file)
+}
+
 make_event_df <- function(
   parcel_waterbalance,
   n_ensemble = NULL,

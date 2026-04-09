@@ -20,21 +20,28 @@ events_df <- dplyr::bind_rows(events[[1]][["events"]]) |>
 modeloutdir <- file.path(config$outdir_root, "output", "out")
 runids <- list.files(modeloutdir)
 
-read_output <- function(modeloutdir, runid) {
+vars_some <- c("NEE", "LAI", "AGB", "TotSoilCarb", "leaf_carbon_content", "litter_carbon_content")
+vars_more <- c(
+  "GPP", "NPP", "TotalResp", "AutoResp", "HeteroResp", "SoilResp", "NEE", "AbvGrndWood",
+  "leaf_carbon_content", "TotLivBiom", "TotSoilCarb", "Qle", "Transp", "SoilMoist", "SoilMoistFrac",
+  "litter_carbon_content", "LAI", "fine_root_carbon_content", "coarse_root_carbon_content",
+  "AGB", "GWBI"
+  # "mineral_N", "soil_organic_N", "litter_N", "N2O_flux", "N_leaching", "N_fixation", "N_uptake", "CH4_flux", "SWE"
+)
+
+read_output <- function(modeloutdir, runid, variables = vars_some) {
   PEcAn.utils::read.output(
     runid,
     file.path(modeloutdir, runid),
-    variables = c("NEE", "LAI", "AGB", "TotSoilCarb", "leaf_carbon_content", "litter_carbon_content"),
-    # variables = NULL,
+    variables = variables,
     dataframe = TRUE
   ) |>
     dplyr::mutate(run_id = .env$runid) |>
     dplyr::as_tibble()
 }
 
-results <- purrr::map(runids, read_output, modeloutdir = modeloutdir) |>
+results <- purrr::map(runids, read_output, modeloutdir = modeloutdir, variables = vars_more) |>
   dplyr::bind_rows()
-
 plt <- results |>
   tidyr::pivot_longer(
     -c("posix", "year", "run_id"),

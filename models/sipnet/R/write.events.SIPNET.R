@@ -44,7 +44,13 @@
 #' @export
 write.events.SIPNET <- function(events_json, outdir) {
     # Validate input JSON against PEcAn events schema
-    PEcAn.data.land::validate_events_json(events_json)
+    valid <- PEcAn.data.land::validate_events_json(events_json, verbose = FALSE)
+    if (!valid) {
+        PEcAn.logger::logger.error(
+            "Invalid events file. More details may be available by calling",
+            "PEcAn.data.land::validate_events_json(", shQuote(events_json), ")"
+        )
+    }
 
     # TODO add overwrite argument
     x <- jsonlite::fromJSON(events_json, simplifyVector = FALSE)

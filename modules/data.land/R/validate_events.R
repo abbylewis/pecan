@@ -47,7 +47,7 @@ validate_events_json <- function(events_json, verbose = TRUE, max_errs = 50) {
   detail <- if (is.null(errs)) {
     "<no details>"
   } else {
-    errs <- head(errs, max_errs)
+    errs <- utils::head(errs, max_errs)
     paste(sprintf(
       "%s: %s",
       ifelse(nzchar(errs$instancePath), errs$instancePath, "<root>"), errs$message

@@ -58,7 +58,8 @@ crop2pft_example <- function(crop_code) {
 run_sipnet_segmented <- function(
   settings,
   run_row,
-  crop2pft = crop2pft_example
+  crop2pft = crop2pft_example,
+  replace_and_link = FALSE
 ) {
   run_id <- run_row[["run_id"]]
   run_dir <- file.path(settings$rundir, run_id)
@@ -88,6 +89,8 @@ run_sipnet_segmented <- function(
       segment_id = sprintf("%03d", dplyr::row_number()),
       segment_dir = file.path(segment_rootdir, sprintf("segment_%s", .data$segment_id))
     )
+
+  jobsh_files <- character()
 
   for (isegment in seq_len(nrow(segments))) {
     segment <- segments[isegment, ]
@@ -156,42 +159,45 @@ run_sipnet_segmented <- function(
       run.id = runid_dummy
     )
 
-    PEcAn.workflow::start_model_runs(segment_settings, write = FALSE)
-
-    PEcAn.SIPNET::model2netcdf.SIPNET(
-      outdir = segment_outdir_withid,
-      sitelat = segment_settings[[c("run", "site", "lat")]],
-      sitelon = segment_settings[[c("run", "site", "lon")]],
-      start_date = dstart,
-      end_date = dend,
-      revision = segment_settings[[c("model", "revision")]],
-      overwrite = TRUE
-    )
+    segment_jobsh <- file.path(segment_settings$rundir, runid_dummy, "job.sh")
+    stopifnot(file.exists(segment_jobsh))
+    jobsh_files <- c(jobsh_files, segment_jobsh)
   }
 
-  # Get the list of all segment output NetCDFs
-  segment_ncfiles <- lapply(
-    segments[["segment_dir"]],
-    \(x) {
-      list.files(
-        file.path(x, "out", "1"),
-        pattern = "\\d+\\.nc",
-        full.names = TRUE
-      )
-    }
-  ) |>
-    do.call(what = c)
+  # Now, get the run's jobsh file
+  run_jobsh <- file.path(run_dir, "job.sh")
+  target_sipnet_out <- file.path(run_modeloutdir, "sipnet.out")
+  segmented_jobsh_file <- file.path(run_dir, "job_segmented.sh")
+  segmented_jobsh_lines <- c(
+    "#!/usr/bin/env bash",
+    "",
+    "# Redirect output",
+    "exec 3>&1",
+    paste("exec &>", shQuote(file.path(run_modeloutdir, "logfile.txt"))),
+    "",
+    "# Run model segments",
+    paste("bash", jobsh_files),
+    "",
+    "# Concatenate sipnet out files",
+    sprintf(
+      "Rscript -e \"PEcAn.SIPNET::combine_sipnet_out(directory = %s, outfile = %s)\"",
+      shQuote(segment_rootdir),
+      shQuote(target_sipnet_out)
+    )
+  )
+  writeLines(segmented_jobsh_lines, segmented_jobsh_file)
+  if (replace_and_link) {
+    run_jobsh_backup <- file.path(run_dir, "job_original.sh")
+    file.rename(run_jobsh, run_jobsh_backup)
+    file.symlink(segmented_jobsh_file, run_jobsh)
+    Sys.chmod(run_jobsh, mode = "0755")
+  }
+  invisible(segmented_jobsh_file)
+}
 
-  # ...and concatenate them together into annual NetCDFs.
-  segment_files_byyear <- split(
-    segment_ncfiles,
-    factor(basename(segment_ncfiles))
-  )
-  segment_outfiles <- file.path(run_modeloutdir, names(segment_files_byyear))
-  results <- purrr::map2(
-    segment_files_byyear,
-    segment_outfiles,
-    PEcAn.SIPNET::mergeNC
-  )
-  results
+if (FALSE) {
+  for (fname in jobsh_files) {
+    print(fname)
+    system2("bash", fname)
+  }
 }

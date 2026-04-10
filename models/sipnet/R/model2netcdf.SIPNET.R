@@ -60,7 +60,7 @@ model2netcdf.SIPNET <- function(outdir, sitelat, sitelon, start_date, end_date, 
                                 overwrite = FALSE, conflict = FALSE) {
   ### Read in model output in SIPNET format
   sipnet_out_file <- file.path(outdir, prefix)
-  sipnet_output <- read_sipnet_out(sipnet_output)
+  sipnet_output <- read_sipnet_out(sipnet_out_file)
   #sipnet_output_dims <- dim(sipnet_output)
   
   ### Determine number of years and output timestep

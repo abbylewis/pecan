@@ -55,11 +55,29 @@ crop2pft_example <- function(crop_code) {
   )
 }
 
-run_sipnet_segmented <- function(
+write_segmented_configs.SIPNET <- function(settings, input_design = NULL, ...) {
+  manifest_file <- file.path(settings$outdir, "runs_manifest.csv")
+  if (!file.exists(manifest_file)) {
+    PEcAn.logger::logger.severe("Could not find manifest file: ", manifest_file)
+  }
+  inputs_runs <- read.csv(manifest_file)
+  if (!is.null(input_design)) {
+    inputs_runs <- cbind.data.frame(inputs_runs, input_design)
+  }
+
+  new_jobfiles <- character()
+
+  for (i in seq_along(nrow(inputs_runs))) {
+    new_jobfiles[[i]] <- write_segment_configs(settings, inputs_runs[i, ], ...)
+  }
+  invisible(new_jobfiles)
+}
+
+write_segment_configs <- function(
   settings,
   run_row,
   crop2pft = crop2pft_example,
-  replace_and_link = FALSE
+  replace_and_link = TRUE
 ) {
   run_id <- run_row[["run_id"]]
   run_dir <- file.path(settings$rundir, run_id)
@@ -72,7 +90,8 @@ run_sipnet_segmented <- function(
   )
   stopifnot(file.exists(ens_samples_file))
   ensemble_samples <- PEcAn.utils::load_local(ens_samples_file)[["ens.samples"]]
-  run_traits <- lapply(ensemble_samples, \(dat) dat[run_row[["param"]], ])
+  i_param <- run_row[["param"]] %||% 1
+  run_traits <- lapply(ensemble_samples, \(dat) dat[i_param, ])
 
   crop_cycles <- PEcAn.data.land::events_to_crop_cycle_starts(
     run_settings$run$inputs$events$source
@@ -183,6 +202,20 @@ run_sipnet_segmented <- function(
       "Rscript -e \"PEcAn.SIPNET::combine_sipnet_out(directory = %s, outfile = %s)\"",
       shQuote(segment_rootdir),
       shQuote(target_sipnet_out)
+    ),
+    "",
+    "# Convert output to PEcAn standard",
+    sprintf(
+      "Rscript -e \"PEcAn.SIPNET::model2netcdf.SIPNET(%s)\"",
+      paste(
+        sprintf("outdir = %s", shQuote(run_modeloutdir)),
+        sprintf("sitelat = %s", as.character(settings$run$site$lat)),
+        sprintf("sitelon = %s", as.character(settings$run$site$lon)),
+        sprintf("start_date = %s", shQuote(settings$run$start.date)),
+        sprintf("end_date = %s", shQuote(settings$run$end.date)),
+        sprintf("revision = %s", shQuote(settings$model$revision)),
+        sep = ", "
+      )
     )
   )
   writeLines(segmented_jobsh_lines, segmented_jobsh_file)
@@ -193,11 +226,4 @@ run_sipnet_segmented <- function(
     Sys.chmod(run_jobsh, mode = "0755")
   }
   invisible(segmented_jobsh_file)
-}
-
-if (FALSE) {
-  for (fname in jobsh_files) {
-    print(fname)
-    system2("bash", fname)
-  }
 }

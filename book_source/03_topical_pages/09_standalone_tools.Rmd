@@ -1,9 +1,9 @@
 # Standalone tools (modules)
 
-- Radiative transfer modeling and remote sensing ([`modules/rtm`](https://pecanproject.github.io/modules/rtm/docs/index.html)); [vignette](https://pecanproject.github.io/modules/rtm/docs/articles/pecanrtm.vignette.html)
-- Photosynthesis ([`modules/photosynthesis`](https://pecanproject.github.io/modules/photosynthesis/docs/index.html)); [vignette](https://pecanproject.github.io/modules/photosynthesis/docs/articles/ResponseCurves.html)
-- Allometry ([`modules/allometry`](https://pecanproject.github.io/modules/allometry/docs/index.html)); [vignette](https://pecanproject.github.io/modules/allometry/docs/articles/AllomVignette.html)
-- Load data ([`modules/benchmark`](https://pecanproject.github.io/modules/benchmark/docs/index.html) -- `PEcAn.benchmark::load_data`)
+- Radiative transfer modeling and remote sensing ([`PEcAnRTM`](https://pecanproject.github.io/package-documentation/develop/PEcAnRTM/)); [vignette](https://pecanproject.github.io/package-documentation/develop/PEcAnRTM/articles/pecanrtm.vignette.html)
+- Photosynthesis ([`PEcAn.photosynthesis`](https://pecanproject.github.io/package-documentation/develop/PEcAn.photosynthesis/)); [vignette](https://pecanproject.github.io/package-documentation/develop/PEcAn.photosynthesis/articles/ResponseCurves.html)
+- Allometry ([`PEcAn.allometry`](https://pecanproject.github.io/package-documentation/develop/PEcAn.allometry/)); [vignette](https://pecanproject.github.io/package-documentation/develop/PEcAn.allometry/articles/AllomVignette.html)
+- Load data ([`PEcAn.benchmark`](https://pecanproject.github.io/package-documentation/develop/PEcAn.benchmark/) -- `PEcAn.benchmark::load_data`)
 
 ## Loading Data in PEcAn {#LoadData}
 

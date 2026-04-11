@@ -25,6 +25,7 @@ For more information about this file see also [Keep a Changelog](http://keepacha
 - Added `PEcAn.data.land::to_co2e()` for converting SOC change, CH4, and N2O to CO2-equivalent emissions using IPCC Global Warming Potential values.
 
 ### Fixed
+- Fixed broken pecanproject.github.io, pecan.gitbooks.io, and other outdated documentation links across book_source, tutorials, models, modules, web, and shiny files (#3710).
 
 ### Changed
 - Improved PEcAn.SIPNET documentation including README, model description, and current installation instructions (@Eshaan-byte; #3703, #3705).

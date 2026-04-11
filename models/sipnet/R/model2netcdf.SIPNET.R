@@ -139,9 +139,9 @@ model2netcdf.SIPNET <- function(outdir, sitelat, sitelon, start_date, end_date, 
       dplyr::across(
         .cols = c(
           # C pools are mandatory
-          all_of(c("plantWoodC", "plantLeafC", "coarseRootC", "fineRootC", "soil", "litter")),
+          dplyr::all_of(c("plantWoodC", "plantLeafC", "coarseRootC", "fineRootC", "soil", "litter")),
           # N only present when turned on
-          any_of(c("minN", "soilOrgN", "litterN"))
+          dplyr::any_of(c("minN", "soilOrgN", "litterN"))
         ),
         .fns = g_to_kg
       ),
@@ -149,8 +149,8 @@ model2netcdf.SIPNET <- function(outdir, sitelat, sitelon, start_date, end_date, 
       # C and N fluxes
       dplyr::across(
         .cols = c(
-          all_of(c("gpp", "nee", "npp", "rAboveground", "rRoot", "rtot", "rSoil")),
-          any_of(c("woodCreation", "n2o", "nLeaching", "nFixation", "nUptake", "ch4"))
+          dplyr::all_of(c("gpp", "nee", "npp", "rAboveground", "rRoot", "rtot", "rSoil")),
+          dplyr::any_of(c("woodCreation", "n2o", "nLeaching", "nFixation", "nUptake", "ch4"))
         ),
         .fns = g_step_to_kg_sec
       ),
@@ -158,15 +158,15 @@ model2netcdf.SIPNET <- function(outdir, sitelat, sitelon, start_date, end_date, 
       # Water pools
       dplyr::across(
         .cols = c(
-          all_of(c("soilWater", "soilWetnessFrac", "snow")),
-          any_of("litterWater") # Only present in V1 output
+          dplyr::all_of(c("soilWater", "soilWetnessFrac", "snow")),
+          dplyr::any_of("litterWater") # Only present in V1 output
         ),
         .fns = cm_to_mm
       ),
 
       # Water fluxes
       dplyr::across(
-        .cols = all_of("evapotranspiration"),
+        .cols = dplyr::all_of("evapotranspiration"),
         .fns = cm_step_to_mm_sec
       ),
       # Water flux special case:

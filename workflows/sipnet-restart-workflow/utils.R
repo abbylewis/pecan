@@ -67,7 +67,7 @@ write_segmented_configs.SIPNET <- function(settings, input_design = NULL, ...) {
 
   new_jobfiles <- character()
 
-  for (i in seq_along(nrow(inputs_runs))) {
+  for (i in seq_len(nrow(inputs_runs))) {
     new_jobfiles[[i]] <- write_segment_configs(settings, inputs_runs[i, ], ...)
   }
   invisible(new_jobfiles)

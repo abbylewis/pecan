@@ -23,9 +23,9 @@ site_lon <- dp_data[["lon"]]
 
 events_dir <- file.path(outdir_root, "events")
 events_files <- list.files(events_dir, recursive = TRUE, full.names = TRUE)
-events_json_files <- as.list(grepv(".*\\.json$", events_files))
+events_json_files <- as.list(grep(".*\\.json$", events_files, value = TRUE))
 names(events_json_files) <- paste0("path", seq_along(events_json_files))
-sipnet_eventfiles <- as.list(grepv(".*\\.sipnet/events-.*\\.in", events_files))
+sipnet_eventfiles <- as.list(grep(".*\\.sipnet/events-.*\\.in", events_files, value = TRUE))
 names(sipnet_eventfiles) <- paste0("path", seq_along(sipnet_eventfiles))
 
 # NOTE: We start from the first planting (after 2016) and end at the last harvest

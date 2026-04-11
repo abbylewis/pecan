@@ -99,7 +99,7 @@ write_segment_configs <- function(
     dplyr::ungroup()
 
   # Get segments
-  segment_rootdir <- file.path(file.path(run_dir, "segments"))
+  segment_rootdir <- file.path(run_dir, "segments")
   segments <- crop_cycles |>
     dplyr::rename(start_date = "date") |>
     dplyr::mutate(

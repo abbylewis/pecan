@@ -143,8 +143,8 @@ brew install udunits
 
 ##### Option 2: Install udunits-2 on MacOSX is done from source.
 
-* download most recent [version of Udunits here](http://www.unidata.ucar.edu/downloads/udunits/index.jsp)
-* instructions for [compiling from source](http://www.unidata.ucar.edu/software/udunits/udunits-2/udunits2.html#Obtain)
+* download most recent [version of Udunits here](https://downloads.unidata.ucar.edu/udunits/)
+* instructions for [compiling from source](https://docs.unidata.ucar.edu/udunits/current/)
 
 ```bash
 curl -o udunits-2.1.24.tar.gz ftp://ftp.unidata.ucar.edu/pub/udunits/udunits-2.1.24.tar.gz

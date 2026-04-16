@@ -1,3 +1,25 @@
+#' Safely scale an N pool by carbon change
+#'
+#' Compute \eqn{n_\mathrm{new} = n_\mathrm{old} \times (C_\mathrm{new}/C_\mathrm{old})}
+#' with guards against division-by-zero and non-finite values.
+#' If `C_old <= 0` or not finite, returns `0`. If the scale factor
+#' `C_new / C_old` is not finite or `<= 0`, also returns `0`.
+#' This is used in \code{adjust.biomass.LPJGUESS()} to preserve C:N ratios
+#' without introducing \code{NaN}/\code{Inf} when pools are empty (e.g., heartwood).
+#'
+#' @param n_old Numeric scalar. Previous N mass (per individual).
+#' @param C_old Numeric scalar. Previous C mass (per individual).
+#' @param C_new Numeric scalar. Updated C mass (per individual).
+#'
+#' @return Numeric scalar. A finite, non-negative N mass. Returns `0` when a
+#'         valid scale cannot be computed.
+#' @keywords internal
+safe_scale_N <- function(n_old, C_old, C_new) {
+  if (!is.finite(C_old) || C_old <= 0) return(0)
+  s <- C_new / C_old
+  if (!is.finite(s) || s <= 0) return(0)
+  n_old * s
+}
 
 ##' Adjust LPJ-GUESS individual's biomass
 ##' 
@@ -42,7 +64,7 @@ adjust.biomass.LPJGUESS <- function(individual, biomass.inc, sla, wooddens, life
   
   # calculate the total biomass and the absolute change based on this
   biomass.total <- TotalCarbon(individual)
-  rel.change <- (biomass.total + biomass.inc) / biomass.total
+  rel.change <- (biomass.total + biomass.inc) / biomass.total 
   if(trace) {
     print(paste(" ------- DURING BIOMASS ADJUSTMENT -------"))
     print(paste(" ***** Total Biomass Increment =", biomass.inc))
@@ -80,17 +102,19 @@ adjust.biomass.LPJGUESS <- function(individual, biomass.inc, sla, wooddens, life
   
   # leaf
   original.cmass_leaf <- individual$cmass_leaf
-  new.cmass_leaf <- individual$cmass_leaf + (updated.pools[["cmass_leaf_inc"]] * individual$densindiv)
+  new.cmass_leaf <- individual$cmass_leaf + (unname(updated.pools[["cmass_leaf_inc"]] * individual$densindiv))
   leaf.scaling <- new.cmass_leaf / original.cmass_leaf
   individual$cmass_leaf <- new.cmass_leaf
-  individual$nmass_leaf <- individual$nmass_leaf * leaf.scaling
+  # individual$nmass_leaf <- individual$nmass_leaf * leaf.scaling
+  individual$nmass_leaf <- safe_scale_N(individual$nmass_leaf, original.cmass_leaf, new.cmass_leaf)
   
   # root
   original.cmass_root <- individual$cmass_root
-  new.cmass_root <- individual$cmass_root + (updated.pools[["cmass_root_inc"]] * individual$densindiv)
+  new.cmass_root <- individual$cmass_root + (unname(updated.pools[["cmass_root_inc"]] * individual$densindiv))
   root.scaling <- new.cmass_root / original.cmass_root
   individual$cmass_root <- new.cmass_root
-  individual$nmass_root <- individual$nmass_root * root.scaling
+  # individual$nmass_root <- individual$nmass_root * root.scaling
+  individual$nmass_root <- safe_scale_N(individual$nmass_root, original.cmass_root, new.cmass_root)
   
   
   # sap, heart and debt only for trees
@@ -98,22 +122,23 @@ adjust.biomass.LPJGUESS <- function(individual, biomass.inc, sla, wooddens, life
     
     # sap
     original.cmass_sap <- individual$cmass_sap
-    new.cmass_sap <- individual$cmass_sap + (updated.pools[["cmass_sap_inc"]] * individual$densindiv)
+    new.cmass_sap <- individual$cmass_sap + (unname(updated.pools[["cmass_sap_inc"]] * individual$densindiv))
     sap.scaling <- new.cmass_sap / original.cmass_sap
     individual$cmass_sap <- new.cmass_sap
-    individual$nmass_sap <- individual$nmass_sap * sap.scaling
-    
+    # individual$nmass_sap <- individual$nmass_sap * sap.scaling
+    individual$nmass_sap <- safe_scale_N(individual$nmass_sap, original.cmass_sap, new.cmass_sap)
     
     # heart
     original.cmass_heart <- individual$cmass_heart
-    new.cmass_heart <- individual$cmass_heart + (updated.pools[["cmass_heart_inc"]] * individual$densindiv)
+    new.cmass_heart <- individual$cmass_heart + (unname(updated.pools[["cmass_heart_inc"]] * individual$densindiv))
     heart.scaling <- new.cmass_heart / original.cmass_heart
     individual$cmass_heart <- new.cmass_heart
-    individual$nmass_heart <- individual$nmass_heart * heart.scaling
+    # individual$nmass_heart <- individual$nmass_heart * heart.scaling
+    individual$nmass_heart <- safe_scale_N(individual$nmass_heart, original.cmass_heart, new.cmass_heart)
     
     # debt - note no equivalant N debt
     original.cmass_debt <- individual$cmass_debt
-    new.cmass_debt <- individual$cmass_debt + (updated.pools[["cmass_debt_inc"]] * individual$densindiv)
+    new.cmass_debt <- individual$cmass_debt + (unname(updated.pools[["cmass_debt_inc"]] * individual$densindiv))
     individual$cmass_debt <- new.cmass_debt
     
   }
@@ -121,8 +146,8 @@ adjust.biomass.LPJGUESS <- function(individual, biomass.inc, sla, wooddens, life
   
   # N labile and long term storage - note no equivalant C pools and they are not determined by allocation upgrade,
   # so simply scale by the overall biomass change
-  individual$nstore_labile <- individual$nstore_labile * rel.change
-  individual$nstore_longterm <- individual$nstore_longterm * rel.change
+  individual$nstore_labile <- unname(individual$nstore_labile * rel.change)
+  individual$nstore_longterm <- unname(individual$nstore_longterm * rel.change)
   
   
   # TODO (potentially): MF - for simulations involving managed forestry and harvest the variable 'cmass_wood_inc_5'
@@ -134,6 +159,12 @@ adjust.biomass.LPJGUESS <- function(individual, biomass.inc, sla, wooddens, life
   return(list(individual = individual,
               litter_leaf_inc = updated.pools[["litter_leaf_inc"]],
               litter_root_inc = updated.pools[["litter_root_inc"]],
+              # --- NEW: Return the "increment per plant" of allocation directly as well ---
+              cmass_leaf_inc   = unname(updated.pools[["cmass_leaf_inc"]]),
+              cmass_root_inc   = unname(updated.pools[["cmass_root_inc"]]),
+              cmass_sap_inc    = unname(updated.pools[["cmass_sap_inc"]]),
+              cmass_heart_inc  = unname(updated.pools[["cmass_heart_inc"]]),
+              cmass_debt_inc   = unname(updated.pools[["cmass_debt_inc"]]),
               exceeds_cmass = updated.pools[["exceeds_cmass"]]
   ))
   

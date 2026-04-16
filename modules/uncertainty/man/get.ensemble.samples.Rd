@@ -2,13 +2,13 @@
 % Please edit documentation in R/ensemble.R
 \name{get.ensemble.samples}
 \alias{get.ensemble.samples}
-\title{Get Ensemble Samples}
+\title{Get parameter values used in ensemble}
 \usage{
 get.ensemble.samples(
   ensemble.size,
   pft.samples,
   env.samples,
-  method = "uniform",
+  method = "random",
   param.names = NULL,
   ...
 )
@@ -30,10 +30,7 @@ get.ensemble.samples(
 matrix of (quasi-)random samples from trait distributions
 }
 \description{
-Get parameter values used in ensemble
-}
-\details{
-Returns a matrix of randomly or quasi-randomly sampled trait values 
+Returns a matrix of randomly or quasi-randomly sampled trait values
 to be assigned to traits over several model runs.
 given the number of model runs and a list of sample distributions for traits
 The model run is indexed first by model run, then by trait

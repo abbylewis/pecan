@@ -157,7 +157,7 @@ sudo make install
 
 #### Apache Configuration  (Optional)
 
-Mac does not support pdo/postgresql by default. The easiest way to install is use: https://formulae.brew.sh/formula/php
+_Note: This section is out of date. Consult other sources to make sure your version of PHP supports the `pdo/postgres` driver before proceeding._
 
 To enable pecan to run from your webserver.
 ```bash

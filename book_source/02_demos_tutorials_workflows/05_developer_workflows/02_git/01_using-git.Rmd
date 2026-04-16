@@ -322,8 +322,7 @@ To tag an earlier commit, just append the commit SHA to the command, e.g.
 
 When in doubt, the first step is to click the "Help" button at the top of the page.
 
-* [GitHub Flow](https://docs.github.com/en/get-started/quickstart/github-flow) by
-Scott Chacon (Git evangelist and Ruby developer working on GitHub.com)
+* [GitHub Flow](https://docs.github.com/en/get-started/quickstart/github-flow)
 * [GitHub FAQ](https://help.github.com/)
 * [Using Pull Requests](https://help.github.com/articles/using-pull-requests)
 * [SSH Keys](https://help.github.com/articles/generating-ssh-keys)

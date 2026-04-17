@@ -23,21 +23,21 @@
 #' @export
 split_inputs.SIPNET <- function(start.time, stop.time, inputs, overwrite = FALSE, outpath = NULL) {
   result <- inputs
-  if ("met" %in% names(inputs)) {
+  if ("met" %in% names(result)) {
     result[["met"]][["path"]] <- split_sipnet_met(
       start.time,
       stop.time,
-      inputs$met$path,
+      result$met$path,
       overwrite = overwrite,
       outpath = outpath
     )
   }
 
-  if ("events" %in% names(inputs)) {
+  if ("events" %in% names(result)) {
     result[["events"]][["path"]] <- split_sipnet_events(
       start.time,
       stop.time,
-      inputs$events$path,
+      result$events$path,
       overwrite = overwrite,
       outpath = outpath
     )

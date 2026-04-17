@@ -4,7 +4,12 @@
 \alias{validate_events_json}
 \title{Validate PEcAn events JSON against schema v0.1.0}
 \usage{
-validate_events_json(events_json, schema_version = "0.1.1", verbose = TRUE)
+validate_events_json(
+  events_json,
+  schema_version = "0.1.1",
+  verbose = TRUE,
+  max_errs = 50
+)
 }
 \arguments{
 \item{events_json}{character. Path to the JSON file to validate.}
@@ -12,9 +17,13 @@ validate_events_json(events_json, schema_version = "0.1.1", verbose = TRUE)
 \item{schema_version}{character. Version of the PEcAn events schema to validate against.}
 
 \item{verbose}{logical. When `TRUE`, include detailed AJV messages on error.}
+
+\item{max_errs}{integer. Print only this many validation errors.
+To see the rest, use the `errors` attribute of the return value.}
 }
 \value{
-Logical TRUE if valid, FALSE if invalid.
+Logical TRUE if valid. If invalid, FALSE with an attribute "errors"
+ containing a dataframe of reported problems.
 NA if validator unavailable.
 }
 \description{

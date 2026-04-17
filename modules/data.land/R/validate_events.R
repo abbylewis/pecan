@@ -12,8 +12,11 @@
 #' @param events_json character. Path to the JSON file to validate.
 #' @param schema_version character. Version of the PEcAn events schema to validate against.
 #' @param verbose logical. When `TRUE`, include detailed AJV messages on error.
+#' @param max_errs integer. Print only this many validation errors.
+#'  To see the rest, use the `errors` attribute of the return value.
 #'
-#' @return Logical TRUE if valid, FALSE if invalid.
+#' @return Logical TRUE if valid. If invalid, FALSE with an attribute "errors"
+#'  containing a dataframe of reported problems.
 #' NA if validator unavailable.
 #'
 #' @author David LeBauer
@@ -23,7 +26,7 @@
 #' #                                package = "PEcAn.data.land"))
 #'
 #' @export
-validate_events_json <- function(events_json, schema_version = "0.1.1", verbose = TRUE) {
+validate_events_json <- function(events_json, schema_version = "0.1.1", verbose = TRUE, max_errs = 50) {
   if (!file.exists(events_json)) {
     PEcAn.logger::logger.error(glue::glue("events_json file does not exist: {events_json}"))
     return(FALSE)
@@ -49,11 +52,13 @@ validate_events_json <- function(events_json, schema_version = "0.1.1", verbose 
   detail <- if (is.null(errs)) {
     "<no details>"
   } else {
+    errs <- utils::head(errs, max_errs)
     paste(sprintf(
       "%s: %s",
       ifelse(nzchar(errs$instancePath), errs$instancePath, "<root>"), errs$message
     ), collapse = "; ")
   }
   PEcAn.logger::logger.error(glue::glue("events_json does not conform to schema: {events_json}; {detail}"))
-  FALSE
+
+  ok
 }

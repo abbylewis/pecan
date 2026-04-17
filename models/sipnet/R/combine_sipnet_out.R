@@ -31,6 +31,6 @@ combine_sipnet_out <- function(directory, outfile, files = NULL) {
   combined <- do.call(rbind.data.frame, flist)
   # Mimic the SIPNET fixed-width right-aligned format
   combined_fwf <- format(combined, justify = "right")
-  write.table(combined_fwf, outfile, row.names = FALSE, col.names = TRUE, quote = FALSE, sep = "  ")
+  utils::write.table(combined_fwf, outfile, row.names = FALSE, col.names = TRUE, quote = FALSE, sep = "  ")
   invisible(outfile)
 }

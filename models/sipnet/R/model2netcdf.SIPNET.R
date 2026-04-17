@@ -13,6 +13,7 @@
 #' }
 #' @export mergeNC
 #' @name mergeNC
+#' @importfrom rlang .data
 #' @source https://github.com/RS-eco/processNC/blob/main/R/mergeNC.R
 mergeNC <- function(
     ##title<< Aggregate data in netCDF files

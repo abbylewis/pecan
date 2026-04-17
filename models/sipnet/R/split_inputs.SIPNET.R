@@ -162,7 +162,7 @@ coerce_to_datetime <- function(x) {
       " (class: ", class(x), ")"
     )
   }
-  PEcAn.logger::logger.debg(
+  PEcAn.logger::logger.debug(
     xname, "is a date, but this function expects a datetime.",
     "Coercing to datetime by setting to midnight UTC."
   )

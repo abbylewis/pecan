@@ -43,7 +43,9 @@ harvest_dates <- events |>
   purrr::keep(\(x) x$event_type == "harvest") |>
   purrr::map_chr("date") |>
   as.Date()
-end_date <- max(harvest_dates)
+
+# Run through the end of the year post harvest
+end_date <- lubridate::make_date(lubridate::year(max(harvest_dates)), 12, 31)
 
 met_dir <- sprintf(
   "%sN_%sW",

@@ -59,24 +59,24 @@ plt <- results |>
   facet_wrap(vars(variable), scales = "free") +
   theme_bw() +
   theme(legend.position = "bottom")
-plt
+if (interactive()) plt
 
 ggsave(
   file.path(outdir_root, "restarts.png"),
   plt,
-  width = 14.5,
-  height = 9,
+  width = 18.5,
+  height = 13,
   units = "in"
 )
 
-zoomed <- plt +
-  xlim(
-    lubridate::ymd_h("2017-10-01T00"),
-    lubridate::ymd_h("2017-10-17T01")
-  )
-zoomed
-ggsave(
-  file.path(outdir_root, "zoomed.png"),
-  zoomed,
-  width = 14.5, height = 9, units = "in"
-)
+# zoomed <- plt +
+#   xlim(
+#     lubridate::ymd_h("2017-10-01T00"),
+#     lubridate::ymd_h("2017-10-17T01")
+#   )
+# zoomed
+# ggsave(
+#   file.path(outdir_root, "zoomed.png"),
+#   zoomed,
+#   width = 14.5, height = 9, units = "in"
+# )

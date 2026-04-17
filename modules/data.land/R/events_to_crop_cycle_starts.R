@@ -31,30 +31,14 @@
 #' events_to_crop_cycle_starts(evts)
 #' }
 events_to_crop_cycle_starts <- function(event_json) {
-  event_df <- jsonlite::read_json(event_json) |>
+  jsonlite::read_json(event_json) |>
     dplyr::bind_rows() |>
     dplyr::mutate(events = purrr::map(.data$events, as.data.frame)) |>
     tidyr::unnest("events") |>
     dplyr::filter(event_type %in% c("planting", "harvest")) |>
     dplyr::mutate(date = as.Date(.data$date)) |>
-    dplyr::arrange(.data$date)
-  # We should always have alternating planting-harvest-planting-harvest cycles.
-  # If we don't, raise a warning.
-  dup_events <- event_df |>
-    dplyr::filter(
-      (.data$event_type == dplyr::lag(.data$event_type)) |
-        (.data$event_type == dplyr::lead(.data$event_type))
-    ) |>
-    dplyr::select("site_id", "date", "event_type", "crop_code")
-  if ((ndup <- nrow(dup_events)) > 0) {
-    dfdump <- paste("# ", capture.output(print(dup_events)), collapse = "\n")
-    PEcAn.logger::logger.warn(
-      "Detected", ndup, "instances of non-alternating harvest-planting cycles:",
-      "\n", dfdump,
-      wrap = FALSE
-    )
-  }
-  find_crop_changes(event_df)
+    dplyr::arrange(.data$date) |>
+    find_crop_changes()
 }
 
 # helper for events_to_crop_cyle_starts,

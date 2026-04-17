@@ -131,7 +131,8 @@ write_segment_configs <- function(
   settings,
   run_row,
   crop2pft = crop2pft_example,
-  replace_and_link = TRUE
+  replace_and_link = TRUE,
+  force_rerun = FALSE
 ) {
   run_id <- run_row[["run_id"]]
   run_dir <- file.path(settings$rundir, run_id)
@@ -162,7 +163,9 @@ write_segment_configs <- function(
     dend <- segment[["end_date"]]
     segment_dir <- segment[["segment_dir"]]
 
-    unlink(segment_dir, recursive = TRUE)
+    if (force_rerun) {
+      unlink(segment_dir, recursive = TRUE)
+    }
     dir.create(segment_dir, showWarnings = FALSE, recursive = TRUE)
 
     runid_dummy <- "1"

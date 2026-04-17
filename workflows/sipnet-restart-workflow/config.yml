@@ -10,7 +10,7 @@ default:
   ic_dir: "/projectnb/dietzelab/ccmmf/ensemble/IC_files"
   planting_events_dir: "/projectnb/dietzelab/ccmmf/management/event_files"
   mslsp_path: "/projectnb/dietzelab/ccmmf/management/phenology/matched_landiq_mslsp_v4.1"
-  pft_dir: "..."
+  pft_dir: "/projectnb/dietzelab/ccmmf/ensemble/pfts"
   n_ensemble: 3
 
 ashiklom:

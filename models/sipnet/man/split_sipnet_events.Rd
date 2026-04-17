@@ -9,7 +9,7 @@ split_sipnet_events(
   stop.time,
   eventfile,
   overwrite = FALSE,
-  outpath = FALSE
+  outpath = NULL
 )
 }
 \arguments{

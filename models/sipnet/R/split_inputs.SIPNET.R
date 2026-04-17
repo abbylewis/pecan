@@ -49,7 +49,7 @@ split_inputs.SIPNET <- function(start.time, stop.time, inputs, overwrite = FALSE
 #'
 #' @param eventfile Path to `events.in` file.
 #' @inheritParams split_inputs.SIPNET
-split_sipnet_events <- function(start.time, stop.time, eventfile, overwrite = FALSE, outpath = FALSE) {
+split_sipnet_events <- function(start.time, stop.time, eventfile, overwrite = FALSE, outpath = NULL) {
   # Read events.in
   prefix <- sub(".in", "", basename(eventfile), fixed = TRUE)
   outpath <- outpath %||% dirname(eventfile)

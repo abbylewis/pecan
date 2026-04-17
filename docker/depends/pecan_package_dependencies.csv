@@ -489,6 +489,7 @@
 "rcrossref","*","base/db","Suggests",FALSE
 "readr","*","models/ldndc","Imports",FALSE
 "readr","*","modules/assim.sequential","Suggests",FALSE
+"REddyProc","*","modules/data.atmosphere","Imports",FALSE
 "redland","*","modules/data.land","Suggests",FALSE
 "reshape","*","modules/data.remote","Suggests",FALSE
 "reshape2","*","base/visualization","Imports",FALSE
@@ -683,6 +684,7 @@
 "tools","*","modules/allometry","Imports",FALSE
 "traits","*","modules/data.land","Suggests",FALSE
 "TruncatedNormal",">= 2.2","modules/assim.batch","Imports",FALSE
+"truncnorm","*","modules/data.atmosphere","Imports",FALSE
 "units","*","base/db","Imports",FALSE
 "units","*","modules/benchmark","Imports",FALSE
 "units","*","modules/data.atmosphere","Imports",FALSE

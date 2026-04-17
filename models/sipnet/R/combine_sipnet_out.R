@@ -16,6 +16,12 @@ combine_sipnet_out <- function(directory, outfile, files = NULL) {
     PEcAn.logger::logger.severe("Must provide either `directory` or `files`")
   }
   if (is.null(files)) {
+    # NOTE that this expects file paths (including parent directories) to be
+    # lexicographically sorted. For the common case of segmented SIPNET runs,
+    # the parent directories are named `segment_001`, `segment_002`, etc., so
+    # this will work automatically.
+    # If you don't want to make this assumption, or have a custom sort order,
+    # pass `files` directly to this function.
     files <- sort(list.files(directory, "sipnet\\.out", full.names = TRUE, recursive = TRUE))
   }
   if (!(length(files) > 0)) {

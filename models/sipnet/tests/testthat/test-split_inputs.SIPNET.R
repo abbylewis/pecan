@@ -14,7 +14,7 @@ test_that("split_inputs", {
     start.time = dates,
     stop.time = c(dates[-1], as.Date("2006-01-01")), # Stop just _before_ these dates
     MoreArgs = list(
-      inputs = climfile,
+      inputs = list(met = list(path = climfile)),
       outpath = outdir
     )
   )

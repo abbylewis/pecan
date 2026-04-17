@@ -18,7 +18,7 @@ test_that("split_inputs", {
       outpath = outdir
     )
   )
-  clim_split <- vapply(clim_split_list, \(x) x$path, character(1))
+  clim_split <- vapply(clim_split_list, `[[`, character(1), "path")
 
   # all steps processed
   expect_length(clim_split, 4)
@@ -62,4 +62,34 @@ test_that("v2 clim format", {
   expect_length(clim_split, 1)
   expect_length(readLines(clim_split), 90 * 2) # Jan-March 2x/day
   expect_equal(ncol(read.table(clim_split, nrows = 1)), 12)
+})
+
+test_that("splitting event files", {
+  outdir <- withr::local_tempdir()
+  eventfile <- file.path("data", "events-39011.in")
+  dates <- seq(
+    from = as.Date("2016-01-01"),
+    to = as.Date("2024-01-01"),
+    by = "6 months"
+  )
+
+  inputs <- mapply(
+    split_inputs.SIPNET,
+    start.time = head(dates, -1),
+    stop.time = tail(dates, -1),
+    MoreArgs = list(
+      inputs = list(events = list(path = eventfile)),
+      outpath = outdir
+    )
+  )
+
+  new_events <- vapply(inputs, `[[`, character(1), "path")
+  expect_true(length(new_events) == (length(dates) - 1))
+  expect_true(all(file.exists(new_events)))
+
+  original <- readLines(eventfile)
+  combined <- lapply(new_events, readLines) |>
+    do.call(what = c) |>
+    unname()
+  expect_equal(original, combined)
 })

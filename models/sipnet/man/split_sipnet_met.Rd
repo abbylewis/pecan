@@ -2,14 +2,14 @@
 % Please edit documentation in R/split_inputs.SIPNET.R
 \name{split_sipnet_met}
 \alias{split_sipnet_met}
-\title{split sipnet clim file based on start and end time}
+\title{Extract subset of a sipnet clim file based on start and end time}
 \usage{
 split_sipnet_met(start.time, stop.time, met, overwrite = FALSE, outpath = NULL)
 }
 \arguments{
-\item{start.time}{start date and time for each SDA ensemble}
+\item{start.time}{start date and time at which to start extraction}
 
-\item{stop.time}{stop date and time for each SDA ensemble}
+\item{stop.time}{stop date and time at which to stop extraction}
 
 \item{met}{path to sipnet clim file to be split}
 
@@ -21,7 +21,7 @@ split_sipnet_met(start.time, stop.time, met, overwrite = FALSE, outpath = NULL)
 path to split up climate file
 }
 \description{
-split sipnet clim file based on start and end time
+Extract subset of a sipnet clim file based on start and end time
 }
 \author{
 Mike Dietze, Ann Raiho, Alexey Shiklomanov

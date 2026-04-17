@@ -89,12 +89,12 @@ split_sipnet_events <- function(start.time, stop.time, eventfile, overwrite = FA
   invisible(outfile)
 }
 
-##' split sipnet clim file based on start and end time
+##' Extract subset of a sipnet clim file based on start and end time
 ##'
 ##' @author Mike Dietze, Ann Raiho, Alexey Shiklomanov
 ##'
-##' @param start.time start date and time for each SDA ensemble
-##' @param stop.time stop date and time for each SDA ensemble
+##' @param start.time start date and time at which to start extraction
+##' @param stop.time stop date and time at which to stop extraction
 ##' @param met path to sipnet clim file to be split 
 ##' @param overwrite if `TRUE`, overwrite existing target file (Default `FALSE`)
 ##' @param outpath if specified, write output to a new directory. Default `NULL` writes back to the directory being read

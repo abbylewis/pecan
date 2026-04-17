@@ -73,6 +73,58 @@ write_segmented_configs.SIPNET <- function(settings, input_design = NULL, ...) {
   invisible(new_jobfiles)
 }
 
+segment_dataframe <- function(run_settings) {
+  events_json <- run_settings$run$inputs$events$source
+  stopifnot(file.exists(events_json))
+
+  crop_cycles <- PEcAn.data.land::events_to_crop_cycle_starts(events_json) |>
+    dplyr::ungroup()
+
+  run_start <- as.Date(run_settings$run$start.date)
+  run_end <- as.Date(run_settings$run$end.date)
+
+  # First, build segment data.frame just from the crop cycles. Note that we
+  # already include the run end date (lead(..., default = run_end)).
+  segments <- crop_cycles |>
+    dplyr::rename(start_date = "date") |>
+    dplyr::mutate(
+      end_date = dplyr::lead(.data$start_date - 1, default = run_end),
+    )
+
+  # If we start *before* the first planting, add a segment for that.
+  if (run_start < min(segments[["start_date"]])) {
+    first_segment <- tibble::tibble(
+      crop_cycle_id = 0,
+      site_id = segments[["site_id"]][[1]],
+      start_date = run_start,
+      end_date = segments[["start_date"]][[1]] - 1,
+      crop_code = NA_character_
+    )
+    segments <- dplyr::bind_rows(first_segment, segments)
+  }
+
+  # If the run start is *after* the first planting, clip to the start date.
+  if (run_start > min(segments[["start_date"]])) {
+    segments <- segments |>
+      dplyr::filter(
+        .data$start_date >= .env$run_start,
+        # Also clip the end date to avoid edge cases where run_start == end_date
+        .data$end_date > .env$run_start
+      )
+    if (nrow(segments) < 1) {
+      PEcAn.logger::logger.severe(
+        "Filtering resulted in no segments. ",
+        "This is an invalid state; check settings and events.json."
+      )
+    }
+    segments[1, "start_date"] <- run_start
+  }
+
+  segments |>
+    dplyr::arrange(.data$start_date) |>
+    dplyr::mutate(segment_id = sprintf("%03d", dplyr::row_number()))
+}
+
 write_segment_configs <- function(
   settings,
   run_row,
@@ -83,6 +135,7 @@ write_segment_configs <- function(
   run_dir <- file.path(settings$rundir, run_id)
   run_modeloutdir <- file.path(settings$modeloutdir, run_id)
   run_settings <- subset_paths(settings, run_row)
+  segment_rootdir <- file.path(run_dir, "segments")
 
   ens_samples_file <- file.path(
     run_settings$outdir,
@@ -93,19 +146,9 @@ write_segment_configs <- function(
   i_param <- run_row[["param"]] %||% 1
   run_traits <- lapply(ensemble_samples, \(dat) dat[i_param, ])
 
-  crop_cycles <- PEcAn.data.land::events_to_crop_cycle_starts(
-    run_settings$run$inputs$events$source
-  ) |>
-    dplyr::ungroup()
-
-  # Get segments
-  segment_rootdir <- file.path(run_dir, "segments")
-  segments <- crop_cycles |>
-    dplyr::rename(start_date = "date") |>
+  segments <- segment_dataframe(run_settings) |>
     dplyr::mutate(
-      end_date = dplyr::lead(.data$start_date - 1, default = as.Date(run_settings$run$end.date)),
       pft = crop2pft(.data$crop_code),
-      segment_id = sprintf("%03d", dplyr::row_number()),
       segment_dir = file.path(segment_rootdir, sprintf("segment_%s", .data$segment_id))
     )
 

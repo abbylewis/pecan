@@ -35,7 +35,7 @@ events_to_crop_cycle_starts <- function(event_json) {
     dplyr::bind_rows() |>
     dplyr::mutate(events = purrr::map(.data$events, as.data.frame)) |>
     tidyr::unnest("events") |>
-    dplyr::filter(event_type %in% c("planting", "harvest")) |>
+    dplyr::filter(.data$event_type %in% c("planting", "harvest")) |>
     dplyr::mutate(date = as.Date(.data$date)) |>
     dplyr::arrange(.data$date) |>
     find_crop_changes()

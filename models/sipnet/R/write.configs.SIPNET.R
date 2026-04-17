@@ -81,10 +81,9 @@ write.config.SIPNET <- function(defaults, trait.values, settings, run.id, inputs
                                 restart = NULL, spinup = NULL) {
 
   if (!is.list(trait.values)) {
-    PEcAn.logger::logger.severe(paste0(
-      "Even though SIPNET only takes one PFT at a time, ",
+    PEcAn.logger::logger.severe(
       "`trait.values` must be a list with names corresponding to PFTs."
-    ))
+    )
   }
 
   if (

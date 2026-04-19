@@ -3,9 +3,10 @@
 # Regression safety net to lock down current behavior before the modularity
 # refactor. DB-dependent tests skip cleanly when no connection is available.
 
-# Helpers
+# ── Helpers ──────────────────────────────────────────────────────────────────
 
-dbdir <- file.path(tempdir(), "dbfiles")
+dbdir  <- file.path(tempdir(), "dbfiles")
+outdir <- file.path(tempdir(), "outfiles")
 
 make_test_pft <- function(outdir) {
   list(
@@ -41,8 +42,6 @@ skip_if_no_db <- function(dbcon) {
   }
 }
 
-# Every call that reaches the INSERT creates a posteriors row.
-# With write = FALSE (default), no dbfiles rows are created.
 cleanup_posterior <- function(dbcon, posteriorid) {
   if (!is.null(posteriorid)) {
     try(DBI::dbExecute(dbcon,
@@ -51,17 +50,18 @@ cleanup_posterior <- function(dbcon, posteriorid) {
   }
 }
 
-# Helper for the restored cultivar test (see #1958)
 get_pft <- function(pftname) {
   get.trait.data.pft(
-    pft         = list(name = pftname, outdir = withr::local_tempdir()),
+    pft         = list(name = pftname, outdir = withr::local_tempdir(),
+                       posteriorid = NULL, constants = list()),
     trait.names = "SLA",
     dbfiles     = dbdir,
     modeltype   = NULL,
-    dbcon       = test_dbcon)
+    dbcon       = test_dbcon
+  )
 }
 
-# DB connection and teardown
+# ── DB connection and teardown ───────────────────────────────────────────────
 
 test_dbcon <- tryCatch(
   PEcAn.DB::db.open(
@@ -92,7 +92,7 @@ if (!is.null(test_dbcon)) {
   )
 }
 
-# Input validation (no DB required)
+# ── Input validation (no DB required) ───────────────────────────────────────
 
 test_that("errors with no arguments", {
   expect_error(get.trait.data.pft())
@@ -111,7 +111,7 @@ test_that("errors with NULL dbcon", {
   )
 })
 
-# Error cases
+# ── Error cases ──────────────────────────────────────────────────────────────
 
 test_that("errors for non-existent PFT name", {
   skip_if_no_db(test_dbcon)
@@ -132,14 +132,12 @@ test_that("errors for non-existent PFT name", {
 test_that("errors when multiple PFTs share a name", {
   skip_if_no_db(test_dbcon)
   outdir <- withr::local_tempdir()
-
   multi_exists <- tryCatch({
     n <- DBI::dbGetQuery(test_dbcon,
       "SELECT count(*) AS n FROM pfts WHERE name = 'soil'")$n
     n > 1
   }, error = function(e) FALSE)
   skip_if_not(multi_exists, "Need multiple PFTs named 'soil' to test this case")
-
   expect_error(
     get.trait.data.pft(
       pft       = list(name = "soil", outdir = outdir,
@@ -153,7 +151,7 @@ test_that("errors when multiple PFTs share a name", {
   )
 })
 
-# File output
+# ── File output ──────────────────────────────────────────────────────────────
 
 test_that("writes expected Rdata files to outdir", {
   skip_if_no_db(test_dbcon)
@@ -163,7 +161,6 @@ test_that("writes expected Rdata files to outdir", {
     dbfiles = outdir, dbcon = test_dbcon, trait.names = std_traits
   )
   withr::defer(cleanup_posterior(test_dbcon, result$posteriorid))
-
   rdata_files <- list.files(outdir, pattern = "\\.Rdata$")
   expect_true("trait.data.Rdata"   %in% rdata_files)
   expect_true("prior.distns.Rdata" %in% rdata_files)
@@ -177,7 +174,6 @@ test_that("trait.data.Rdata contains a named list", {
     dbfiles = outdir, dbcon = test_dbcon, trait.names = std_traits
   )
   withr::defer(cleanup_posterior(test_dbcon, result$posteriorid))
-
   env <- new.env(parent = emptyenv())
   load(file.path(outdir, "trait.data.Rdata"), envir = env)
   expect_true(exists("trait.data", envir = env))
@@ -192,7 +188,6 @@ test_that("prior.distns.Rdata contains a data frame with expected columns", {
     dbfiles = outdir, dbcon = test_dbcon, trait.names = std_traits
   )
   withr::defer(cleanup_posterior(test_dbcon, result$posteriorid))
-
   env <- new.env(parent = emptyenv())
   load(file.path(outdir, "prior.distns.Rdata"), envir = env)
   expect_true(exists("prior.distns", envir = env))
@@ -200,7 +195,7 @@ test_that("prior.distns.Rdata contains a data frame with expected columns", {
   expect_true(all(c("distn", "parama", "paramb") %in% colnames(env$prior.distns)))
 })
 
-# Return value
+# ── Return value ─────────────────────────────────────────────────────────────
 
 test_that("returns pft list with name, posteriorid, and outdir", {
   skip_if_no_db(test_dbcon)
@@ -211,15 +206,11 @@ test_that("returns pft list with name, posteriorid, and outdir", {
     dbfiles = outdir, dbcon = test_dbcon, trait.names = std_traits
   )
   withr::defer(cleanup_posterior(test_dbcon, result$posteriorid))
-
   expect_equal(result$name, test_pft$name)
   expect_equal(result$outdir, outdir)
   expect_true("posteriorid" %in% names(result))
 })
 
-# Documents the behavior the modularity refactor will change:
-# trait_data and prior_distns are computed and saved to disk but NOT returned.
-# After refactoring, update this test to verify the new function DOES return them.
 test_that("return value does not include trait_data or prior_distns", {
   skip_if_no_db(test_dbcon)
   outdir <- withr::local_tempdir()
@@ -228,34 +219,30 @@ test_that("return value does not include trait_data or prior_distns", {
     dbfiles = outdir, dbcon = test_dbcon, trait.names = std_traits
   )
   withr::defer(cleanup_posterior(test_dbcon, result$posteriorid))
-
   expect_false("trait_data"   %in% names(result))
   expect_false("prior_distns" %in% names(result))
 })
 
-# PFT with no observations
+# ── PFT with no observations ────────────────────────────────────────────────
 
 test_that("PFT with no trait observations returns valid result and writes priors", {
   skip_if_no_db(test_dbcon)
   outdir <- withr::local_tempdir()
-
   soil_exists <- tryCatch({
     nrow(DBI::dbGetQuery(test_dbcon,
       "SELECT 1 FROM pfts WHERE name = 'soil.ALL' LIMIT 1")) > 0
   }, error = function(e) FALSE)
   skip_if_not(soil_exists, "soil.ALL PFT not present in test BETY")
-
   result <- get.trait.data.pft(
     pft = make_empty_pft(outdir), modeltype = std_modeltype,
     dbfiles = outdir, dbcon = test_dbcon, trait.names = std_traits
   )
   withr::defer(cleanup_posterior(test_dbcon, result$posteriorid))
-
   expect_true(is.list(result))
   expect_true(file.exists(file.path(outdir, "prior.distns.Rdata")))
 })
 
-# End-to-end
+# ── End-to-end ───────────────────────────────────────────────────────────────
 
 test_that("end-to-end: disk files are consistent with returned pft", {
   skip_if_no_db(test_dbcon)
@@ -265,12 +252,10 @@ test_that("end-to-end: disk files are consistent with returned pft", {
     dbfiles = outdir, dbcon = test_dbcon, trait.names = std_traits
   )
   withr::defer(cleanup_posterior(test_dbcon, result$posteriorid))
-
   trait_env <- new.env(parent = emptyenv())
   prior_env <- new.env(parent = emptyenv())
   load(file.path(outdir, "trait.data.Rdata"), envir = trait_env)
   load(file.path(outdir, "prior.distns.Rdata"), envir = prior_env)
-
   expect_true(is.list(trait_env$trait.data))
   expect_true(is.data.frame(prior_env$prior.distns))
   expect_equal(result$name, "temperate.deciduous")
@@ -281,6 +266,7 @@ test_that("end-to-end: disk files are consistent with returned pft", {
 
 test_that("reference species and cultivar PFTs write traits properly", {
   skip("Disabled until Travis bety contains Pavi_alamo and Pavi_all (#1958)")
+  skip_if_no_db(test_dbcon)
 
   pavi_sp <- get_pft("pavi")
   expect_equal(pavi_sp$name, "pavi")

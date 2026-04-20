@@ -73,6 +73,10 @@ write.config.PEPRMT <- function(defaults, trait.values, settings, run.id) {
               "kI_SO4", "kI_NO3", "k_plant_oxi")
   PEcAn.logger::logger.warn("Trait_names: ", sQuote(trait_names))
   provided_traitnames <- intersect(params, trait_names)
+  if (!"wetland_type" %in% provided_traitnames) {
+    trait_values["wetland_type"] <- 2
+    provided_traitnames <- c(provided_traitnames, "wetland_type")
+  }
   missing_traitnames <- setdiff(params, trait_names)
   if (length(missing_traitnames) > 0) {
     PEcAn.logger::logger.warn(
@@ -97,8 +101,17 @@ write.config.PEPRMT <- function(defaults, trait.values, settings, run.id) {
 
   jobsh <- gsub("@BINARY@", settings$model$binary, jobsh)
   jobsh <- gsub("@DELETE_RAW@", as.logical(settings$model$delete.raw %||% FALSE), jobsh)
-
-  jobsh <- gsub("@PARAMS@", paste(trait_values[provided_traitnames], collapse = ", "), jobsh)
+  
+  param_str <- paste0(
+    "list(",
+    paste(
+      paste0(provided_traitnames, " = ", trait_values[provided_traitnames]),
+      collapse = ", "
+    ),
+    ")"
+  )
+  
+  jobsh <- gsub("@PARAMS@", param_str, jobsh, fixed = TRUE)
 
   run_data <- PEPRMT::example_data |>
     dplyr::filter(.data$site == settings$run$site$id)

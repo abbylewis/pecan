@@ -21,12 +21,7 @@ here::i_am("models/peprmt/demo_run/input_demo.qmd")
 
 library(tidyverse)
 library(PEcAn.all)
-
-#Make sure we have the latest version of pecan.peprmt
 PEcAn.all::pecan_version()
-remotes::install_github("abbylewis/pecan", subdir = "models/peprmt",
-                        ref = "peprmt_met")
-library(PEcAn.PEPRMT)
 
 # prints logger messages into the notebook instead of to the terminal
 logger.setUseConsole(consol = TRUE, stderr = FALSE)

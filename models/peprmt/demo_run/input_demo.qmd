@@ -21,6 +21,7 @@ here::i_am("models/peprmt/demo_run/input_demo.qmd")
 
 library(tidyverse)
 library(PEcAn.all)
+library(PEcAn.PEPRMT)
 PEcAn.all::pecan_version()
 
 # prints logger messages into the notebook instead of to the terminal
@@ -112,7 +113,6 @@ settings <- settings_raw |>
   papply(function(s) {
     s$run$start.date <- s$run$site$met.start
     s$run$end.date <- s$run$site$met.end
-    s$run
     s
   })  |>
   # Declare naming scheme for met files.
@@ -245,22 +245,11 @@ kI_NO3,norm,0.20,1,NA)",
   row.names = "param"
 )
 # Save
-demo_pft_dir <- file.path("data", "pfts", "default_marginal")
-dir.create(demo_pft_dir, recursive = TRUE)
+demo_pft_dir_marginal <- file.path("data", "pfts", "default_marginal")
+dir.create(demo_pft_dir_marginal, recursive = TRUE)
 save(
   post.distns,
-  file = file.path(demo_pft_dir, "post.distns.RData"))
-# Also save for other demos
-demo_dir <- file.path("raw-data", "pfts", "default")
-save(
-  post.distns,
-  file = file.path(demo_dir, "post.distns.RData"))
-# Doesn't seem to be recognizing default_marginal
-demo_pft_dir <- file.path("data", "pfts", "default")
-dir.create(demo_pft_dir, recursive = TRUE)
-save(
-  post.distns,
-  file = file.path(demo_pft_dir, "post.distns.RData"))
+  file = file.path(demo_pft_dir_marginal, "post.distns.RData"))
 ```
 
 Let's run this!

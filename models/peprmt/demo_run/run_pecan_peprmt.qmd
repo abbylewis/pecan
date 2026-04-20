@@ -121,7 +121,7 @@ There is an example `pecan.xml` that has been configured for this demonstration.
 This is how PEcAn loads the settings file:
 
 ```{r load-settings}
-settings_path <- here::here("models/peprmt/demo_run/settings.xml")
+settings_path <- here::here("models/peprmt/demo_run/settings_inputdemo.xml")
 ```
 
 # Prepare and Validate Settings
@@ -326,7 +326,7 @@ If you want to remove all files and directories created by this workflow and sta
 ```{r cleanup}
 # WARNING: This will permanently delete all workflow output files!
 # Uncomment the line below to enable cleanup.
-fs::dir_delete(settings$outdir)
+# fs::dir_delete(settings$outdir)
 ```
 
 # Session Info

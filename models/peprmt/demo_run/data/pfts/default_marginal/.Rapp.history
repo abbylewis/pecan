@@ -1,0 +1,2 @@
+load("/Users/abigaillewis/Desktop/pecan_github/models/peprmt/demo_run/data/pfts/default_marginal/post.distns.RData")
+post.distns

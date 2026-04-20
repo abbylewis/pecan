@@ -174,22 +174,22 @@ The means shown here were retrieved 2026-03-03 from the default values used in `
 post.distns <- read.csv(
   text = r"(
 param,distn,parama,paramb,n
-GPP_a0,norm,0.7,0.1,NA
-GPP_a1,norm,1.05,0.1,NA
-GPP_Ha,norm,149,25,NA
-GPP_Hd,norm,94.4,1,NA
-Reco_Ea_som,norm,18.4,1,NA
-Reco_kM_som,unif,1000,12000,NA
-Reco_Ea_labile,norm,11.7,2,NA
-Reco_kM_labile,unif,10,100,NA
+a0,norm,0.7,0.1,NA
+a1,norm,1.05,0.1,NA
+Ha,norm,149,25,NA
+Hd,norm,94.4,1,NA
+Ea_SOM,norm,18.4,1,NA
+kM_SOM,unif,1000,12000,NA
+Ea_labile,norm,11.7,2,NA
+kM_labile,unif,10,100,NA
 Ea_SOM_CH4,norm,82.0,1,NA
-kMSOM_CH4,norm,17.4,1,NA
+kM_SOM_CH4,norm,17.4,1,NA
 Ea_labile_CH4,norm,86.7,1,NA
-kMlabile_CH4,norm,23.4,1,NA
+kM_labile_CH4,norm,23.4,1,NA
 Ea_oxi_CH4,norm,91.2,1,NA
-kMoxi_CH4,norm,23.5,1,NA
-kISO4,norm,100.0,1,NA
-kINO3,norm,0.20,1,NA)",
+kM_oxi_CH4,norm,23.5,1,NA
+kI_SO4,norm,100.0,1,NA
+kI_NO3,norm,0.20,1,NA)",
   row.names = "param"
 )
 demo_pft_dir <- file.path("data", "pfts", "default_marginal")
@@ -211,7 +211,7 @@ TODO: Copying most of the demo run here. This will turn into a lot of repeated l
 ```{r config-marginal}
 settings$pfts[purrr::map_lgl(settings$pfts, \(x)x$name == "default")]$pft$posterior.files <-
   file.path("data", "pfts", "default_marginal", "post.distns.RData")
-settings <- PEcAn.workflow::runModule.run.write.configs(settings)
+settings2 <- PEcAn.workflow::runModule.run.write.configs(settings)
 ```
 
 ```{r run-marginal}

@@ -1,12 +1,12 @@
-
 # Manually enter site info
+# Note met start and end are based on the formatted data at each site, which excludes NAs
 US_EDN = list(id = "US_EDN",
               name = "Eden Landing",
               lat = 37.615,
               lon = -122.114,
               site.pft = "default",
               met.start = "2018-04-03",
-              met.end = "2024-11-19")
+              met.end = "2021-06-16")
 
 US_SRR = list(id = "US_SRR",
               name = "Rush Ranch",
@@ -21,16 +21,16 @@ US_DMG = list(id = "US_DMG",
               lat = 38.0015,
               lon = -121.6691,
               site.pft = "default",
-              met.start = "2021-09-22",
-              met.end = "2024-12-31") 
-# NOTE on US_DMG: Hypothetically we have data through "2025-10-07", but I don't 
-# have an ERA5 met file for 2025 yet
+              met.start = "2021-12-15",
+              met.end = "2024-12-19") 
 
+#Combine
 site_info <- list(US_EDN,
                   US_SRR,
                   US_DMG) |>
   dplyr::bind_rows()
 
+#Save
 write.csv(site_info, 
           here::here("models", "peprmt", "demo_run", "data",
                      "site_info.csv"),

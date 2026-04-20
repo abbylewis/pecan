@@ -93,7 +93,7 @@ dates2grid <- function(s) {
   s
 }
 
-settings_raw <- read.settings("raw-data/template.xml") # TODO move to data-raw?
+settings_raw <- read.settings("raw-data/template.xml")
 settings_raw$ensemble$size <- ensemble_size
 
 settings <- settings_raw |>
@@ -129,6 +129,12 @@ settings <- settings_raw |>
     path = file.path("data", "met"),
     d1 = "DATES-HERE",
     path_template = "{path}/ERA5_{id}/ERA5.{n}.{d1}.dat"
+  ) |>
+  setEnsemblePaths(
+    n_reps = 1,
+    input_type = "PEPRMT",
+    path = file.path("data", "PEPRMT_specific_inputs"),
+    path_template = "{path}/{id}_formatted.csv"
   ) |>
   papply(id2grid) |>
   papply(dates2grid)
@@ -176,6 +182,24 @@ for(i in 1:nrow(site_info)){
 }
 ```
 
+# Other inputs
+
+PEPRMT includes a variety of inputs that we are supplying manually
+
+```{r}
+# Set up folder
+dir.create(here::here("models","peprmt","demo_run","data","PEPRMT_specific_inputs"))
+
+# Fill in processed files
+
+for(i in 1:nrow(site_info)){
+  in.path <- here::here("models","peprmt","demo_run","raw-data","site-data-formatted",
+                        paste0(site_info$id[i], "_formatted.csv"))
+  outfolder <- here::here("models","peprmt","demo_run","data", "PEPRMT_specific_inputs",
+                        paste0(site_info$id[i], "_formatted.csv"))
+  file.copy(from = in.path, to = outfolder, overwrite = TRUE)
+}
+```
 
 # Parameters
 

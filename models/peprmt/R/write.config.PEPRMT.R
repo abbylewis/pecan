@@ -117,11 +117,12 @@ write.config.PEPRMT <- function(defaults, trait.values, settings, run.id) {
   met <- utils::read.table(met_path, header = T)
   met_vars <- colnames(met)[!colnames(met) %in% c("Year", "DOY_disc")]
   
-  run_data <- PEPRMT::example_data |> #REPLACE
-    dplyr::filter(.data$site == settings$run$site$id) |> #REPLACE
+  peprmt_specific_input_path <- settings$run$inputs$PEPRMT$path
+  
+  run_data <- read.csv(peprmt_specific_input_path) |> 
     dplyr::select(-any_of(met_vars)) |>
     dplyr::right_join(met) |>
-    dplyr::mutate(site == settings$run$site$id)
+    dplyr::mutate(site = settings$run$site$id)
 
   utils::write.csv(run_data, file.path(rundir, "run_data.csv"), row.names = FALSE)
   writeLines(jobsh, con = file.path(rundir, "job.sh"))

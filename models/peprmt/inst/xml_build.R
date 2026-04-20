@@ -34,11 +34,11 @@ options <- list(
       "Should contain subdirs named by site id"
     )
   ),
-  optparse::make_option("--soil_dir",
-    default = "data/soil",
+  optparse::make_option("--peprmt_input_dir",
+    default = "data/PEPRMT_specific_inputs",
     help = paste(
-      "Directory containing netCDFs of soil data.",
-      "Should contain subdirs named by site id"
+      "Directory containing csvs of PEPRMT-specific input data.",
+      "Includes salinity, nitrate, water level"
     )
   ),
   optparse::make_option("--site_file",
@@ -56,7 +56,7 @@ options <- list(
     )
   ),
   optparse::make_option("--output_file",
-    default = "settings_asl.xml",
+    default = "settings.xml",
     help = "path to write output XML"
   ),
   optparse::make_option("--output_dir_name",
@@ -85,6 +85,7 @@ args <- optparse::OptionParser(option_list = options) |>
 
 
 site_info <- read.csv(args$site_file)
+
 stopifnot(
   length(unique(site_info$id)) == nrow(site_info),
   all(site_info$lat > 0), # just to simplify grid naming below
@@ -139,13 +140,6 @@ dates2grid <- function(s) {
   s
 }
 
-add_soil_pft <- function(s) {
-  s$run$site$site.pft <- list(veg = s$run$site$site.pft, soil = "soil")
-  s
-}
-
-# settings$run$inputs$poolinitcond$ensemble <- args$n_ens
-
 settings <- settings_init |>
   
   # Set where demo outputs go
@@ -167,36 +161,26 @@ settings <- settings_init |>
   papply(function(s) {
     s$run$start.date <- s$run$site$met.start
     s$run$end.date <- s$run$site$met.end
-    s$run
     s
   })  |>
+  # Declare naming scheme for met files.
+  # NB this creates paths in the XML that don't exist on disk yet --
+  # we'll create them in a separate operation below
   setEnsemblePaths(
-    n_reps = args$n_met,
+    n_reps = ensemble_size,
     input_type = "met",
     path = file.path("data", "met"),
     d1 = "DATES-HERE",
     path_template = "{path}/ERA5_{id}/ERA5.{n}.{d1}.dat"
   ) |>
-  papply(id2grid) |>
-  papply(dates2grid) #|>
-  # setEnsemblePaths(
-  #   n_reps = args$n_ens,
-  #   input_type = "poolinitcond",
-  #   path = args$ic_dir,
-  #   path_template = "{path}/{id}/IC_site_{id}_{n}.nc"
-  # ) |>
-  #setEnsemblePaths(
-  #  n_reps = args$n_ens,
-  #  input_type = "soil_physics",
-  #  path = args$soil_dir,
-    # n+1 bc current implementation of extract_soil_gSSURGO saves a
-    # gSSURGO_soil_1.nc containing pseudo-layers from _every_
-    # soil type found at site, then at least n more files after that
-    # ("at least" bc it also writes at least 1 file per soil type)
-    # TODO
-  #  path_template = "{path}/{id}/gSSURGO_soil_{n+1}.nc"
-  #) |>
-  #papply(add_soil_pft)
+  setEnsemblePaths(
+    n_reps = 1,
+    input_type = "PEPRMT",
+    path = file.path("data", "PEPRMT_specific_inputs"),
+    path_template = "{path}/{id}_formatted.csv"
+  ) |>
+  papply(id2grid) |> |>
+  papply(dates2grid)
 
 # Update just the first component of the output directory,
 # in all four places it's used.

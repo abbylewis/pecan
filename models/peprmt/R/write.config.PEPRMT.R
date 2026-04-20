@@ -71,7 +71,6 @@ write.config.PEPRMT <- function(defaults, trait.values, settings, run.id) {
               "kM_SOM", "Ea_labile", "kM_labile", "Ea_SOM_CH4", "kM_SOM_CH4", 
               "Ea_labile_CH4", "kM_labile_CH4", "Ea_oxi_CH4", "kM_oxi_CH4", 
               "kI_SO4", "kI_NO3", "k_plant_oxi")
-  PEcAn.logger::logger.warn("Trait_names: ", sQuote(trait_names))
   provided_traitnames <- intersect(params, trait_names)
   if (!"wetland_type" %in% provided_traitnames) {
     trait_values["wetland_type"] <- 2

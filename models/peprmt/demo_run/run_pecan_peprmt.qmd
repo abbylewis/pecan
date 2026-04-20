@@ -66,8 +66,6 @@ remotes::install_github("pecanproject/pecan", subdir = "base/all",
                         ref = "develop", force = T)
 remotes::install_github("pecanproject/pecan", subdir = "models/peprmt", 
                         ref = "develop")
-remotes::install_github("abbylewis/pecan", subdir = "models/peprmt",
-                        ref = "peprmt_met", force = T)
 ```
 
 

@@ -143,7 +143,7 @@ met2model.PEPRMT <- function(in.path, in.prefix, outfolder, start_date, end_date
     data.frame() %>%
     select(all_of(c("Year", "DOY_disc",  "DOY", "TA_C", "PAR_umol_m2_day")))
   
-  utils::write.table(final, out.file.full, quote = FALSE, sep = " ", row.names = FALSE, col.names = FALSE)
+  utils::write.table(final, out.file.full, quote = FALSE, sep = " ", row.names = FALSE, col.names = TRUE)
 
   return(invisible(results))
 

@@ -1,41 +1,34 @@
 
-# Load example data
-example_data <- PEPRMT::example_data
-
-#Five sites, each of which need to be documented in site_info.csv
-unique(example_data$site)
-
-#Using values from Oikawa et al. 2024
+# Manually enter site info
 US_EDN = list(id = "US_EDN",
+              name = "Eden Landing",
               lat = 37.615,
               lon = -122.114,
-              site.pft = "default")
+              site.pft = "default",
+              met.start = "2018-04-03",
+              met.end = "2024-11-19")
 
 US_SRR = list(id = "US_SRR",
+              name = "Rush Ranch",
               lat = 38.200,
               lon = -122.026,
-              site.pft = "default")
+              site.pft = "default",
+              met.start = "2014-03-12",
+              met.end = "2018-09-20")
 
-US_STJ = list(id = "US_STJ",
-              lat = 39.088,
-              lon = -75.437,
-              site.pft = "default")
-
-US_LA1 = list(id = "US_LA1",
-              lat = 29.5013,
-              lon = -90.4449,
-              site.pft = "default")
-
-US_PLM = list(id = "US_PLM",
-              lat = 42.7345,
-              lon = -70.8382,
-              site.pft = "default")
+US_DMG = list(id = "US_DMG",
+              name = "Dutch Slough",
+              lat = 38.0015,
+              lon = -121.6691,
+              site.pft = "default",
+              met.start = "2021-09-22",
+              met.end = "2024-12-31") 
+# NOTE on US_DMG: Hypothetically we have data through "2025-10-07", but I don't 
+# have an ERA5 met file for 2025 yet
 
 site_info <- list(US_EDN,
                   US_SRR,
-                  US_STJ,
-                  US_LA1,
-                  US_PLM) |>
+                  US_DMG) |>
   dplyr::bind_rows()
 
 write.csv(site_info, 

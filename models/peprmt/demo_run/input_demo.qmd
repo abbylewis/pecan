@@ -93,7 +93,7 @@ dates2grid <- function(s) {
   s
 }
 
-settings_raw <- read.settings("template.xml") # TODO move to data-raw?
+settings_raw <- read.settings("raw-data/template.xml") # TODO move to data-raw?
 settings_raw$ensemble$size <- ensemble_size
 
 settings <- settings_raw |>
@@ -120,6 +120,9 @@ settings <- settings_raw |>
     s$run
     s
   })  |>
+  # Declare naming scheme for met files.
+  # NB this creates paths in the XML that don't exist on disk yet --
+  # we'll create them in a separate operation below
   setEnsemblePaths(
     n_reps = ensemble_size,
     input_type = "met",
@@ -129,10 +132,6 @@ settings <- settings_raw |>
   ) |>
   papply(id2grid) |>
   papply(dates2grid)
-
-# Declare naming scheme for met files.
-# NB this creates paths in the XML that don't exist on disk yet --
-# we'll create them in a separate operation below
 
 head(settings)
 settings$info$notes <- paste("Compiled from template.xml at", Sys.time())
@@ -160,6 +159,10 @@ Note for future development: We are considering a change in `PEcAn.settings::set
 Process met data for all sites using `met2model.PEPRMT()`
 
 ```{r}
+# Set up folder
+dir.create(here::here("models","peprmt","demo_run","data","met"))
+
+# Fill in processed files
 for(i in 1:nrow(site_info)){
   for(ens in 1:ensemble_size){
     in.path <- here::here("models","peprmt","demo_run","raw-data","met",
@@ -222,20 +225,23 @@ kI_SO4,norm,100.0,1,NA
 kI_NO3,norm,0.20,1,NA)",
   row.names = "param"
 )
+# Save
 demo_pft_dir <- file.path("data", "pfts", "default_marginal")
 dir.create(demo_pft_dir, recursive = TRUE)
 save(
   post.distns,
   file = file.path(demo_pft_dir, "post.distns.RData"))
-#Also save for other demos
+# Also save for other demos
 demo_dir <- file.path("raw-data", "pfts", "default")
 save(
   post.distns,
   file = file.path(demo_dir, "post.distns.RData"))
-demo_dir <- file.path("data", "pfts", "default")
+# Doesn't seem to be recognizing default_marginal
+demo_pft_dir <- file.path("data", "pfts", "default")
+dir.create(demo_pft_dir, recursive = TRUE)
 save(
   post.distns,
-  file = file.path(demo_dir, "post.distns.RData"))
+  file = file.path(demo_pft_dir, "post.distns.RData"))
 ```
 
 Let's run this!
@@ -244,8 +250,8 @@ TODO: Copying most of the demo run here. This will turn into a lot of repeated l
 
 ```{r config-marginal}
 settings$pfts[purrr::map_lgl(settings$pfts, \(x)x$name == "default")]$pft$posterior.files <-
-  file.path("data", "pfts", "default", "post.distns.RData")
-settings2 <- PEcAn.workflow::runModule.run.write.configs(settings)
+  file.path("data", "pfts", "default_marginal", "post.distns.RData")
+settings <- PEcAn.workflow::runModule.run.write.configs(settings)
 ```
 
 ```{r run-marginal}

@@ -112,8 +112,16 @@ write.config.PEPRMT <- function(defaults, trait.values, settings, run.id) {
   
   jobsh <- gsub("@PARAMS@", param_str, jobsh, fixed = TRUE)
 
-  run_data <- PEPRMT::example_data |>
-    dplyr::filter(.data$site == settings$run$site$id)
+  # MET
+  met_path <- settings$run$inputs$met$path
+  met <- utils::read.table(met_path, header = T)
+  met_vars <- colnames(met)[!colnames(met) %in% c("Year", "DOY_disc")]
+  
+  run_data <- PEPRMT::example_data |> #REPLACE
+    dplyr::filter(.data$site == settings$run$site$id) |> #REPLACE
+    dplyr::select(-any_of(met_vars)) |>
+    dplyr::right_join(met) |>
+    dplyr::mutate(site == settings$run$site$id)
 
   utils::write.csv(run_data, file.path(rundir, "run_data.csv"), row.names = FALSE)
   writeLines(jobsh, con = file.path(rundir, "job.sh"))

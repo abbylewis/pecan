@@ -1,7 +1,7 @@
 # 1. Add to R/write.config.PEPRMT.R
 
 # 2. Source that file, or push to GitHub and re-load. Basically, you need to 
-# actually get PECAN to incorporate your changes
+# actually get PEcAn to incorporate your changes
 
 # 3. Make sure the new parameter set is represented in your PFT files. 
 # Currently, there are version of this scattered throughout the repo and it can

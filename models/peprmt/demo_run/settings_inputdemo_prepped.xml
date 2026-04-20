@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <pecan>
  <info>
-  <notes>Compiled from template.xml at 2026-04-20 13:11:32.2568</notes>
+  <notes>Compiled from template.xml at 2026-04-20 13:40:28.302147</notes>
   <userid>-1</userid>
   <username></username>
  </info>
@@ -24,8 +24,8 @@
     <method>sampling</method>
    </met>
   </samplingspace>
-  <start.year>2011</start.year>
-  <end.year>2021</end.year>
+  <start.year>2014</start.year>
+  <end.year>2024</end.year>
  </ensemble>
  <model>
   <id>peprmt_0_1_0</id>
@@ -42,26 +42,26 @@
     <lat>37.615</lat>
     <lon>-122.114</lon>
     <site.pft>default</site.pft>
-    <met.start>2018-02-16</met.start>
-    <met.end>2021-06-16</met.end>
+    <met.start>2018-04-03</met.start>
+    <met.end>2024-11-19</met.end>
     <ERA5_grid_cell>37.5N_122W</ERA5_grid_cell>
    </site>
-   <start.date>2018-02-16</start.date>
-   <end.date>2021-06-16</end.date>
+   <start.date>2018-04-03</start.date>
+   <end.date>2024-11-19</end.date>
    <inputs>
     <met>
      <id></id>
      <path>
-      <path1>data/met/ERA5_37.5N_122W/ERA5.1.2018-02-16.2021-06-16.dat</path1>
-      <path2>data/met/ERA5_37.5N_122W/ERA5.2.2018-02-16.2021-06-16.dat</path2>
-      <path3>data/met/ERA5_37.5N_122W/ERA5.3.2018-02-16.2021-06-16.dat</path3>
-      <path4>data/met/ERA5_37.5N_122W/ERA5.4.2018-02-16.2021-06-16.dat</path4>
-      <path5>data/met/ERA5_37.5N_122W/ERA5.5.2018-02-16.2021-06-16.dat</path5>
-      <path6>data/met/ERA5_37.5N_122W/ERA5.6.2018-02-16.2021-06-16.dat</path6>
-      <path7>data/met/ERA5_37.5N_122W/ERA5.7.2018-02-16.2021-06-16.dat</path7>
-      <path8>data/met/ERA5_37.5N_122W/ERA5.8.2018-02-16.2021-06-16.dat</path8>
-      <path9>data/met/ERA5_37.5N_122W/ERA5.9.2018-02-16.2021-06-16.dat</path9>
-      <path10>data/met/ERA5_37.5N_122W/ERA5.10.2018-02-16.2021-06-16.dat</path10>
+      <path1>data/met/ERA5_37.5N_122W/ERA5.1.2018-04-03.2024-11-19.dat</path1>
+      <path2>data/met/ERA5_37.5N_122W/ERA5.2.2018-04-03.2024-11-19.dat</path2>
+      <path3>data/met/ERA5_37.5N_122W/ERA5.3.2018-04-03.2024-11-19.dat</path3>
+      <path4>data/met/ERA5_37.5N_122W/ERA5.4.2018-04-03.2024-11-19.dat</path4>
+      <path5>data/met/ERA5_37.5N_122W/ERA5.5.2018-04-03.2024-11-19.dat</path5>
+      <path6>data/met/ERA5_37.5N_122W/ERA5.6.2018-04-03.2024-11-19.dat</path6>
+      <path7>data/met/ERA5_37.5N_122W/ERA5.7.2018-04-03.2024-11-19.dat</path7>
+      <path8>data/met/ERA5_37.5N_122W/ERA5.8.2018-04-03.2024-11-19.dat</path8>
+      <path9>data/met/ERA5_37.5N_122W/ERA5.9.2018-04-03.2024-11-19.dat</path9>
+      <path10>data/met/ERA5_37.5N_122W/ERA5.10.2018-04-03.2024-11-19.dat</path10>
      </path>
     </met>
    </inputs>
@@ -97,99 +97,37 @@
     </met>
    </inputs>
   </site.US_SRR>
-  <site.US_STJ>
+  <site.US_DMG>
    <site>
-    <id>US_STJ</id>
-    <name>US_STJ</name>
-    <lat>39.088</lat>
-    <lon>-75.437</lon>
+    <id>US_DMG</id>
+    <name>US_DMG</name>
+    <lat>38.0015</lat>
+    <lon>-121.6691</lon>
     <site.pft>default</site.pft>
-    <met.start>2015-01-01</met.start>
-    <met.end>2017-12-31</met.end>
-    <ERA5_grid_cell>39N_75.5W</ERA5_grid_cell>
+    <met.start>2021-09-22</met.start>
+    <met.end>2024-12-31</met.end>
+    <ERA5_grid_cell>38N_121.5W</ERA5_grid_cell>
    </site>
-   <start.date>2015-01-01</start.date>
-   <end.date>2017-12-31</end.date>
+   <start.date>2021-09-22</start.date>
+   <end.date>2024-12-31</end.date>
    <inputs>
     <met>
      <id></id>
      <path>
-      <path1>data/met/ERA5_39N_75.5W/ERA5.1.2015-01-01.2017-12-31.dat</path1>
-      <path2>data/met/ERA5_39N_75.5W/ERA5.2.2015-01-01.2017-12-31.dat</path2>
-      <path3>data/met/ERA5_39N_75.5W/ERA5.3.2015-01-01.2017-12-31.dat</path3>
-      <path4>data/met/ERA5_39N_75.5W/ERA5.4.2015-01-01.2017-12-31.dat</path4>
-      <path5>data/met/ERA5_39N_75.5W/ERA5.5.2015-01-01.2017-12-31.dat</path5>
-      <path6>data/met/ERA5_39N_75.5W/ERA5.6.2015-01-01.2017-12-31.dat</path6>
-      <path7>data/met/ERA5_39N_75.5W/ERA5.7.2015-01-01.2017-12-31.dat</path7>
-      <path8>data/met/ERA5_39N_75.5W/ERA5.8.2015-01-01.2017-12-31.dat</path8>
-      <path9>data/met/ERA5_39N_75.5W/ERA5.9.2015-01-01.2017-12-31.dat</path9>
-      <path10>data/met/ERA5_39N_75.5W/ERA5.10.2015-01-01.2017-12-31.dat</path10>
+      <path1>data/met/ERA5_38N_121.5W/ERA5.1.2021-09-22.2024-12-31.dat</path1>
+      <path2>data/met/ERA5_38N_121.5W/ERA5.2.2021-09-22.2024-12-31.dat</path2>
+      <path3>data/met/ERA5_38N_121.5W/ERA5.3.2021-09-22.2024-12-31.dat</path3>
+      <path4>data/met/ERA5_38N_121.5W/ERA5.4.2021-09-22.2024-12-31.dat</path4>
+      <path5>data/met/ERA5_38N_121.5W/ERA5.5.2021-09-22.2024-12-31.dat</path5>
+      <path6>data/met/ERA5_38N_121.5W/ERA5.6.2021-09-22.2024-12-31.dat</path6>
+      <path7>data/met/ERA5_38N_121.5W/ERA5.7.2021-09-22.2024-12-31.dat</path7>
+      <path8>data/met/ERA5_38N_121.5W/ERA5.8.2021-09-22.2024-12-31.dat</path8>
+      <path9>data/met/ERA5_38N_121.5W/ERA5.9.2021-09-22.2024-12-31.dat</path9>
+      <path10>data/met/ERA5_38N_121.5W/ERA5.10.2021-09-22.2024-12-31.dat</path10>
      </path>
     </met>
    </inputs>
-  </site.US_STJ>
-  <site.US_LA1>
-   <site>
-    <id>US_LA1</id>
-    <name>US_LA1</name>
-    <lat>29.5013</lat>
-    <lon>-90.4449</lon>
-    <site.pft>default</site.pft>
-    <met.start>2011-10-08</met.start>
-    <met.end>2012-12-06</met.end>
-    <ERA5_grid_cell>29.5N_90.5W</ERA5_grid_cell>
-   </site>
-   <start.date>2011-10-08</start.date>
-   <end.date>2012-12-06</end.date>
-   <inputs>
-    <met>
-     <id></id>
-     <path>
-      <path1>data/met/ERA5_29.5N_90.5W/ERA5.1.2011-10-08.2012-12-06.dat</path1>
-      <path2>data/met/ERA5_29.5N_90.5W/ERA5.2.2011-10-08.2012-12-06.dat</path2>
-      <path3>data/met/ERA5_29.5N_90.5W/ERA5.3.2011-10-08.2012-12-06.dat</path3>
-      <path4>data/met/ERA5_29.5N_90.5W/ERA5.4.2011-10-08.2012-12-06.dat</path4>
-      <path5>data/met/ERA5_29.5N_90.5W/ERA5.5.2011-10-08.2012-12-06.dat</path5>
-      <path6>data/met/ERA5_29.5N_90.5W/ERA5.6.2011-10-08.2012-12-06.dat</path6>
-      <path7>data/met/ERA5_29.5N_90.5W/ERA5.7.2011-10-08.2012-12-06.dat</path7>
-      <path8>data/met/ERA5_29.5N_90.5W/ERA5.8.2011-10-08.2012-12-06.dat</path8>
-      <path9>data/met/ERA5_29.5N_90.5W/ERA5.9.2011-10-08.2012-12-06.dat</path9>
-      <path10>data/met/ERA5_29.5N_90.5W/ERA5.10.2011-10-08.2012-12-06.dat</path10>
-     </path>
-    </met>
-   </inputs>
-  </site.US_LA1>
-  <site.US_PLM>
-   <site>
-    <id>US_PLM</id>
-    <name>US_PLM</name>
-    <lat>42.7345</lat>
-    <lon>-70.8382</lon>
-    <site.pft>default</site.pft>
-    <met.start>2019-04-15</met.start>
-    <met.end>2019-10-31</met.end>
-    <ERA5_grid_cell>42.5N_71W</ERA5_grid_cell>
-   </site>
-   <start.date>2019-04-15</start.date>
-   <end.date>2019-10-31</end.date>
-   <inputs>
-    <met>
-     <id></id>
-     <path>
-      <path1>data/met/ERA5_42.5N_71W/ERA5.1.2019-04-15.2019-10-31.dat</path1>
-      <path2>data/met/ERA5_42.5N_71W/ERA5.2.2019-04-15.2019-10-31.dat</path2>
-      <path3>data/met/ERA5_42.5N_71W/ERA5.3.2019-04-15.2019-10-31.dat</path3>
-      <path4>data/met/ERA5_42.5N_71W/ERA5.4.2019-04-15.2019-10-31.dat</path4>
-      <path5>data/met/ERA5_42.5N_71W/ERA5.5.2019-04-15.2019-10-31.dat</path5>
-      <path6>data/met/ERA5_42.5N_71W/ERA5.6.2019-04-15.2019-10-31.dat</path6>
-      <path7>data/met/ERA5_42.5N_71W/ERA5.7.2019-04-15.2019-10-31.dat</path7>
-      <path8>data/met/ERA5_42.5N_71W/ERA5.8.2019-04-15.2019-10-31.dat</path8>
-      <path9>data/met/ERA5_42.5N_71W/ERA5.9.2019-04-15.2019-10-31.dat</path9>
-      <path10>data/met/ERA5_42.5N_71W/ERA5.10.2019-04-15.2019-10-31.dat</path10>
-     </path>
-    </met>
-   </inputs>
-  </site.US_PLM>
+  </site.US_DMG>
  </run>
  <host>
   <name>localhost</name>
@@ -202,7 +140,7 @@
   <checked>TRUE</checked>
  </settings.info>
  <workflow>
-  <id>2026-04-20-13-11-32</id>
+  <id>2026-04-20-13-40-28</id>
  </workflow>
  <rundir>/Users/abigaillewis/Desktop/pecan_github/models/peprmt/demo_run/input_demo_out/run</rundir>
  <modeloutdir>/Users/abigaillewis/Desktop/pecan_github/models/peprmt/demo_run/input_demo_out/out</modeloutdir>

@@ -1,16 +1,16 @@
 <?xml version="1.0"?>
 <pecan>
  <info>
-  <notes>Compiled from template.xml at 2026-04-20 11:14:43.403243</notes>
+  <notes>Compiled from template.xml at 2026-04-20 13:11:32.2568</notes>
   <userid>-1</userid>
   <username></username>
  </info>
- <outdir>/Users/abigaillewis/Desktop/pecan_github/models/peprmt/demo_run/met_demo_out</outdir>
+ <outdir>/Users/abigaillewis/Desktop/pecan_github/models/peprmt/demo_run/input_demo_out</outdir>
  <pfts>
   <pft>
    <name>default</name>
    <posterior.files>data/pfts/default/post.distns.RData</posterior.files>
-   <outdir>/Users/abigaillewis/Desktop/pecan_github/models/peprmt/demo_run/met_demo_out/pft/default</outdir>
+   <outdir>/Users/abigaillewis/Desktop/pecan_github/models/peprmt/demo_run/input_demo_out/pft/default</outdir>
   </pft>
  </pfts>
  <ensemble>
@@ -193,8 +193,8 @@
  </run>
  <host>
   <name>localhost</name>
-  <rundir>/Users/abigaillewis/Desktop/pecan_github/models/peprmt/demo_run/met_demo_out/run</rundir>
-  <outdir>/Users/abigaillewis/Desktop/pecan_github/models/peprmt/demo_run/met_demo_out/out</outdir>
+  <rundir>/Users/abigaillewis/Desktop/pecan_github/models/peprmt/demo_run/input_demo_out/run</rundir>
+  <outdir>/Users/abigaillewis/Desktop/pecan_github/models/peprmt/demo_run/input_demo_out/out</outdir>
  </host>
  <settings.info>
   <deprecated.settings.fixed>TRUE</deprecated.settings.fixed>
@@ -202,10 +202,10 @@
   <checked>TRUE</checked>
  </settings.info>
  <workflow>
-  <id>2026-04-20-11-14-43</id>
+  <id>2026-04-20-13-11-32</id>
  </workflow>
- <rundir>/Users/abigaillewis/Desktop/pecan_github/models/peprmt/demo_run/met_demo_out/run</rundir>
- <modeloutdir>/Users/abigaillewis/Desktop/pecan_github/models/peprmt/demo_run/met_demo_out/out</modeloutdir>
+ <rundir>/Users/abigaillewis/Desktop/pecan_github/models/peprmt/demo_run/input_demo_out/run</rundir>
+ <modeloutdir>/Users/abigaillewis/Desktop/pecan_github/models/peprmt/demo_run/input_demo_out/out</modeloutdir>
  <multisettings>
   <multisettings>run</multisettings>
  </multisettings>

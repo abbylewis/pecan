@@ -64,8 +64,10 @@ install.packages(c('PEcAn.all', 'PEcAn.PEPRMT'))
 ```{r, eval = FALSE}         
 remotes::install_github("pecanproject/pecan", subdir = "base/all", 
                         ref = "develop", force = T)
-remotes::install_github("pecanproject/pecan", subdir = "models/peprmt",
+remotes::install_github("pecanproject/pecan", subdir = "models/peprmt", 
                         ref = "develop")
+remotes::install_github("abbylewis/pecan", subdir = "models/peprmt",
+                        ref = "peprmt_met", force = T)
 ```
 
 
@@ -102,6 +104,7 @@ First, we need to load the PEcAn R packages. These packages provide all the func
 ```{r libraries}
 # Load the PEcAn.all package, which includes all necessary PEcAn functionality
 library("PEcAn.all")
+library("PEcAn.PEPRMT")
 set.seed(20260326)
 logger.setUseConsole(console = TRUE, stderr = FALSE)
 logger.setLevel("INFO")
@@ -323,7 +326,7 @@ If you want to remove all files and directories created by this workflow and sta
 ```{r cleanup}
 # WARNING: This will permanently delete all workflow output files!
 # Uncomment the line below to enable cleanup.
-# fs::dir_delete(settings$outdir)
+fs::dir_delete(settings$outdir)
 ```
 
 # Session Info

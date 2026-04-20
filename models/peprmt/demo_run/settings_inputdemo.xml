@@ -1,11 +1,11 @@
 <?xml version="1.0"?>
 <pecan>
  <info>
-  <notes>Compiled from template.xml at 2026-04-20 11:14:43.403243</notes>
+  <notes>Compiled from template.xml at 2026-04-20 13:11:32.2568</notes>
   <userid>-1</userid>
   <username></username>
  </info>
- <outdir>met_demo_out</outdir>
+ <outdir>input_demo_out</outdir>
  <pfts>
   <pft>
    <name>default</name>

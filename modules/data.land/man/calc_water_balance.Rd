@@ -10,7 +10,8 @@ calc_water_balance(
   whc,
   whc_min_frac,
   W_initial = NULL,
-  w_min = NULL
+  w_min = NULL,
+  irrigation_max = NULL
 )
 }
 \arguments{
@@ -33,6 +34,9 @@ Can be a single value or a vector of the same length as `et`.}
 triggered when soil water falls below this level; defaults to
 `whc_min_frac * whc` if NULL.
 Can be a single value or a vector of the same length as `et`.}
+
+\item{irrigation_max}{If set, maximum amount of irrigation to apply at a
+time (distance).}
 }
 \value{
 List with vectors: W_t (soil water), irr (irrigation), runoff

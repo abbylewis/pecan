@@ -8,6 +8,7 @@ apply_water_balance(
   df,
   idcol,
   whc_mm = 500,
+  irrigation_max_mm = 150,
   flood_target = 125,
   flood_min = 62.5,
   flood_max = 175,
@@ -25,6 +26,10 @@ or similar).}
 
 \item{whc_mm}{Water holding capacity (mm); ignored if `whc_mm` is a column
 in `df`.}
+
+\item{irrigation_max_mm}{Maximum irrigation to be applied at a time. See
+`irrigation_max` argument of [calc_water_balance()]. Ignored if
+`irrigation_max_mm` is a column of `df`.}
 
 \item{flood_target}{Numeric scalar. Target ponded water depth.
 Irrigation refills to this level.}

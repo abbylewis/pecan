@@ -32,6 +32,8 @@
 #'   triggered when soil water falls below this level; defaults to
 #'   `whc_min_frac * whc` if NULL.
 #'   Can be a single value or a vector of the same length as `et`.
+#' @param irrigation_max If set, maximum amount of irrigation to apply at a
+#'   time (distance).
 #' @return List with vectors: W_t (soil water), irr (irrigation), runoff
 #' @examples
 #' # Calculate WHC from field capacity, wilting point, and rooting depth
@@ -52,7 +54,8 @@ calc_water_balance <- function(
   whc,
   whc_min_frac,
   W_initial = NULL, #nolint: object_name_linter
-  w_min = NULL
+  w_min = NULL,
+  irrigation_max = NULL
 ) {
 
   # nolint start: object_name_linter
@@ -115,10 +118,10 @@ calc_water_balance <- function(
     W0 <- W_prev + precip[t] - et[t]
 
     # If W0 falls below w_min (e.g., high ET; low precip), irrigate
-    # to field capacity (i.e., full WHC).
+    # to field capacity (i.e., full WHC), but no more than irrigation_max.
     if (W0 < w_min[t]) {
-      irr[t] <- whc[t] - W0
-      W0 <- whc[t]
+      irr[t] <- min(whc[t] - W0, irrigation_max)
+      W0 <- W0 + irr[t]
     } else {
       irr[t] <- 0
     }
@@ -289,6 +292,9 @@ calc_water_balance_rice <- function(
 #' or similar).
 #' @param whc_mm Water holding capacity (mm); ignored if `whc_mm` is a column
 #' in `df`.
+#' @param irrigation_max_mm Maximum irrigation to be applied at a time. See
+#' `irrigation_max` argument of [calc_water_balance()]. Ignored if
+#' `irrigation_max_mm` is a column of `df`.
 #' @inheritParams calc_water_balance_rice
 #' @return Data frame with added columns: `W_t` / `pond_depth`, `irr`, `runoff`
 #' @export
@@ -296,6 +302,7 @@ apply_water_balance <- function(
   df,
   idcol,
   whc_mm = 500,
+  irrigation_max_mm = 150,
   flood_target = 125,
   flood_min = 62.5,
   flood_max = 175,
@@ -332,6 +339,10 @@ apply_water_balance <- function(
 
   if (!("whc_mm" %in% colnames(df))) {
     df[["whc_mm"]] <- whc_mm
+  }
+
+  if (!("irrigation_max_mm" %in% colnames(df))) {
+    df[["irrigation_max_mm"]] <- irrigation_max_mm
   }
 
   try_wb_rice <- function(...) {
@@ -396,7 +407,8 @@ apply_water_balance <- function(
         et = .data$etc_mm_day,
         precip = .data$precip_mm_day,
         whc = .data$whc_mm,
-        whc_min_frac = .data$whc_min_frac
+        whc_min_frac = .data$whc_min_frac,
+        irrigation_max = .data$irrigation_max_mm
       )),
       .by = dplyr::all_of(idcol)
     ) |>

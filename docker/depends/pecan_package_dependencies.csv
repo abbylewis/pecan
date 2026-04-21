@@ -49,7 +49,6 @@
 "doSNOW","*","modules/data.atmosphere","Suggests",FALSE
 "doSNOW","*","modules/data.land","Suggests",FALSE
 "doSNOW","*","modules/data.remote","Suggests",FALSE
-"dplR","*","modules/data.land","Imports",FALSE
 "dplR","*","modules/data.land","Suggests",FALSE
 "dplyr","*","base/qaqc","Imports",FALSE
 "dplyr","*","base/remote","Imports",FALSE
@@ -133,7 +132,6 @@
 "here","*","base/db","Suggests",FALSE
 "httr","*","base/remote","Imports",FALSE
 "httr","*","modules/data.atmosphere","Imports",FALSE
-"httr","*","modules/data.land","Imports",FALSE
 "httr","*","modules/data.land","Suggests",FALSE
 "httr","*","modules/data.remote","Suggests",FALSE
 "httr2","*","modules/data.land","Imports",FALSE

@@ -52,6 +52,7 @@ crop2pft_example <- function(crop_code) {
     cls == "G" ~ "grass",
     cls == "P" ~ "grass",
     cls == "R" ~ "grass",
+    cls == "T" ~ "annual_crop",
     is.na(crop_code) ~ "soil",
     TRUE ~ "UNKNOWN_PFT"
   )
@@ -62,9 +63,20 @@ write_segmented_configs.SIPNET <- function(settings, input_design = NULL, ...) {
   if (!file.exists(manifest_file)) {
     PEcAn.logger::logger.severe("Could not find manifest file: ", manifest_file)
   }
-  inputs_runs <- read.csv(manifest_file)
+  inputs_runs <- read.csv(manifest_file) |>
+    dplyr::filter(.data$site_id == settings$run$site$id) |>
+    # TODO the manifest should probably report these already...
+    dplyr::mutate(
+      ens_num = .data$run_id |>
+        stringr::str_extract("ENS-(\\d+)", group = 1) |>
+        as.integer()
+    )
   if (!is.null(input_design)) {
-    inputs_runs <- cbind.data.frame(inputs_runs, input_design)
+    inputs_runs <- inputs_runs |>
+      dplyr::left_join(
+        input_design |> tibble::rowid_to_column("ens_num"),
+        by = "ens_num",
+        relationship = "many-to-one")
   }
 
   new_jobfiles <- character()
@@ -80,6 +92,7 @@ segment_dataframe <- function(run_settings) {
   stopifnot(file.exists(events_json))
 
   crop_cycles <- PEcAn.data.land::events_to_crop_cycle_starts(events_json) |>
+    dplyr::filter(.data$site_id == run_settings$run$site$id) |>
     dplyr::ungroup()
 
   run_start <- as.Date(run_settings$run$start.date)
@@ -154,6 +167,7 @@ write_segment_configs <- function(
       pft = crop2pft(.data$crop_code),
       segment_dir = file.path(segment_rootdir, sprintf("segment_%s", .data$segment_id))
     )
+  write.csv(segments, file = file.path(run_dir, "segments.csv"), row.names = FALSE)
 
   jobsh_files <- character()
 

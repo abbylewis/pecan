@@ -7,7 +7,9 @@
 debias.average(residuals, by_product_accuracy = NULL)
 }
 \arguments{
-\item{residuals}{vector: predicted residuals across products}
+\item{residuals}{vector: predicted residuals across products.}
+
+\item{by_product_accuracy}{vector: the out-of-sample RMSE for each product.}
 }
 \value{
 numeric: an averaged residual.

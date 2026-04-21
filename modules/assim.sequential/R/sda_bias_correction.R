@@ -278,7 +278,8 @@ sda.bias.correction <- function (settings,
 #' TODO: we will be averaging residuals based on ML precision for each residual prediction.
 #' @title debias.average
 #' 
-#' @param residuals vector: predicted residuals across products
+#' @param residuals vector: predicted residuals across products.
+#' @param by_product_accuracy vector: the out-of-sample RMSE for each product.
 #'
 #' @return numeric: an averaged residual.
 #' 

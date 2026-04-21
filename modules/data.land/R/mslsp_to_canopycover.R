@@ -59,7 +59,7 @@ expand_mslsp_cycle <- function(mslsp_row) {
   all_dates <- seq(min(dates), max(dates), by = "1 day")
   tibble::tibble(
     date = all_dates,
-    canopy_cover = approx(
+    canopy_cover = stats::approx(
       x = dates,
       y = .MSLSP_DATE_MAPPING$canopy_cover,
       xout = all_dates

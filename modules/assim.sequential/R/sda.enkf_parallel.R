@@ -750,7 +750,7 @@ check.qsub.job.info <- function (username) {
   job_num <- job_info %>% purrr::map(function(job) {
     temp <- strsplit(job, " ")[[1]][3]
     gsub("[^0-9]", "", temp)
-  }) %>% unlist %>% as.numeric() %>% na.omit() %>% sort
+  }) %>% unlist %>% as.numeric() %>% stats::na.omit() %>% sort
   
   list(tot.num = length(job_info), job.id = job_num)
 }
@@ -808,7 +808,7 @@ sda.qsub.job.submission <- function (batch.folder,
   }
   # find failed job ids.
   fail.job.ids <- gsub("[^0-9]", "", basename(fail.folders)) %>% 
-    as.numeric() %>% na.omit()
+    as.numeric() %>% stats::na.omit()
   # find folders that are not currently running.
   remaining.folders <- fail.folders[which(!fail.job.ids %in% job_info$job.id)]
   # if we haven't reach the max.job and still have jobs to be submitted.

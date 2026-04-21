@@ -120,7 +120,7 @@ sda.bias.correction <- function (settings,
     dplyr::bind_rows() %>% 
     as.data.frame()
   obs_prep <- settings$state.data.assimilation$Obs_Prep
-  var.names <- unique(obs_prep$variables %>% purrr::map(~.x$var_name) %>% unlist)
+  var.names <- unique(obs_prep$variables %>% purrr::map(function(v){v$var_name}) %>% unlist)
   # check if we have generated the covariates file.
   if (!file.exists(file.path(settings$outdir, "debias_cov.rds"))) {
     # extract covariates for all time points.

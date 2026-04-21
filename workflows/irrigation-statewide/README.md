@@ -7,9 +7,8 @@ The workflow uses `targets` for reproducibility, scalability, and incremental ex
 
 # Setup
 
-If you are running this code from inside this directory, you should not need to set any environment variables.
-
-If you are running the code from _outside_ this directory (e.g., from the PEcAn root directory), you will need to set the `TAR_CONFIG` environment variable to point to the `_targets.yaml` file in this directory.
+This code assumes that you are running from the PEcAn root directory.
+To ensure discovery of the targets script and store directories, you will need to set the `TAR_CONFIG` environment variable to point to the `_targets.yaml` file in this directory.
 One way to do this is to create a `.Renviron` file in the PEcAn project root with the following contents:
 
 ```

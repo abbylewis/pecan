@@ -9,63 +9,32 @@ root_dir <- here::here("modules/data.land/inst/irrigation-statewide")
 logdir <- file.path(root_dir, "_logs")
 dir.create(logdir, showWarnings = FALSE, recursive = TRUE)
 
-tar_project <- Sys.getenv("TAR_PROJECT", "main")
-proj_defaults <- list(
-  small = list(
-    n_parcels = 1000,
-    batch_size = 100,
-    n_remote_workers = 1,  # dummy value
-    exec_type = "local",
-    event_filename = "irrigation_1000"
-  ),
-  medium = list(
-    n_parcels = 10000,
-    batch_size = 1000,
-    n_remote_workers = 15,
-    exec_type = "cluster",
-    event_filename = "irrigation_10000"
-  ),
-  all = list(
-    n_parcels = "all",
-    batch_size = 5000,
-    n_remote_workers = 60,
-    exec_type = "local",
-    event_filename = "irrigation_all"
-  )
-)
-proj_defaults[["main"]] <- proj_defaults[["small"]]
+targets_config <- Sys.getenv("TAR_CONFIG", file.path(root_dir, "_targets.yaml"))
+Sys.setenv(TAR_CONFIG = targets_config)
 
-n_parcels <- Sys.getenv(
-  "N_PARCELS",
-  proj_defaults[[tar_project]][["n_parcels"]]
+project <- Sys.getenv("TAR_PROJECT", "small")
+config_base <- config::get(
+  file = file.path(root_dir, "config.yml"),
+  config = project
 )
-if (tolower(n_parcels) == "all") {
-  n_parcels <- NULL
-} else {
-  n_parcels <- as.integer(n_parcels)
-}
-batch_size <- as.integer(Sys.getenv(
-  "BATCH_SIZE",
-  proj_defaults[[tar_project]][["batch_size"]]
-))
-n_remote_workers <- as.integer(Sys.getenv(
-  "N_REMOTE_WORKERS",
-  proj_defaults[[tar_project]][["n_remote_workers"]]
-))
+config_paths <- config::get(
+  file = file.path(root_dir, "config_paths.yml"),
+  config = Sys.getenv("IRRIGATION_PATHS_CONFIG", "default")
+)
+config <- config::merge(config_base, config_paths)
+
+n_parcels <- config[["n_parcels"]]
+batch_size <- config[["batch_size"]]
+n_remote_workers <- config[["n_remote_workers"]]
 n_local_workers <- as.integer(Sys.getenv("NSLOTS", 1))
-exec_type <- Sys.getenv(
-  "EXEC_TYPE",
-  proj_defaults[[tar_project]][["exec_type"]]
-)
-event_filename <- Sys.getenv(
-  "EVENT_FILENAME",
-  proj_defaults[[tar_project]][["event_filename"]]
-)
-
+exec_type <- config[["exec_type"]]
 stopifnot(exec_type %in% c("cluster", "local"))
+event_output_dir <- config[["event_output_dir"]]
+event_filename <- config[["event_filename"]]
+n_irr_ensemble <- config[["n_irr_ensemble"]]
 
 message(glue::glue(
-  "PROJECT: {tar_project}\n",
+  "PROJECT: {project}\n",
   "Running {n_parcels} parcels in batches of {batch_size} parcels each.\n",
   "Execution type: {exec_type} with ",
   if (exec_type == "local") {
@@ -74,7 +43,7 @@ message(glue::glue(
     "{n_remote_workers} workers.\n"
   },
   "Output will be saved to ",
-  "{file.path(Sys.getenv('EVENT_OUTPUT_DIR'), event_filename)}\n",
+  "{file.path(event_output_dir, event_filename)}\n",
   "Targets output will be stored in ", tar_config_get("store")
 ))
 
@@ -136,14 +105,14 @@ if (exec_type == "cluster") {
 tar_source(file.path(root_dir, "R"))
 
 list(
-  tar_target(crops_path, path.expand(Sys.getenv("LANDIQ_CROPS"))),
-  tar_target(mslsp_path, path.expand(Sys.getenv("LANDIQ_TIMESERIES"))),
-  tar_target(cimis_etref_path, path.expand(Sys.getenv("CIMIS_ETREF"))),
-  tar_target(chirps_precip_path, path.expand(Sys.getenv("CHIRPS_PRECIP"))),
-  tar_target(ssurgo_weights_path, path.expand(Sys.getenv("SSURGO_WEIGHTS"))),
-  tar_target(ssurgo_gdb_path, path.expand(Sys.getenv("SSURGO_GDB"))),
+  tar_target(crops_path, path.expand(config[["crops_path"]])),
+  tar_target(mslsp_path, path.expand(config[["mslsp_path"]])),
+  tar_target(cimis_etref_path, path.expand(config[["cimis_etref_path"]])),
+  tar_target(chirps_precip_path, path.expand(config[["chirps_precip_path"]])),
+  tar_target(ssurgo_weights_path, path.expand(config[["ssurgo_weights_path"]])),
+  tar_target(ssurgo_gdb_path, path.expand(config[["ssurgo_gdb_path"]])),
 
-  tar_target(event_output_dir, path.expand(Sys.getenv("EVENT_OUTPUT_DIR"))),
+  tar_target(event_output_dir, path.expand(config[["event_output_dir"]])),
 
   tar_target(validated_paths, {
     stopifnot(
@@ -221,7 +190,7 @@ list(
     make_event_df_parquet(
       file.path(event_output_dir, event_filename),
       parcel_waterbalance,
-      n_ensemble = 20,
+      n_ensemble = n_irr_ensemble,
       frac_uncertainty = 0.1
     ),
     pattern = map(parcel_waterbalance),

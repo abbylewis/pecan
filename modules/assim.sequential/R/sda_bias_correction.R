@@ -41,7 +41,7 @@ debias.extract.cov <- function (cov.dir, date, site.info) {
 debias.map.products <- function (obs.mean.t, obs_prep) {
   # grab basic info.
   product.names <- names(obs_prep$variables)
-  var.names <- unique(obs_prep$variables %>% map(~.x$var_name) %>% unlist)
+  var.names <- unique(obs_prep$variables %>% purrr::map(~.x$var_name) %>% unlist)
   # initialize H matrix.
   H <- matrix(0, nrow = length(obs.mean.t) * length(var.names),
               ncol = length(product.names)) %>% 
@@ -120,6 +120,7 @@ sda.bias.correction <- function (settings,
     dplyr::bind_rows() %>% 
     as.data.frame()
   obs_prep <- settings$state.data.assimilation$Obs_Prep
+  var.names <- unique(obs_prep$variables %>% purrr::map(~.x$var_name) %>% unlist)
   # check if we have generated the covariates file.
   if (!file.exists(file.path(settings$outdir, "debias_cov.rds"))) {
     # extract covariates for all time points.
@@ -143,18 +144,38 @@ sda.bias.correction <- function (settings,
   } else {
     H.ts <- readRDS(file.path(settings$outdir, "debias_H.rds"))
   }
+  # check if we need to calculate the by-product global accuracy to 
+  # average the predicted residuals across products.
+  # check from t=1 to t=t-1.
+  uniq.num.multi.products <- seq_len(t-1) %>% purrr::map(function(tt) {
+    apply(H.ts[[tt]], 1, FUN = function(x){length(which(x==1))})
+  }) %>% unlist %>% unique()
   # initialize predicted residuals.
   res.pred <- H.ts[[t]] * NA
+  # if we have any time for any site that has more than 
+  # one products available for the same variable.
+  if (any(uniq.num.multi.products > 0)) {
+    multi.product <- TRUE
+    # initialize the accuracy vector.
+    multi.product.accuracy <- rep(NA, ncol(res.pred))
+    multi.product.ml <- vector("list", ncol(res.pred))
+  } else {
+    # else we can use the default residual averaging function.
+    multi.product <- FALSE
+    multi.product.accuracy <- multi.product.ml <- NULL
+  }
   # initialize variable importance.
   var.imp <- list()
   # loop over products.
-  for (i in seq_col(res.pred)) {
+  for (i in seq_len(ncol(res.pred))) {
     # grab basic info.
     inds <- which(H.ts[[t]][,i] == 1) # which site has observation.
-    # skip if there is no need for correction.
+    # skip if there is no observation.
     if (length(inds) == 0) next
     var.name <- unique(strsplit(rownames(res.pred)[inds], split = ".", fixed = T) %>% 
                          purrr::map(function (s) {s[4]}) %>% unlist())
+    # convert from site*variable to site.
+    inds <- floor(inds/length(var.names)) + 1
     # report progress.
     message(paste0("Processing: ", colnames(res.pred)[i]), " ", var.name)
     # initialize covariate and residual matrix.
@@ -162,35 +183,57 @@ sda.bias.correction <- function (settings,
     # loop over time to find the historical data for training and predicting.
     for (j in t.start:t) {
       # calculate the historical residuals.
-      res.j <- debias.residual.calc(obs.mean, all.X, j, var.name)
-      res.i[[j]] <- res.j # store
+      res.i[[j]] <- debias.residual.calc(obs.mean, all.X, j, var.name, colnames(res.pred)[i]) # store
       # calculate forecast means.
       X.i[[j]] <- colMeans(all.X[[j]][,which(grepl(var.name, colnames(all.X[[j]])))])
     }
     # split extractions into training and predicting data sets.
-    cov.train <- do.call("rbind", cov.ts[t.start:(t-1)]); cov.pred <- cov.ts[[t]]
-    res <- do.call("c", res.i[t.start:(t-1)])
+    cov.train <- do.call("rbind", cov.ts[t.start:(t-1)])
+    cov.pred <- cov.ts[[t]]; res <- do.call("c", res.i[t.start:(t-1)])
     X.train <- do.call("c", X.i[t.start:(t-1)]); X.pred <- X.i[[t]]
     # if we want to include the residual lag.
     if (residual.lag) {
       res.lag.i <- debias.res.lag.calc(res.i)
       res.lag.train <- do.call("c", res.lag.i[t.start:(t-1)])
-      res.lag.pred <- res.lag.i[[t]]
-      cov.names <- c(colnames(cov.train), "X", "res.lag")
+      if (all(is.na(res.lag.train))) {
+        res.lag.train <- res.lag.pred <- NULL
+        cov.names <- c(colnames(cov.train), "X")
+      } else {
+        res.lag.pred <- res.lag.i[[t]]
+        cov.names <- c(colnames(cov.train), "X", "res.lag")
+      }
     } else {
       res.lag.train <- res.lag.pred <- NULL
       cov.names <- c(colnames(cov.train), "X")
     }
     # assemble extractions.
     # prepare training data.
-    dat.train <- cbind(cov.train, X.train, res.lag.train, res)
+    dat.train <- list(cov.train, X.train, res.lag.train, res)
+    dat.train <- dat.train[!sapply(dat.train, is.null)] %>% do.call(cbind, .)
     dat.train <- dat.train[stats::complete.cases(dat.train),]
     colnames(dat.train) <- c(cov.names, "res")
+    # skip if there is no training data.
+    if (dim(dat.train)[1] <= 1) next
+    # if we have examples that have more than one products for single variable.
+    if (multi.product) {
+      # calculate the by-product out-of-sample accuracy of residual predictions.
+      multi.accuracy.res <- debias.train.accuracy(pred.name = "res", 
+                                                  cov.names = cov.names, 
+                                                  dat.train = dat.train, 
+                                                  var.name = var.name, 
+                                                  py.init = py.init)
+      multi.product.accuracy[i] <- multi.accuracy.res$accuracy
+      multi.product.ml[[i]] <- multi.accuracy.res$var.imp
+    }
     # prepare predicting data.
-    dat.pred <- cbind(cov.pred, X.pred, res.lag.pred)
+    dat.pred <- list(cov.pred, X.pred, res.lag.pred)
+    dat.pred <- dat.pred[!sapply(dat.pred, is.null)] %>% do.call(cbind, .)
     pred.complete.inds <- which(stats::complete.cases(dat.pred))
+    # grab index that satisfy both non-NA and inds conditions.
+    pred.complete.inds <- intersect(pred.complete.inds, inds)
     dat.pred <- dat.pred[pred.complete.inds,]
     colnames(dat.pred) <- cov.names
+    if (dim(dat.pred)[1] == 0) next
     # ML predictions.
     debias.out <- debias.ML(pred.name = "res", cov.names = cov.names, 
                             dat.train = dat.train, dat.pred = dat.pred, 
@@ -204,7 +247,7 @@ sda.bias.correction <- function (settings,
   # bias corrections.
   X <- all.X[[t]] # grab the current forecasts.
   # loop over res.pred matrix.
-  for (i in seq_row(res.pred)) {
+  for (i in seq_len(nrow(res.pred))) {
     inds <- which(!is.na(res.pred[i,])) # find valid residual predictions.
     # calculate residuals based on different conditions.
     if (length(inds) == 0) {
@@ -212,12 +255,12 @@ sda.bias.correction <- function (settings,
     } else if (length(inds) == 1) {
       residual <- res.pred[i, inds]
     } else if (length(inds) > 1) {
-      residual <- debias.average(res.pred[i, inds])
+      residual <- debias.average(res.pred[i, inds], multi.product.accuracy[inds])
     }
     # correction.
     site.id <- strsplit(rownames(res.pred)[i], split = ".", fixed = T)[[1]][2]
     var.name <- strsplit(rownames(res.pred)[i], split = ".", fixed = T)[[1]][4]
-    col.ind <- which(site.info$site.id == site.id & grepl(var.name, colnames(X)))
+    col.ind <- which(attributes(X)$Site == site.id & grepl(var.name, colnames(X)))
     X[,col.ind] <- X[,col.ind] - residual
   }
   # map forecasts towards the prescribed variable boundaries.
@@ -226,7 +269,7 @@ sda.bias.correction <- function (settings,
     X[X[,i] < int.save[1],i] <- int.save[1]
     X[X[,i] > int.save[2],i] <- int.save[2]
   }
-  return(list(X = X, var.imp = var.imp, res = res.pred))
+  return(list(X = X, var.imp = var.imp, res = res.pred, multi.product.accuracy = multi.product.accuracy, multi.product.ml = multi.product.ml))
 }
 
 #' @description
@@ -241,8 +284,20 @@ sda.bias.correction <- function (settings,
 #' 
 #' @author Dongchen Zhang
 #' @importFrom dplyr %>%
-debias.average <- function (residuals) {
-  mean(residuals)
+debias.average <- function (residuals, by_product_accuracy = NULL) {
+  if (is.null(by_product_accuracy)) {
+    # calculate mean residual as default.
+    return(mean(residuals))
+  } else {
+    # calculate weights based on accuracy.
+    weights <- c()
+    for (i in seq_along(by_product_accuracy)) {
+      weights <- c(weights, 1/by_product_accuracy[i]^2) # in the future: try squaring it.
+    }
+    weights <- weights/sum(weights)
+    # return residuals.
+    return(sum(residuals*weights))
+  }
 }
 
 #' @description
@@ -335,6 +390,45 @@ debias.ML <- function (pred.name, cov.names, dat.train, dat.pred, var.name, py.i
 }
 
 #' @description
+#' This function helps to calculate the out-of-sample accuracy of residual predictions.
+#' @title debias.train.accuracy
+#' 
+#' @param pred.name  character: the name for the predictive variable.
+#' @param cov.names character: the name for the covariates.
+#' @param dat.train data.frame: data frame containing associated covariates and 
+#' predictive variable for ML training.
+#' @param var.name character: variable name to be predicted.
+#' @param py.init R function: R function to initialize the python functions. Default is NULL.
+#' the default random forest will be used if `py.init` is NULL.
+#' @param ratio numeric from 0 to 1: define the ratio of samples used for training.
+#' The rest samples will be used for calculating the out-of-sample accuracy.
+#' Default is 0.8.
+#'
+#' @return list: the variable importance of the ML and RMSE of the out-of-sample predictions. 
+#' 
+#' @author Dongchen Zhang
+#' @importFrom dplyr %>%
+debias.train.accuracy <- function (pred.name, cov.names, dat.train, var.name, py.init, ratio = 0.8) {
+  # sampling records by the predefined ratio
+  samples <- seq_len(nrow(dat.train))
+  inds.train <- sample(samples, size = ceiling(length(samples)*ratio), replace = FALSE)
+  inds.pred <- which(!samples %in% inds.train)
+  # splitting samples.
+  dat.train.split <- dat.train[inds.train,]
+  dat.pred.split <- dat.train[inds.pred,]
+  # remove the residual column.
+  dat.pred.split <- dat.pred.split[,-which(colnames(dat.pred.split) == pred.name)]
+  # ML.
+  res.pred <- debias.ML(pred.name = pred.name, cov.names = cov.names, 
+                        dat.train = dat.train.split, dat.pred = dat.pred.split, 
+                        var.name = var.name, py.init = py.init)
+  # calculate accuracy.
+  res.rmse <- Metrics::rmse(actual = dat.train[inds.pred, pred.name], 
+                            predicted = res.pred$prediction)
+  return(list(accuracy = res.rmse, var.imp = res.pred$var.imp))
+}
+
+#' @description
 #' This function helps to calculate the residual error for a certain time point and variable.
 #' @title debias.residual.calc
 #' 
@@ -345,21 +439,27 @@ debias.ML <- function (pred.name, cov.names, dat.train, dat.pred, var.name, py.i
 #' (e.g., 100 ensembles, 4 variables, and 8,000 locations will end up with data.frame of 100 rows and 32,000 columns).
 #' @param t numeric: the current number of time points (e.g., t=1 for the beginning time point).
 #' @param var.name character: variable name to be predicted.
+#' @param data.source character: product name of the data.
 #' @return list: lists of residuals between forecasts and observations across at time t.
 #' 
 #' @author Dongchen Zhang
 #' @importFrom dplyr %>%
-debias.residual.calc <- function (obs.mean, all.X, t, var.name) {
+debias.residual.calc <- function (obs.mean, all.X, t, var.name, data.source) {
   # grab observation at t for var.name.
   obs.t.var <- obs.mean[[t]] %>% 
     purrr::map(function(obs){
-      if (is.null(obs[[var.name]])) {
-        return(NA)
+      v.att <- obs %>% purrr::map(function(o) {
+        attributes(o)[[1]]
+      }) %>% unlist
+      v.ind <- which(names(v.att) == var.name & v.att == data.source)
+      if (length(v.ind) == 1) {
+        return(obs[[v.ind]])
       } else {
-        return(obs[[var.name]])
+        return(NA)
       }
     }) %>% unlist
   # grab forecasts at t for var.name.
   X.t.var <- colMeans(all.X[[t]][,which(grepl(var.name, colnames(all.X[[t]])))])
-  return(X.t.var - obs.t.var)
+  res <- X.t.var - obs.t.var
+  return(res)
 }

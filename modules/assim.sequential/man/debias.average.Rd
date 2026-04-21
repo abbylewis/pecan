@@ -4,7 +4,7 @@
 \alias{debias.average}
 \title{debias.average}
 \usage{
-debias.average(residuals)
+debias.average(residuals, by_product_accuracy = NULL)
 }
 \arguments{
 \item{residuals}{vector: predicted residuals across products}

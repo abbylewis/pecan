@@ -4,7 +4,7 @@
 \alias{debias.residual.calc}
 \title{debias.residual.calc}
 \usage{
-debias.residual.calc(obs.mean, all.X, t, var.name)
+debias.residual.calc(obs.mean, all.X, t, var.name, data.source)
 }
 \arguments{
 \item{obs.mean}{List: lists of date times named by time points, which contains lists of sites named by site ids, 
@@ -17,6 +17,8 @@ that has n (ensemble size) rows and n.var (number of variables) times n.site (nu
 \item{t}{numeric: the current number of time points (e.g., t=1 for the beginning time point).}
 
 \item{var.name}{character: variable name to be predicted.}
+
+\item{data.source}{character: product name of the data.}
 }
 \value{
 list: lists of residuals between forecasts and observations across at time t.

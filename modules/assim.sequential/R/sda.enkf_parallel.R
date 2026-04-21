@@ -761,7 +761,7 @@ check.qsub.job.info <- function (username) {
 ##' @param username character: username for the HPC.
 ##' @param outdir character: path where to stored the assembled results. Default is NULL.
 ##' @param past.job.ids vector: vector of the past submitted job ids. Default is NULL.
-##' @param max.job: numeric: maximum allowance for the number of running jobs on HPC.
+##' @param max.job numeric: maximum allowance for the number of running jobs on HPC.
 ##' @param prefix character: file name to be determined if a job is finished or not.
 ##' @param resources list: computation resources (time, memory, cores) when used to submit jobs.
 ##' @return vector or numeric: return -1 when all jobs are finished; 

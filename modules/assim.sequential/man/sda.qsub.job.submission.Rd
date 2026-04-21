@@ -23,11 +23,11 @@ sda.qsub.job.submission(
 
 \item{past.job.ids}{vector: vector of the past submitted job ids. Default is NULL.}
 
+\item{max.job}{numeric: maximum allowance for the number of running jobs on HPC.}
+
 \item{prefix}{character: file name to be determined if a job is finished or not.}
 
 \item{resources}{list: computation resources (time, memory, cores) when used to submit jobs.}
-
-\item{max.job:}{numeric: maximum allowance for the number of running jobs on HPC.}
 }
 \value{
 vector or numeric: return -1 when all jobs are finished; 

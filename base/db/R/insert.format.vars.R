@@ -57,7 +57,7 @@ insert.format.vars <- function(con, format_name, mimetype_id, notes = NULL, head
   }
 
    #Test if skip is an integer
-  if(!is.character(skip)){
+  if(!is.numeric(skip)){
   PEcAn.logger::logger.error(
     "Skip must be of type character"
     )

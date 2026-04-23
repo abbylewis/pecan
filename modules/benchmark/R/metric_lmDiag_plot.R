@@ -22,8 +22,8 @@ metric_lmDiag_plot <- function(metric_dat, var, filename = NA, draw.plot = FALSE
   p1 <- p1 + ggplot2::theme_bw()
   
   p2 <- ggplot2::ggplot(
-  data = data.frame(sample = stats::na.omit(ggplot2::fortify(fit)$.stdresid)),
-  ggplot2::aes(sample = sample)
+    data = data.frame(sample = stats::na.omit(ggplot2::fortify(fit)$.stdresid)),
+    ggplot2::aes(sample = sample)
   )
   p2 <- p2 + ggplot2::stat_qq()
   p2 <- p2 + ggplot2::stat_qq_line()

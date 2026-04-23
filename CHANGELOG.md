@@ -41,6 +41,7 @@ For more information about this file see also [Keep a Changelog](http://keepacha
   `MCMCpack`, `mvtnorm`, `neonUtilities`, `neonstore`, `PEcAn.benchmark`,
   `PEcAn.visualization`, `rjags`, `sirt`, and `sp` from `Imports` to
   `Suggests` (@omkarrr2533, #3599).
+- Management events specified via `events.json` are now required to specify a crop code for each planting event, so that models can know when to restart with a different PFT (#3828, #3836).
 
 
 

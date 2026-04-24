@@ -33,5 +33,5 @@ plot_variance_decomposition(x)
 plot_variance_decomposition(x, order_by = "rowname")
 }
 \author{
-David LeBauer, Carl Davidson
+David LeBauer, Carl Davidson, Chris Black
 }

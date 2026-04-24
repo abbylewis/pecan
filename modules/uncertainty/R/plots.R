@@ -4,7 +4,7 @@
 #' Plots variance decomposition tryptich: CV, elasticity, variance
 #' @name plot_variance_decomposition
 #' @export
-#' @author David LeBauer, Carl Davidson
+#' @author David LeBauer, Carl Davidson, Chris Black
 #'
 #' @param plot.inputs Output from a sensitivity analysis. Output must be of the form
 #'          given by sensitivity.results$variance.decomposition.output in model output

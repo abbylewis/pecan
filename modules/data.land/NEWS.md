@@ -20,6 +20,7 @@
 ## Changed
 
 * Package `traits`, used by `match_pft()` and `match_species_id()` only when no database connection is provided, is now suggested rather than required.
+* Updated `validate_events_json()` to use events schema v0.1.1 by default. The previous default v0.1.0 is still available by setting `schema_version="0.1.0"`.
 * Packages `doSNOW`, `dplR`, `httr`, `MCMCpack`, `mvtnorm`, `neonUtilities`,
   `neonstore`, `PEcAn.benchmark`, `PEcAn.visualization`, `rjags`, `sirt`, and
   `sp` are now suggested rather than required. They are only needed for

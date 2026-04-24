@@ -217,6 +217,7 @@
 "methods","*","modules/assim.batch","Imports",FALSE
 "methods","*","modules/assim.sequential","Suggests",FALSE
 "methods","*","modules/emulator","Imports",FALSE
+"Metrics","*","modules/assim.sequential","Suggests",FALSE
 "mgcv","*","modules/data.atmosphere","Imports",FALSE
 "minpack.lm","*","modules/rtm","Suggests",FALSE
 "mlegp","*","modules/assim.batch","Imports",FALSE

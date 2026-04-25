@@ -680,6 +680,7 @@
 "tidyr","*","modules/assim.sequential","Suggests",FALSE
 "tidyr","*","modules/data.atmosphere","Imports",FALSE
 "tidyr","*","modules/data.land","Imports",FALSE
+"tidyr","*","modules/uncertainty","Imports",FALSE
 "tidyselect","*","modules/benchmark","Imports",FALSE
 "tidyselect","*","modules/data.atmosphere","Imports",FALSE
 "tidyselect","*","modules/data.land","Imports",FALSE

@@ -17,6 +17,5 @@ Imports:
 	shinyTime,
 	shinytoastr,
 	shinyWidgets,
-	shinyjs,
 	stringr,
 	tibble

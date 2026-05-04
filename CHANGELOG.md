@@ -25,18 +25,24 @@ For more information about this file see also [Keep a Changelog](http://keepacha
 - Added `PEcAn.data.land::to_co2e()` for converting SOC change, CH4, and N2O to CO2-equivalent emissions using IPCC Global Warming Potential values.
 
 ### Fixed
+- Fixed broken pecanproject.github.io, pecan.gitbooks.io, and other outdated documentation links across book_source, tutorials, models, modules, web, and shiny files (#3710).
+- Added note to DEV-INTRO.md documenting Traefik workaround for Apple Silicon (ARM64) Macs: use `traefik:v2.11` with `platform: linux/arm64` to fix 404 errors (#3910)
+- Fixed `web/08-finished.php`: show database info instead of "Still running" when workflow folder doesn't exist locally (#3501).
 
 ### Changed
+- Updated Docker architecture documentation to match current docker-compose.yml: removed portainer/minio/thredds, added rstudio/api sections, updated service lists and volumes (#3268).
 - Improved PEcAn.SIPNET documentation including README, model description, and current installation instructions (@Eshaan-byte; #3703, #3705).
 - `assign.treatments` has been renamed to `assign_treatments` and moved from `PEcAn.utils` to `PEcAn.MA` since that's the only place where it's used.
 - With new `PEcAn.MA::meta_analysis_standalone` function, `PEcAn.MA::run.meta.analysis.pft` now saves all files all at once _after_ the complete meta-analysis runs (and only if it is successful, including prior and posterior checks), rather than saving intermediate objects (like "JAGS-ified" data) as they are created.
 - Sensitivity analysis and ensemble runs now generate separate input design matrices with appropriate dimensions, fixing dimension mismatch errors in multisite workflows. (#3708)
 - Generated runs are now stored in a `runs_manifest.csv` file in the output directory instead of modifying `samples.Rdata` (#3708)
 - SDA workflows now maintain joint input sampling, via internal calls to `generate_joint_ensemble_design()` (#3634).
+- Management events specified via `events.json` are now required to specify a crop code for each planting event, so that models can know when to restart with a different PFT (#3828, #3836).
 - `PEcAn.data.land`: Moved optional dependencies `doSNOW`, `dplR`, `httr`,
   `MCMCpack`, `mvtnorm`, `neonUtilities`, `neonstore`, `PEcAn.benchmark`,
   `PEcAn.visualization`, `rjags`, `sirt`, and `sp` from `Imports` to
   `Suggests` (@omkarrr2533, #3599).
+- Management events specified via `events.json` are now required to specify a crop code for each planting event, so that models can know when to restart with a different PFT (#3828, #3836).
 
 
 

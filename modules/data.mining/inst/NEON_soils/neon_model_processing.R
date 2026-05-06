@@ -15,51 +15,8 @@
 #' 
 # ------------------------------------------------------
 
-model_processing_neonsites <- function(start_year, end_year, var1, var2 = NULL){
-  # First, figure out the NEON sites
-  
-  # get the coordinates of 6400 sites in Dongchen's output
-  
-  Neonplots <- read.csv("/usr4/ugrad/chaney/R/3_25/Neon_sites_terrestrial.csv") 
-  
-  # Add a column for site numbers in Site_Info (site_info has coordinates of each location in df)
-  Site_Info <- readRDS("/usr4/ugrad/chaney/R/3_25/site.locs.rds")
-  Site_Info$Site_Number <- seq(1, nrow(Site_Info)) 
-  
-  # Extract latitude and longitude from Neonplots and Site_Info tables
-  neon_coords <- Neonplots[ ,2:3] %>%
-    select(Latitude = field_latitude, Longitude = field_longitude)
-  
-  Site_Info_coords <- Site_Info %>%
-    select(Site_Number, lat, lon)
-  
-  # Put Site_Info latitude/longitude in a matrix
-  Site_Coordinates <- as.matrix(Site_Info[, c("lat", "lon")])
-  
-  # Same for Neonplots
-  Neonplots_Coordinates <- as.matrix(Neonplots[, 2:3])
-  
-  # make list to store matched list
-  matched <- data.frame(id = numeric(nrow(Neonplots)), # id in forecast
-                        site_id = numeric(nrow(Neonplots))) # NEON id
-  
-  # Loop through each row in Neonplots and calculate each plot's closest site number
-  for (i in 1:nrow(Neonplots)) {
-    # Extract the coordinates for the current row in Neonplots
-    plot_coords <- Neonplots_Coordinates[i, ]
-    
-    # Compute distances from this plot to all site coordinates (longlat means its in km)
-    distances <- spDistsN1(Site_Coordinates, plot_coords, longlat = TRUE)
-    
-    # Find the index of the minimum distance for closest site
-    closest_site_index <- which.min(distances)
-    
-    # Assign the corresponding Site_Number from Site_Info to the current row in Neonplots
-    matched$id[i] <- Site_Info$Site_Number[closest_site_index]
-    matched$site_id[i] <- Neonplots$field_site_id[i]
-  }
-  
-  
+model_processing_neonsites <- function(matched, start_year, end_year, outdir, var1, var2 = NULL){
+ 
   # Make year vector
   # Each file has all ens members for 1 year
   Years <- start_year:end_year
@@ -72,11 +29,8 @@ model_processing_neonsites <- function(start_year, end_year, var1, var2 = NULL){
     for (i in seq_len(nrow(matched))) {
       site_id <- matched$site_id[i]
       ID <- matched$id[i]
-        
-        file_path <- paste0(
-          "/projectnb/dietzelab/dongchen/anchorSites/NA_runs/SDA_8k_site/NA_SDA_no_Debias", "/Job_", ceiling(ID/200),"/merged_nc/",
-          year, ".nc"
-        )
+      
+      file_path <- file.path(outdir, "/Job_", ceiling(ID/200),"/merged_nc/", year, ".nc")
         
         # Open file
         nc_data <- tryCatch({

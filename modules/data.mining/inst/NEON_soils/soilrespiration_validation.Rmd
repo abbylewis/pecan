@@ -88,7 +88,10 @@ Get soil respiration output from SDA model
 
 source("model_processing_neonsites.R")
 
-final_daily_sr_data <- model_processing_neonsites(2012, 2025, "SoilResp", var2 = NULL)
+# Set outdir
+outdir <- "/projectnb/dietzelab/dongchen/anchorSites/NA_runs/SDA_8k_site/NA_SDA_no_Debias";
+
+final_daily_sr_data <- model_processing_neonsites(matched, 2012, 2025, outdir, "SoilResp", var2 = NULL)
 
 colnames(final_daily_sr_data)[colnames(final_daily_sr_data) == "Output1"] <- "Model_SR"
 

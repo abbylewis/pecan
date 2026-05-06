@@ -1,12 +1,9 @@
 # Tests for get.trait.data.pft()
 #
-# Regression safety net to lock down current behavior before the modularity
-# refactor. DB-dependent tests skip cleanly when no connection is available.
 
-# ── Helpers ──────────────────────────────────────────────────────────────────
+# Helpers
 
 dbdir  <- file.path(tempdir(), "dbfiles")
-outdir <- file.path(tempdir(), "outfiles")
 
 make_test_pft <- function(outdir) {
   list(
@@ -29,70 +26,38 @@ make_empty_pft <- function(outdir) {
 std_modeltype <- "SIPNET"
 std_traits    <- c("SLA", "Vcmax", "leaf_respiration_rate_m2")
 
-skip_if_no_db <- function(dbcon) {
-  if (is.null(dbcon) || inherits(dbcon, "try-error")) {
-    skip("No test database connection available")
-  }
-  has_schema <- tryCatch(
-    DBI::dbExistsTable(dbcon, "pfts"),
-    error = function(e) FALSE
-  )
-  if (!has_schema) {
-    skip("Test database has no pfts table")
-  }
-}
-
 cleanup_posterior <- function(dbcon, posteriorid) {
   if (!is.null(posteriorid)) {
+    try(DBI::dbExecute(dbcon,
+      "DELETE FROM dbfiles WHERE container_type = 'Posterior' AND container_id = $1",
+      list(posteriorid)), silent = TRUE)
     try(DBI::dbExecute(dbcon,
       "DELETE FROM posteriors WHERE id = $1",
       list(posteriorid)), silent = TRUE)
   }
 }
 
-get_pft <- function(pftname) {
+get_pft <- function(pftname, dbcon) {
   get.trait.data.pft(
     pft         = list(name = pftname, outdir = withr::local_tempdir(),
                        posteriorid = NULL, constants = list()),
     trait.names = "SLA",
     dbfiles     = dbdir,
     modeltype   = NULL,
-    dbcon       = test_dbcon
+    dbcon       = dbcon 
   )
 }
 
-# ── DB connection and teardown ───────────────────────────────────────────────
-
-test_dbcon <- tryCatch(
-  PEcAn.DB::db.open(
-    params = list(
-      driver   = "PostgreSQL",
-      user     = Sys.getenv("PECAN_TEST_DB_USER", "bety"),
-      password = Sys.getenv("PECAN_TEST_DB_PASS", "bety"),
-      host     = Sys.getenv("PECAN_TEST_DB_HOST", "localhost"),
-      dbname   = Sys.getenv("PECAN_TEST_DB_NAME", "bety"),
-      port     = as.integer(Sys.getenv("PECAN_TEST_DB_PORT", "5432"))
-    )
-  ),
-  error = function(e) NULL
-)
+#  Teardown 
 
 old_log_level <- PEcAn.logger::logger.getLevel()
 PEcAn.logger::logger.setLevel("WARN")
-
-withr::defer({
+teardown({
   unlink(dbdir, recursive = TRUE)
   PEcAn.logger::logger.setLevel(old_log_level)
-}, envir = testthat::teardown_env())
+})
 
-if (!is.null(test_dbcon)) {
-  withr::defer(
-    try(PEcAn.DB::db.close(test_dbcon), silent = TRUE),
-    envir = testthat::teardown_env()
-  )
-}
-
-# ── Input validation (no DB required) ───────────────────────────────────────
+# Input validation (no DB required)
 
 test_that("errors with no arguments", {
   expect_error(get.trait.data.pft())
@@ -111,10 +76,11 @@ test_that("errors with NULL dbcon", {
   )
 })
 
-# ── Error cases ──────────────────────────────────────────────────────────────
+# Error cases
 
 test_that("errors for non-existent PFT name", {
-  skip_if_no_db(test_dbcon)
+  test_dbcon <- check_db_test()
+  withr::defer(PEcAn.DB::db.close(test_dbcon))
   outdir <- withr::local_tempdir()
   expect_error(
     get.trait.data.pft(
@@ -130,7 +96,8 @@ test_that("errors for non-existent PFT name", {
 })
 
 test_that("errors when multiple PFTs share a name", {
-  skip_if_no_db(test_dbcon)
+  test_dbcon <- check_db_test()
+  withr::defer(PEcAn.DB::db.close(test_dbcon))
   outdir <- withr::local_tempdir()
   multi_exists <- tryCatch({
     n <- DBI::dbGetQuery(test_dbcon,
@@ -151,10 +118,11 @@ test_that("errors when multiple PFTs share a name", {
   )
 })
 
-# ── File output ──────────────────────────────────────────────────────────────
+# File output
 
 test_that("writes expected Rdata files to outdir", {
-  skip_if_no_db(test_dbcon)
+  test_dbcon <- check_db_test()
+  withr::defer(PEcAn.DB::db.close(test_dbcon))
   outdir <- withr::local_tempdir()
   result <- get.trait.data.pft(
     pft = make_test_pft(outdir), modeltype = std_modeltype,
@@ -167,7 +135,8 @@ test_that("writes expected Rdata files to outdir", {
 })
 
 test_that("trait.data.Rdata contains a named list", {
-  skip_if_no_db(test_dbcon)
+  test_dbcon <- check_db_test()
+  withr::defer(PEcAn.DB::db.close(test_dbcon))
   outdir <- withr::local_tempdir()
   result <- get.trait.data.pft(
     pft = make_test_pft(outdir), modeltype = std_modeltype,
@@ -181,7 +150,8 @@ test_that("trait.data.Rdata contains a named list", {
 })
 
 test_that("prior.distns.Rdata contains a data frame with expected columns", {
-  skip_if_no_db(test_dbcon)
+  test_dbcon <- check_db_test()
+  withr::defer(PEcAn.DB::db.close(test_dbcon))
   outdir <- withr::local_tempdir()
   result <- get.trait.data.pft(
     pft = make_test_pft(outdir), modeltype = std_modeltype,
@@ -195,10 +165,11 @@ test_that("prior.distns.Rdata contains a data frame with expected columns", {
   expect_true(all(c("distn", "parama", "paramb") %in% colnames(env$prior.distns)))
 })
 
-# ── Return value ─────────────────────────────────────────────────────────────
+# Return value 
 
 test_that("returns pft list with name, posteriorid, and outdir", {
-  skip_if_no_db(test_dbcon)
+  test_dbcon <- check_db_test()
+  withr::defer(PEcAn.DB::db.close(test_dbcon))
   outdir   <- withr::local_tempdir()
   test_pft <- make_test_pft(outdir)
   result <- get.trait.data.pft(
@@ -212,7 +183,8 @@ test_that("returns pft list with name, posteriorid, and outdir", {
 })
 
 test_that("return value does not include trait_data or prior_distns", {
-  skip_if_no_db(test_dbcon)
+  test_dbcon <- check_db_test()
+  withr::defer(PEcAn.DB::db.close(test_dbcon))
   outdir <- withr::local_tempdir()
   result <- get.trait.data.pft(
     pft = make_test_pft(outdir), modeltype = std_modeltype,
@@ -223,10 +195,11 @@ test_that("return value does not include trait_data or prior_distns", {
   expect_false("prior_distns" %in% names(result))
 })
 
-# ── PFT with no observations ────────────────────────────────────────────────
+# PFT with no observations
 
 test_that("PFT with no trait observations returns valid result and writes priors", {
-  skip_if_no_db(test_dbcon)
+  test_dbcon <- check_db_test()
+  withr::defer(PEcAn.DB::db.close(test_dbcon))
   outdir <- withr::local_tempdir()
   soil_exists <- tryCatch({
     nrow(DBI::dbGetQuery(test_dbcon,
@@ -242,10 +215,11 @@ test_that("PFT with no trait observations returns valid result and writes priors
   expect_true(file.exists(file.path(outdir, "prior.distns.Rdata")))
 })
 
-# ── End-to-end ───────────────────────────────────────────────────────────────
+# End-to-end
 
 test_that("end-to-end: disk files are consistent with returned pft", {
-  skip_if_no_db(test_dbcon)
+  test_dbcon <- check_db_test()
+  withr::defer(PEcAn.DB::db.close(test_dbcon))
   outdir <- withr::local_tempdir()
   result <- get.trait.data.pft(
     pft = make_test_pft(outdir), modeltype = std_modeltype,
@@ -262,31 +236,32 @@ test_that("end-to-end: disk files are consistent with returned pft", {
   expect_equal(result$outdir, outdir)
 })
 
-# ── Restored: cultivar test (see #1958) ──────────────────────────────────────
+# Restored: cultivar test (see #1958)
 
 test_that("reference species and cultivar PFTs write traits properly", {
   skip("Disabled until Travis bety contains Pavi_alamo and Pavi_all (#1958)")
-  skip_if_no_db(test_dbcon)
+  test_dbcon <- check_db_test()
+  withr::defer(PEcAn.DB::db.close(test_dbcon))
 
-  pavi_sp <- get_pft("pavi")
+  pavi_sp    <- get_pft("pavi", test_dbcon)
   expect_equal(pavi_sp$name, "pavi")
   sp_csv <- file.path(dbdir, "posterior", pavi_sp$posteriorid, "species.csv")
   sp_trt <- file.path(dbdir, "posterior", pavi_sp$posteriorid, "trait.data.csv")
   expect_true(file.exists(sp_csv))
   expect_true(file.exists(sp_trt))
-  expect_gt(file.info(sp_csv)$size, 40)
-  expect_gt(file.info(sp_trt)$size, 215)
+  expect_gt(file.info(sp_csv)$size, 40)  # i.e. longer than the 40-char header
+  expect_gt(file.info(sp_trt)$size, 215) # ditto 215-char header
 
-  pavi_cv <- get_pft("Pavi_alamo")
+  pavi_cv    <- get_pft("Pavi_alamo", test_dbcon)
   expect_equal(pavi_cv$name, "Pavi_alamo")
   cv_csv <- file.path(dbdir, "posterior", pavi_cv$posteriorid, "cultivars.csv")
   cv_trt <- file.path(dbdir, "posterior", pavi_cv$posteriorid, "trait.data.csv")
   expect_true(file.exists(cv_csv))
   expect_true(file.exists(cv_trt))
-  expect_gt(file.info(cv_csv)$size, 63)
+  expect_gt(file.info(cv_csv)$size, 63)  # cultivar.csv headers are longer
   expect_gt(file.info(cv_trt)$size, 215)
 
-  pavi_allcv <- get_pft("Pavi_all")
+  pavi_allcv <- get_pft("Pavi_all", test_dbcon)
   expect_equal(pavi_allcv$name, "Pavi_all")
   allcv_csv <- file.path(dbdir, "posterior", pavi_allcv$posteriorid, "cultivars.csv")
   allcv_trt <- file.path(dbdir, "posterior", pavi_allcv$posteriorid, "trait.data.csv")

@@ -386,5 +386,9 @@ get.trait.data.pft <-
     }
   }
 
+  # caching — is unchanged. Callers that only use pft$name / pft$outdir /
+  # pft$posteriorid are unaffected.
+  pft$trait_data   <- trait.data
+  pft$prior_distns <- prior.distns
   return(pft)
 }

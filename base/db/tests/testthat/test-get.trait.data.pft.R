@@ -182,7 +182,9 @@ test_that("returns pft list with name, posteriorid, and outdir", {
   expect_true("posteriorid" %in% names(result))
 })
 
-test_that("return value does not include trait_data or prior_distns", {
+test_that("wrapper attaches trait_data and prior_distns to returned pft", {
+  # Documents the Week 1 enhancement: these fields are now returned so that
+  # run.meta.analysis.pft() can skip load() calls in a later PR
   test_dbcon <- check_db_test()
   withr::defer(PEcAn.DB::db.close(test_dbcon))
   outdir <- withr::local_tempdir()
@@ -191,8 +193,17 @@ test_that("return value does not include trait_data or prior_distns", {
     dbfiles = outdir, dbcon = test_dbcon, trait.names = std_traits
   )
   withr::defer(cleanup_posterior(test_dbcon, result$posteriorid))
-  expect_false("trait_data"   %in% names(result))
-  expect_false("prior_distns" %in% names(result))
+
+  expect_true("trait_data"   %in% names(result))
+  expect_true("prior_distns" %in% names(result))
+
+  # The attached objects must match what was saved — no silent divergence
+  trait_env <- new.env(parent = emptyenv())
+  prior_env <- new.env(parent = emptyenv())
+  load(file.path(outdir, "trait.data.Rdata"),   envir = trait_env)
+  load(file.path(outdir, "prior.distns.Rdata"), envir = prior_env)
+  expect_identical(result$trait_data,   trait_env$trait.data)
+  expect_identical(result$prior_distns, prior_env$prior.distns)
 })
 
 # PFT with no observations

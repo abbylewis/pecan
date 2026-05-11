@@ -11,7 +11,7 @@
 #' this function never does.
 #'
 #' This follows the pattern established by \code{meta_analysis_standalone}
-#' for the meta-analysis step and \code{\link{get_parameter_samples}} for
+#' for the meta-analysis step and \code{get_parameter_samples} (in PEcAn.DB) for
 #' parameter sampling — each is a computation core that can be tested in
 #' isolation without a filesystem or a \code{settings} object.
 #'
@@ -40,9 +40,9 @@
 #'
 #' @seealso \code{\link{get.trait.data.pft}} for the backward-compatible
 #'   wrapper that handles provenance and caching.
-#'   \code{\link[PEcAn.MA]{meta_analysis_standalone}} for the analogous
+#'   \code{meta_analysis_standalone} (in PEcAn.MA) for the analogous
 #'   function in the meta-analysis step.
-#'   \code{\link{get_parameter_samples}} for the analogous function in the
+#'   \code{get_parameter_samples} (in PEcAn.DB) for the analogous function in the
 #'   parameter sampling step.
 #'
 #' @examples
@@ -112,6 +112,8 @@ get_trait_data_pft <- function(pft_name,
     members <- query.pft_species(pft = pft_name, modeltype = modeltype,
                                  con = dbcon)
   }
+  members <- members %>%
+    dplyr::mutate_if(is.character, ~dplyr::na_if(., ""))
   member_ids <- members[["id"]]
 
   if (length(member_ids) == 0L) {
@@ -126,7 +128,7 @@ get_trait_data_pft <- function(pft_name,
   # (same approach used in get.trait.data())
   prior_distns <- query.priors(
     pft   = format(pft_id, scientific = FALSE),
-    trstr = trait_names,
+    trstr = PEcAn.utils::vecpaste(trait_names),
     con   = dbcon
   )
 

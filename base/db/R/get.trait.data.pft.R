@@ -46,9 +46,10 @@
 ##'   BETYdb.  Defaults to `FALSE`.
 ##' @param trait.names list of trait names to retrieve
 ##' @return The `pft` input list, updated with `pft$posteriorid` set to the
-##'   ID of the (possibly new) posterior record in BETYdb. The posterior ID can
-##'   be used to locate the output files (`trait.data.Rdata`, `prior.distns.Rdata`,
-##'   etc.) via BETYdb's `dbfiles` table.
+##'   ID of the (possibly new) posterior record in BETYdb. Also contains
+##'   `pft$trait_data` and `pft$prior_distns` for in-memory chaining. The
+##'   posterior ID can be used to locate the output files (`trait.data.Rdata`,
+##'   `prior.distns.Rdata`, etc.) via BETYdb's `dbfiles` table.
 ##' @author David LeBauer, Shawn Serbin, Rob Kooper
 ##' @export
 get.trait.data.pft <-
@@ -59,7 +60,6 @@ get.trait.data.pft <-
            trait.names,
            forceupdate = FALSE,
            write = FALSE) {
-    
 
   # Create directory if necessary
   if (!file.exists(pft$outdir) && !dir.create(pft$outdir, recursive = TRUE)) {
@@ -303,11 +303,19 @@ get.trait.data.pft <-
     }
   }
 
-  # get the trait data (including sampling of derived traits, if any)
-  trait.data <- query.traits(pft_members$id, traits, con = dbcon,
-                             update.check.only = FALSE,
-                             ids_are_cultivars = (pfttype == "cultivar"))
-  traits <- names(trait.data)
+  ## Cache miss: delegate the full data query to the standalone function so
+  ## that query logic lives in one place. This wrapper handles only the
+  ## file I/O and database registration that follows.
+  computed     <- get_trait_data_pft(
+    pft_name    = pft[["name"]],
+    modeltype   = modeltype,
+    dbcon       = dbcon,
+    trait_names = trait.names,
+    constants   = if (!is.null(pft$constants)) pft$constants else list()
+  )
+  trait.data   <- computed$trait_data
+  prior.distns <- computed$prior_distns
+  traits       <- names(trait.data)
 
   if (length(trait.data) > 0) {
     trait_counts <- trait.data %>%
@@ -386,8 +394,8 @@ get.trait.data.pft <-
     }
   }
 
-  # caching — is unchanged. Callers that only use pft$name / pft$outdir /
-  # pft$posteriorid are unaffected.
+  ## Attach computed objects so downstream callers can chain in-memory
+  ## without loading files from pft$outdir.
   pft$trait_data   <- trait.data
   pft$prior_distns <- prior.distns
   return(pft)

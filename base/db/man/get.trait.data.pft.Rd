@@ -34,9 +34,10 @@ BETYdb.  Defaults to \code{FALSE}.}
 }
 \value{
 The \code{pft} input list, updated with \code{pft$posteriorid} set to the
-ID of the (possibly new) posterior record in BETYdb. The posterior ID can
-be used to locate the output files (\code{trait.data.Rdata}, \code{prior.distns.Rdata},
-etc.) via BETYdb's \code{dbfiles} table.
+ID of the (possibly new) posterior record in BETYdb. Also contains
+\code{pft$trait_data} and \code{pft$prior_distns} for in-memory chaining. The
+posterior ID can be used to locate the output files (\code{trait.data.Rdata},
+\code{prior.distns.Rdata}, etc.) via BETYdb's \code{dbfiles} table.
 }
 \description{
 Get trait data from the database for a single PFT

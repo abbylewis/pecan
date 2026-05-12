@@ -652,7 +652,8 @@ input.ens.gen <- function(settings, ensemble_size, input, method = "sampling", p
   samples <- list()
   samples$ids <- c()
 
-  if (is.null(method)) return(NULL)
+  if (is.null(method) && is.null(parent_ids)) return(NULL)
+
   # parameter is exceptional it needs to be handled spearatly
   if (input == "parameters") return(NULL)
 

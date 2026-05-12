@@ -11,9 +11,9 @@
 #' this function never does.
 #'
 #' This follows the pattern established by \code{meta_analysis_standalone}
-#' for the meta-analysis step and \code{get_parameter_samples} (in PEcAn.DB) for
-#' parameter sampling — each is a computation core that can be tested in
-#' isolation without a filesystem or a \code{settings} object.
+#' for the meta-analysis step and \code{get_parameter_samples} for parameter
+#' sampling — each is a computation core that can be tested in isolation
+#' without a filesystem or a \code{settings} object.
 #'
 #' @param pft_name character. PFT name as stored in BETYdb.
 #' @param modeltype character or NULL. Disambiguates PFTs that share a name
@@ -34,15 +34,19 @@
 #'     \code{parama}, \code{paramb}, \code{n}; rows named by trait. Traits
 #'     listed in \code{constants} are excluded.}
 #'   \item{\code{pft_info}}{List with \code{name}, \code{pft_id},
-#'     \code{pft_type}, and \code{posteriorid}. \code{posteriorid} is always
-#'     \code{NULL} — the wrapper sets it after registering outputs in BETYdb.}
+#'     \code{pft_type}, \code{pft_members}, \code{pft_member_filename}, and
+#'     \code{posteriorid}. \code{pft_members} is the data frame of species or
+#'     cultivar IDs used during the query. \code{pft_member_filename} is
+#'     \code{"species.csv"} or \code{"cultivars.csv"} depending on PFT type.
+#'     \code{posteriorid} is always \code{NULL} — the wrapper sets it after
+#'     registering outputs in BETYdb.}
 #' }
 #'
 #' @seealso \code{\link{get.trait.data.pft}} for the backward-compatible
 #'   wrapper that handles provenance and caching.
 #'   \code{meta_analysis_standalone} (in PEcAn.MA) for the analogous
 #'   function in the meta-analysis step.
-#'   \code{get_parameter_samples} (in PEcAn.DB) for the analogous function in the
+#'   \code{get_parameter_samples} for the analogous function in the
 #'   parameter sampling step.
 #'
 #' @examples
@@ -70,7 +74,7 @@ get_trait_data_pft <- function(pft_name,
                                trait_names,
                                constants = list()) {
 
-  # Validate the cheap arguments before making any database calls
+  # ---- Input validation (cheap checks before any DB call) ----
   if (!is.character(pft_name) || length(pft_name) != 1L) {
     PEcAn.logger::logger.severe("'pft_name' must be a single character string")
   }
@@ -83,11 +87,8 @@ get_trait_data_pft <- function(pft_name,
     PEcAn.logger::logger.severe("'dbcon' must be a database connection")
   }
 
-  # Resolve PFT name to a single database record.
-  # strict = TRUE gives a clear error when the PFT is not found rather than
-  # returning an empty data frame silently.
+  # ---- Resolve PFT to a single database record ----
   pft_record <- query_pfts(dbcon, pft_name, modeltype, strict = TRUE)
-
   if (nrow(pft_record) > 1L) {
     PEcAn.logger::logger.severe(
       "Multiple PFTs named '", pft_name, "' found in the database;",
@@ -102,38 +103,51 @@ get_trait_data_pft <- function(pft_name,
     "Querying trait data for PFT '", pft_name, "' (id = ", pft_id, ")"
   )
 
-  # Which join table holds the member IDs depends on pft_type
-  ids_are_cultivars <- identical(pft_type, "cultivar")
-
-  if (ids_are_cultivars) {
+  # ---- Fetch PFT member species or cultivars ----
+  # The join table depends on pft_type.  An unknown type is a hard error —
+  # silently falling through to the species path would produce wrong results.
+  if (identical(pft_type, "cultivar")) {
+    pft_member_filename <- "cultivars.csv"
     members <- query.pft_cultivars(pft = pft_name, modeltype = modeltype,
                                    con = dbcon)
-  } else {
+  } else if (identical(pft_type, "plant")) {
+    pft_member_filename <- "species.csv"
     members <- query.pft_species(pft = pft_name, modeltype = modeltype,
                                  con = dbcon)
+  } else {
+    PEcAn.logger::logger.severe(
+      "Unknown pft_type '", pft_type, "' for PFT '", pft_name,
+      "'; expected 'plant' or 'cultivar'."
+    )
   }
-  members <- members %>%
-    dplyr::mutate_if(is.character, ~dplyr::na_if(., ""))
+
+  # Normalise empty strings to NA so membership comparisons are consistent
+  members <- members |>
+    dplyr::mutate(dplyr::across(
+        dplyr::where(is.character),
+        \(x) dplyr::na_if(x, "")
+    ))
+
   member_ids <- members[["id"]]
 
   if (length(member_ids) == 0L) {
     PEcAn.logger::logger.info(
       "PFT '", pft_name, "' has no associated ",
-      if (ids_are_cultivars) "cultivars" else "species",
+      if (identical(pft_type, "cultivar")) "cultivars" else "species",
       "; trait_data will be an empty list."
     )
   }
 
-  # format() prevents integer64 from being silently coerced in the SQL query
-  # (same approach used in get.trait.data())
+  # ---- Query prior distributions ----
+  # format() prevents integer64 from being silently coerced to double in SQL.
   prior_distns <- query.priors(
     pft   = format(pft_id, scientific = FALSE),
     trstr = PEcAn.utils::vecpaste(trait_names),
     con   = dbcon
   )
 
-  # Traits in pft$constants have fixed values and are never sampled, so they
-  # should not appear in the prior distributions returned to callers
+  # Exclude traits listed in pft$constants — their values are fixed and must
+  # not be sampled by the meta-analysis.
   if (length(constants) > 0L && !is.null(names(constants))) {
     constant_traits <- names(constants)
     in_constants    <- rownames(prior_distns) %in% constant_traits
@@ -146,16 +160,16 @@ get_trait_data_pft <- function(pft_name,
     }
   }
 
-  # Only query traits that have a prior — querying for traits with no prior
-  # is meaningless for meta-analysis
+  # ---- Query trait observations ----
+  # Only query traits that actually have a prior — querying without a prior
+  # is meaningless for meta-analysis.
   traits_with_priors <- rownames(prior_distns)
-
   if (length(member_ids) > 0L && length(traits_with_priors) > 0L) {
     trait_data <- query.traits(
       ids               = member_ids,
       priors            = traits_with_priors,
       con               = dbcon,
-      ids_are_cultivars = ids_are_cultivars
+      ids_are_cultivars = identical(pft_type, "cultivar")
     )
   } else {
     trait_data <- list()
@@ -167,13 +181,17 @@ get_trait_data_pft <- function(pft_name,
     nrow(prior_distns), " trait(s) with priors"
   )
 
-  # posteriorid is NULL here — the wrapper sets it after registering the
-  # output files in BETYdb via dbfile.insert()
+  # posteriorid is always NULL here — the wrapper assigns it after registering
+  # the output files in BETYdb via dbfile.insert().
+  # pft_members and pft_member_filename are included so the wrapper can use
+  # them for cache comparison and CSV output without re-querying the database.
   pft_info <- list(
-    name        = pft_name,
-    pft_id      = pft_id,
-    pft_type    = pft_type,
-    posteriorid = NULL
+    name                = pft_name,
+    pft_id              = pft_id,
+    pft_type            = pft_type,
+    pft_members         = members,
+    pft_member_filename = pft_member_filename,
+    posteriorid         = NULL
   )
 
   return(list(

@@ -91,7 +91,7 @@ test_that("errors for non-existent PFT name", {
       dbcon     = test_dbcon,
       trait.names = std_traits
     ),
-    "Could not find pft"
+    "PFTs were not found"
   )
 })
 
@@ -283,4 +283,86 @@ test_that("reference species and cultivar PFTs write traits properly", {
 
   expect_gt(file.info(allcv_csv)$size, file.info(cv_csv)$size)
   expect_gt(file.info(allcv_trt)$size, file.info(cv_trt)$size)
+})
+
+test_that("wrapper attaches trait_data and prior_distns on the cache-HIT path", {
+  # This guards the early-return path: when foundallfiles is TRUE the wrapper
+  # copies files from the DB store and returns early.  trait_data and
+  # prior_distns must be present on that path too.
+  test_dbcon <- check_db_test()
+  withr::defer(PEcAn.DB::db.close(test_dbcon))
+
+  outdir1 <- withr::local_tempdir()
+  outdir2 <- withr::local_tempdir()
+
+  # First call — populates the cache and the DB posterior record
+  result1 <- get.trait.data.pft(
+    pft     = make_test_pft(outdir1),
+    modeltype   = std_modeltype,
+    dbfiles = dbdir,          
+    dbcon   = test_dbcon,
+    trait.names = std_traits,
+    write   = TRUE            
+  )
+  withr::defer(cleanup_posterior(test_dbcon, result1$posteriorid))
+
+  # Second call — supplies the posteriorid from the first call so the
+  # wrapper finds valid files in the DB and takes the cache-hit path.
+  cached_pft          <- make_test_pft(outdir2)
+  cached_pft$posteriorid <- result1$posteriorid
+
+  result2 <- get.trait.data.pft(
+    pft         = cached_pft,
+    modeltype   = std_modeltype,
+    dbfiles     = outdir2,
+    dbcon       = test_dbcon,
+    trait.names = std_traits
+  )
+
+  expect_true("trait_data"   %in% names(result2),
+              info = "trait_data missing on cache-hit return path")
+  expect_true("prior_distns" %in% names(result2),
+              info = "prior_distns missing on cache-hit return path")
+  expect_type(result2$trait_data,   "list")
+  expect_s3_class(result2$prior_distns, "data.frame")
+})
+
+test_that("cache-hit in-memory objects match the files copied to outdir", {
+  # Verifies the objects attached on the cache-hit path are identical to
+  # what was written to disk on the original (cache-miss) run.
+  test_dbcon <- check_db_test()
+  withr::defer(PEcAn.DB::db.close(test_dbcon))
+
+  outdir_miss <- withr::local_tempdir()
+  outdir_hit  <- withr::local_tempdir()
+
+  result_miss <- get.trait.data.pft(
+    pft         = make_test_pft(outdir_miss),
+    modeltype   = std_modeltype,
+    dbfiles     = dbdir,        
+    dbcon       = test_dbcon,
+    trait.names = std_traits,
+    write       = TRUE            
+  )
+  withr::defer(cleanup_posterior(test_dbcon, result_miss$posteriorid))
+
+  cached_pft             <- make_test_pft(outdir_hit)
+  cached_pft$posteriorid <- result_miss$posteriorid
+
+  result_hit <- get.trait.data.pft(
+    pft         = cached_pft,
+    modeltype   = std_modeltype,
+    dbfiles     = outdir_hit,
+    dbcon       = test_dbcon,
+    trait.names = std_traits
+  )
+
+  # Load the files the cache copied to outdir_hit
+  trait_env <- new.env(parent = emptyenv())
+  prior_env <- new.env(parent = emptyenv())
+  load(file.path(outdir_hit, "trait.data.Rdata"),   envir = trait_env)
+  load(file.path(outdir_hit, "prior.distns.Rdata"), envir = prior_env)
+
+  expect_identical(result_hit$trait_data,   trait_env$trait.data)
+  expect_identical(result_hit$prior_distns, prior_env$prior.distns)
 })

@@ -31,8 +31,12 @@ Named list with three elements:
     \code{parama}, \code{paramb}, \code{n}; rows named by trait. Traits
     listed in \code{constants} are excluded.}
   \item{\code{pft_info}}{List with \code{name}, \code{pft_id},
-    \code{pft_type}, and \code{posteriorid}. \code{posteriorid} is always
-    \code{NULL} — the wrapper sets it after registering outputs in BETYdb.}
+    \code{pft_type}, \code{pft_members}, \code{pft_member_filename}, and
+    \code{posteriorid}. \code{pft_members} is the data frame of species or
+    cultivar IDs used during the query. \code{pft_member_filename} is
+    \code{"species.csv"} or \code{"cultivars.csv"} depending on PFT type.
+    \code{posteriorid} is always \code{NULL} — the wrapper sets it after
+    registering outputs in BETYdb.}
 }
 }
 \description{
@@ -48,9 +52,9 @@ provenance opt-in: calling the wrapper saves artifacts to disk; calling
 this function never does.
 
 This follows the pattern established by \code{meta_analysis_standalone}
-for the meta-analysis step and \code{get_parameter_samples} (in PEcAn.DB) for
-parameter sampling — each is a computation core that can be tested in
-isolation without a filesystem or a \code{settings} object.
+for the meta-analysis step and \code{get_parameter_samples} for parameter
+sampling — each is a computation core that can be tested in isolation
+without a filesystem or a \code{settings} object.
 }
 \examples{
 \dontrun{
@@ -75,7 +79,7 @@ PEcAn.DB::db.close(dbcon)
   wrapper that handles provenance and caching.
   \code{meta_analysis_standalone} (in PEcAn.MA) for the analogous
   function in the meta-analysis step.
-  \code{get_parameter_samples} (in PEcAn.DB) for the analogous function in the
+  \code{get_parameter_samples} for the analogous function in the
   parameter sampling step.
 }
 \author{

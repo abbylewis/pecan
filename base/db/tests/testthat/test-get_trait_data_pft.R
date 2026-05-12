@@ -1,8 +1,4 @@
 # Tests for get_trait_data_pft()
-#
-# Validation tests fire before any DB call and never skip.
-# DB-dependent tests call check_db_test() inside each test_that block
-# and skip automatically when no connection is available.
 
 old_log_level <- PEcAn.logger::logger.getLevel()
 PEcAn.logger::logger.setLevel("WARN")
@@ -123,18 +119,28 @@ test_that("prior_distns is a data frame with the required columns", {
 test_that("pft_info contains expected fields and posteriorid is NULL", {
   test_dbcon <- check_db_test()
   withr::defer(PEcAn.DB::db.close(test_dbcon))
-
   result <- get_trait_data_pft(
     pft_name    = std_pft,
     modeltype   = std_modeltype,
     dbcon       = test_dbcon,
     trait_names = "SLA"
   )
-
-  expect_named(result$pft_info, c("name", "pft_id", "pft_type", "posteriorid"))
+  expect_named(
+    result$pft_info,
+    c("name", "pft_id", "pft_type", "pft_members", "pft_member_filename",
+      "posteriorid"),
+    ignore.order = TRUE
+  )
   expect_equal(result$pft_info$name, std_pft)
   # posteriorid is always NULL here — the wrapper sets it after DB registration
   expect_null(result$pft_info$posteriorid)
+  # pft_members must be a data frame with at least an id column
+  expect_s3_class(result$pft_info$pft_members, "data.frame")
+  expect_true("id" %in% names(result$pft_info$pft_members))
+  # pft_member_filename must be species.csv or cultivars.csv
+  expect_true(
+    result$pft_info$pft_member_filename %in% c("species.csv", "cultivars.csv")
+  )
 })
 
 test_that("no files are written to disk", {
@@ -232,4 +238,25 @@ test_that("end-to-end: standalone gives identical objects to what wrapper saves"
 
   expect_identical(standalone_result$trait_data,   trait_env$trait.data)
   expect_identical(standalone_result$prior_distns, prior_env$prior.distns)
+})
+
+test_that("errors for unknown pft_type returns an error, not silent fallback", {
+  # This verifies the explicit guard added in get_trait_data_pft():
+  # an unrecognised pft_type must throw, not silently fall through
+  # to the species-query path.  We simulate a bad record by mocking
+  # query_pfts — no live DB call needed.
+  fake_record <- data.frame(id = 1L, pft_type = "unknown_type",
+                            name = std_pft, stringsAsFactors = FALSE)
+  mockery::stub(get_trait_data_pft, "query_pfts", fake_record)
+
+  fake_dbcon <- structure(list(), class = c("PostgreSQLConnection",
+                                            "DBIConnection"))
+  expect_error(
+    get_trait_data_pft(
+      pft_name    = std_pft,
+      modeltype   = std_modeltype,
+      dbcon       = fake_dbcon,
+      trait_names = "SLA"
+    )
+  )
 })

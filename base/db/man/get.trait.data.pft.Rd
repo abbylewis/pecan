@@ -35,9 +35,10 @@ BETYdb.  Defaults to \code{FALSE}.}
 \value{
 The \code{pft} input list, updated with \code{pft$posteriorid} set to the
 ID of the (possibly new) posterior record in BETYdb. Also contains
-\code{pft$trait_data} and \code{pft$prior_distns} for in-memory chaining. The
-posterior ID can be used to locate the output files (\code{trait.data.Rdata},
-\code{prior.distns.Rdata}, etc.) via BETYdb's \code{dbfiles} table.
+\code{pft$trait_data} and \code{pft$prior_distns} for in-memory chaining on both
+the cache-hit and cache-miss paths. The posterior ID can be used to
+locate the output files (\code{trait.data.Rdata}, \code{prior.distns.Rdata},
+etc.) via BETYdb's \code{dbfiles} table.
 }
 \description{
 Get trait data from the database for a single PFT
@@ -46,30 +47,11 @@ Get trait data from the database for a single PFT
 \code{pft} should be a list containing at least \code{name} and \code{outdir}, and
 optionally \code{posteriorid} and \code{constants}.
 
-\strong{File-based side effects (saved to \code{pft$outdir}):}
-\describe{
-\item{\code{trait.data.Rdata}}{Contains a single object \code{trait.data}: a named
-list of data frames, one per trait. Each data frame has columns from
-BETYdb's traits/yields views (e.g., \code{mean}, \code{stat}, \code{n}, \code{site_id},
-\code{treatment_id}). Names correspond to trait variable names
-(e.g., \code{"SLA"}, \code{"Vcmax"}).}
-\item{\code{prior.distns.Rdata}}{Contains a single object \code{prior.distns}: a
-data frame with one row per trait and columns \code{distn}, \code{parama},
-\code{paramb}, and \code{n}. Row names are trait variable names. Traits listed
-in \code{pft$constants} are excluded.}
-\item{\code{trait.data.csv}}{CSV export of \code{trait.data} (all traits
-row-bound).}
-\item{\code{prior.distns.csv}}{CSV export of \code{prior.distns}.}
-\item{\code{species.csv} or \code{cultivars.csv}}{PFT membership list used to
-detect changes between runs.}
-}
-
-\strong{Downstream contract:} The files \code{trait.data.Rdata} and
-\code{prior.distns.Rdata} are expected by \code{run.meta.analysis.pft}, which
-loads them from \code{pft$outdir}. This implicit file-based coupling means
-the two functions must agree on directory path and object names. A future
-refactoring goal is to pass these objects directly via function arguments
-instead.
+Internally this wrapper delegates all database queries to
+\code{\link{get_trait_data_pft}} exactly once.  The returned objects are
+used for both the cache-staleness check and the save step, so the database
+is never queried more than once per call regardless of whether the cache
+hits or misses.
 }
 \author{
 David LeBauer, Shawn Serbin, Rob Kooper

@@ -665,7 +665,19 @@ input.ens.gen <- function(settings, ensemble_size, input, method = "sampling", p
   }
 
   if (!is.null(parent_ids)) {
-    samples$ids <- parent_ids$ids
+
+    # Legacy support: versions through 1.9.0 expected parent_ids to be a list,
+    # but only component `ids` was used
+    if (is.list(parent_ids) && !is.null(parent_ids$ids)) {
+      parent_ids <- parent_ids$ids
+    }
+
+    if (length(parent_ids) != ensemble_size || !is.numeric(parent_ids)) {
+      PEcAn.logger::logger.error(
+        "parent_ids must be an integer vector the same length as the ensemble")
+    }
+
+    samples$ids <- parent_ids
     out.of.sample.size <- length(samples$ids[samples$ids > length(input_path)])
     # sample for those that our outside the param size -
     # for example, parent id may send id number 200 but we have only 100 sample for param

@@ -601,17 +601,39 @@ write.ensemble.configs <- function(input_design , ensemble.size, defaults, ensem
 
 
 
-#' Function for generating samples based on sampling method, parent or etc
+#' Generate an ensemble of samples from one input
+#'
+#' Given an input containing paths to multiple files, this function samples
+#' from the given paths to make an ensemble of the requested size.
+#' If method is `sampling` they are sampled with replacement from the full set;
+#' if method is `looping` they are taken sequentially with the sequence
+#' repeating as needed.
+#'
+#' If `parent_ids` is provided, it is used as the indices for the current input.
+#' Use this when you have multiple inputs whose files should be sampled as a
+#' coordinated set.
+#' For example if your soil moisture files are matched to the rainfall amounts
+#' in your weather files, generate the met ensemble first
+#' (`met_ids <- input.ens.gen(..., input = "met", parent_ids = NULL)`)
+#' and then pass those as parents to the soil moisture ensemble:
+#' `input.ens.gen(..., input = "soilmoist", parent_ids = met_ids)`.
+#'
+#' If `parent_ids` contains any indices larger than the length of the input
+#' being sampled (e.g. `53` when the input only has 25 paths),
+#' the valid indices are currently used as-is and the invalid ones filled by
+#' sampling with replacement.
+#' We discourage relying on this behavior and it may change in the future:
+#' Parent to child mappings are intended to be strictly 1:1,
+#' so index mismatches are very likely to mean an error in the pairing.
 #'
 #' @param settings list of PEcAn settings
 #' @param input name of input to sample, e.g. "met", "veg", "pss"
 #' @param method Method for sampling - For now looping or sampling with replacement is implemented
-#' @param parent_ids This is basically the order of the paths that the parent is sampled.See Details.
+#' @param parent_ids integer vector of indices to be used as-is
 #' @param ensemble_size size of ensemble
 #'
-#' @return For a given input/tag in the pecan xml and a method, this function returns a list with $id showing the order of sampling and $samples with samples of that input.
-#' @details If for example met was a parent and it's sampling method resulted in choosing the first, third and fourth samples, these are the ids that need to be sent as
-#' parent_ids to this function.
+#' @return A list with elements `id` showing the order of sampling
+#'  and `samples` with the paths selected from those indices.
 #' @export
 #'
 #' @examples

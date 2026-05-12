@@ -1,5 +1,7 @@
 # PEcAn.uncertainty 1.9.0.9000
 
+* `input.ens.gen()` no longer skips inputs that have a parent but no sampling method.
+  Additionally, argument `parent_ids` now accepts integer vectors even if not wrapped in a list (#3780).
 * run.ensemble.analysis() now respects `settings$modeloutdir` rather than assuming an `out/` folder inside `settings$outdir` (@Akash-paluvai, #3722).
 * Added `generate_OAT_SA_design()` for creating input design matrices for
 sensitivity analysis. This function ensures non-parameter inputs

@@ -9,7 +9,8 @@ input.ens.gen(
   ensemble_size,
   input,
   method = "sampling",
-  parent_ids = NULL
+  parent_ids = NULL,
+  bad_parent_action = c("error", "resample")
 )
 }
 \arguments{
@@ -22,6 +23,9 @@ input.ens.gen(
 \item{method}{Method for sampling - For now looping or sampling with replacement is implemented}
 
 \item{parent_ids}{integer vector of indices to be used as-is}
+
+\item{bad_parent_action}{How to handle entries in `parent_id` that are not
+valid indices into the paths given for this input. See details}
 }
 \value{
 A list with elements `id` showing the order of sampling
@@ -44,13 +48,15 @@ in your weather files, generate the met ensemble first
 and then pass those as parents to the soil moisture ensemble:
 `input.ens.gen(..., input = "soilmoist", parent_ids = met_ids)`.
 
-If `parent_ids` contains any indices larger than the length of the input
+If any indices in `parent_ids` are larger than the length of the input
 being sampled (e.g. `53` when the input only has 25 paths),
-the valid indices are currently used as-is and the invalid ones filled by
-sampling with replacement.
-We discourage relying on this behavior and it may change in the future:
-Parent to child mappings are intended to be strictly 1:1,
-so index mismatches are very likely to mean an error in the pairing.
+the result is determined by `bad_parent_action`:
+"error" stops execution and requests the user to fix their inputs,
+"resample" uses the valid parents as-is and replaces the invalid parents
+via method = "sampling".
+Note that method "resample" is provided for backwards compatibility;
+we strongly recommend validating parent-child alignment before calling
+`input.ens.gen`, ideally in the same process that generates your parent ids.
 }
 \examples{
 \dontrun{

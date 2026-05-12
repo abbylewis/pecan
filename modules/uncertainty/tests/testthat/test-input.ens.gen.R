@@ -34,17 +34,24 @@ test_that("complains on length mismatch", {
 })
 
 
-# This is legacy behavior that we may want to remove!
-# But meanwhile it was implemented on purpose and we shouldn't break it
-# accidentally.
-test_that("takes samples to replace invalid parent indices", {
+test_that("bad parent action", {
   s <- list()
   s$run$inputs$a$path <- paste0(1:10, ".nc")
 
-  res <- input.ens.gen(s, ensemble_size = 10, input = "a", parent_ids = 6:15)
-  expect_equal(res$ids[1:5], 6:10)
-  expect_true(all(res$ids[6:10] %in% 1:10))
+  res_samp <- input.ens.gen(s, ensemble_size = 10, input = "a",
+                            parent_ids = 6:15,
+                            bad_parent_action = "resample")
+  expect_equal(res_samp$ids[1:5], 6:10)
+  expect_true(all(res_samp$ids[6:10] %in% 1:10))
 
+  res_err <- capture.output(
+    input.ens.gen(s, ensemble_size = 4, input = "a",
+                  parent_ids = c(1, NA, 3, 11),
+                  bad_parent_action = "error"),
+    type = "message"
+  )
+  expect_match(res_err, "must be valid indices", all = FALSE)
+  expect_match(res_err, "NA, 11", all = FALSE)
 })
 
 test_that("parent ids used even when no sampling method given", {

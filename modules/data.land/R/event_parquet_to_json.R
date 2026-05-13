@@ -9,13 +9,13 @@ get_event_paths <- function(event_paths, parquet_dir = NULL) {
     }
     event_paths <- list.files(
       parquet_dir,
-      "*.parquet",
+      "\\.parquet$",
       full.names = TRUE,
       include.dirs = TRUE
     )
   }
   if (is.null(names(event_paths))) {
-    names(event_paths) <- sub("\\.parquet", "", basename(event_paths))
+    names(event_paths) <- sub("\\.parquet$", "", basename(event_paths))
   }
   event_paths
 }

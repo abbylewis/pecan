@@ -25,18 +25,11 @@ events_files <- PEcAn.data.land::event_parquet_to_json(
   site_ids = site_ids
 )
 
-schema_file <- "/projectnb/dietzelab/ccmmf/usr/ashiklom/pecan/develop/modules/data.land/inst/events_schema_v0.1.2.json"
 message("Validating event files")
 pb <- utils::txtProgressBar(0, nrow(events_files))
 for (i in seq_len(nrow(events_files))) {
   path <- events_files[["json_path"]][[i]]
-  jsonvalidate::json_validate(
-    path,
-    schema_file,
-    engine = "ajv",
-    verbose = TRUE,
-    error = TRUE
-  )
+  PEcAn.data.land::validate_events_json(path, schema_version = "0.1.2", verbose = TRUE)
   utils::setTxtProgressBar(pb, i)
 }
 close(pb)

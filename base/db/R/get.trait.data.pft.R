@@ -1,6 +1,5 @@
 ##' Get trait data from the database for a single PFT
 ##'
-##' @md
 ##' Queries BETYdb for trait observations and prior distributions for a single
 ##' plant functional type (PFT). Results are saved to files in the PFT output
 ##' directory (`pft$outdir`), and also registered in the database as posterior
@@ -10,48 +9,80 @@
 ##' `pft` should be a list containing at least `name` and `outdir`, and
 ##' optionally `posteriorid` and `constants`.
 ##'
-##' Internally this wrapper delegates all database queries to
-##' \code{\link{get_trait_data_pft}} exactly once.  The returned objects are
-##' used for both the cache-staleness check and the save step, so the database
-##' is never queried more than once per call regardless of whether the cache
-##' hits or misses.
-##'
+##' @md
 ##' @param pft list of settings for the pft whose traits to retrieve. See details.
 ##' @param modeltype type of model that is used, this is used to distinguish
 ##'   between different pfts with the same name.
 ##' @param dbfiles location where previous results are found
 ##' @param dbcon database connection
+##' @param trait.names list of trait names to retrieve
 ##' @param forceupdate set this to true to force an update, auto will check to
 ##'   see if an update is needed.
 ##' @param write (Logical) If `TRUE` updated posteriors will be written to
 ##'   BETYdb.  Defaults to `FALSE`.
-##' @param trait.names list of trait names to retrieve
-##' @return The `pft` input list, updated with `pft$posteriorid` set to the
-##'   ID of the (possibly new) posterior record in BETYdb. Also contains
-##'   `pft$trait_data` and `pft$prior_distns` for in-memory chaining on both
-##'   the cache-hit and cache-miss paths. The posterior ID can be used to
-##'   locate the output files (`trait.data.Rdata`, `prior.distns.Rdata`,
-##'   etc.) via BETYdb's `dbfiles` table.
+##' @param return_data (Logical) If `TRUE`, the returned `pft` list also
+##'   includes `trait_data` and `prior_distns` as in-memory objects.
+##'   Defaults to `FALSE` to preserve legacy behavior — when `pft` is
+##'   embedded inside a `settings` object, attaching these data frames by
+##'   default would inflate the settings and break serialization.
+##' @return The updated \code{pft} list with \code{posteriorid} set to the
+##'   ID of the (possibly new) posterior record in BETYdb. The posterior ID
+##'   can be used to locate the output files (\code{trait.data.Rdata},
+##'   \code{prior.distns.Rdata}, etc.) via BETYdb's \code{dbfiles} table.
+##'
+##'   When \code{return_data = TRUE}, the returned list also includes
+##'   \code{trait_data} and \code{prior_distns} as in-memory objects, so
+##'   downstream callers can use them without reloading from \code{pft$outdir}.
+##'
+##' @section File-based side effects:
+##' The following files are written to \code{pft$outdir}:
+##' \describe{
+##'   \item{\code{trait.data.Rdata}}{Named list of trait data frames, one per
+##'     trait that has observations. Read by \code{run.meta.analysis.pft()}.}
+##'   \item{\code{prior.distns.Rdata}}{Data frame of prior distributions, rows
+##'     named by trait. Read by \code{run.meta.analysis.pft()}.}
+##'   \item{\code{species.csv} or \code{cultivars.csv}}{Data frame of PFT
+##'     member species or cultivar IDs, depending on PFT type.}
+##'   \item{\code{trait.data.csv}}{Flattened CSV of all trait observations,
+##'     one row per observation, for human inspection.}
+##' }
+##' In addition, each output file is registered in BETYdb via
+##' \code{dbfile.insert()} and associated with the posterior record whose ID
+##' is returned as \code{pft$posteriorid}.
+##'
+##' @section Downstream contract:
+##' \code{run.meta.analysis.pft()} reads \code{trait.data.Rdata} and
+##' \code{prior.distns.Rdata} from \code{pft$outdir} at the start of the
+##' meta-analysis step. These two files are therefore a required output of
+##' this wrapper.
+##'
+##' Note: this file-based contract will be removed once
+##' \code{run.meta.analysis.pft()} is refactored to accept in-memory inputs
+##' (GSoC Week 2).
+##'
 ##' @author David LeBauer, Shawn Serbin, Rob Kooper
 ##' @export
-get.trait.data.pft <-
-  function(pft,
-           modeltype,
-           dbfiles,
-           dbcon,
-           trait.names,
-           forceupdate = FALSE,
-           write = FALSE) {
+get.trait.data.pft <- function(pft, modeltype, dbfiles, dbcon,
+                               trait.names = NULL,
+                               forceupdate = FALSE,
+                               write = TRUE,
+                               return_data = FALSE) {
 
   # Create directory if necessary
   if (!file.exists(pft$outdir) && !dir.create(pft$outdir, recursive = TRUE)) {
-    PEcAn.logger::logger.error(paste0("Couldn't create PFT output directory: ", pft$outdir))
+    PEcAn.logger::logger.error(
+      paste0("Couldn't create PFT output directory: ", pft$outdir)
+    )
   }
 
-  # ---- Single DB round-trip via standalone ----
-  # All query logic lives in get_trait_data_pft().  The objects it returns
-  # are used below for both the cache check and the save step — the database
-  # is never queried a second time.
+  # Backwards-compatible: forceupdate may arrive as "AUTO" or other strings
+  forceupdate <- isTRUE(as.logical(forceupdate))
+
+  # All database queries are delegated to get_trait_data_pft() exactly once.
+  # The returned objects feed both the cache-staleness check and the save
+  # step, so the database is never queried more than once per call.
+  # Input validation (pft_name, trait_names, dbcon) and the pft_type guard
+  # also live inside get_trait_data_pft(); errors surface from there.
   computed <- get_trait_data_pft(
     pft_name    = pft[["name"]],
     modeltype   = modeltype,
@@ -59,16 +90,12 @@ get.trait.data.pft <-
     trait_names = trait.names,
     constants   = if (!is.null(pft$constants)) pft$constants else list()
   )
-
   trait.data          <- computed$trait_data
   prior.distns        <- computed$prior_distns
+  pft_members         <- computed$pft_info$pft_members
   pftid               <- computed$pft_info$pft_id
   pfttype             <- computed$pft_info$pft_type
-  pft_members         <- computed$pft_info$pft_members
   pft_member_filename <- computed$pft_info$pft_member_filename
-
-  # Set forceupdate FALSE if it's a string (backwards compatible with 'AUTO')
-  forceupdate <- isTRUE(as.logical(forceupdate))
 
   # ---- Cache staleness check ----
   if (!forceupdate) {
@@ -132,8 +159,10 @@ get.trait.data.pft <-
           # Check if PFT membership has changed
           PEcAn.logger::logger.debug("Checking if PFT membership has changed.")
           if (pfttype == "plant") {
+            # Columns are: id, genus, species, scientificname
             colClass <- c("double", "character", "character", "character")
           } else if (pfttype == "cultivar") {
+            # Columns are: id, specie_id, genus, species, scientificname, cultivar
             colClass <- c("double", "double", "character", "character",
                           "character", "character")
           }
@@ -262,11 +291,10 @@ get.trait.data.pft <-
           }
 
           if (done) {
-            # Attach computed objects so downstream callers can chain
-            # in-memory on the cache-HIT path — same guarantee as the
-            # cache-miss path below.
-            pft$trait_data   <- trait.data
-            pft$prior_distns <- prior.distns
+            if (return_data) {
+              pft$trait_data   <- trait.data
+              pft$prior_distns <- prior.distns
+            }
             return(pft)
           }
         }
@@ -275,7 +303,6 @@ get.trait.data.pft <-
   } # end if (!forceupdate)
 
   # ---- Cache miss: log counts, save to disk, register in DB ----
-
   if (length(trait.data) > 0) {
     trait_counts <- trait.data |>
       dplyr::bind_rows(.id = "trait") |>
@@ -358,9 +385,9 @@ get.trait.data.pft <-
     }
   }
 
-  ## Attach computed objects so downstream callers can chain in-memory
-  ## without loading files from pft$outdir.
-  pft$trait_data   <- trait.data
-  pft$prior_distns <- prior.distns
+  if (return_data) {
+    pft$trait_data   <- trait.data
+    pft$prior_distns <- prior.distns
+  }
   return(pft)
 }

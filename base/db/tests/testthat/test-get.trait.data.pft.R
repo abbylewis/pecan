@@ -25,6 +25,7 @@ make_empty_pft <- function(outdir) {
 
 std_modeltype <- "SIPNET"
 std_traits    <- c("SLA", "Vcmax", "leaf_respiration_rate_m2")
+std_pft       <- "temperate.deciduous"
 
 cleanup_posterior <- function(dbcon, posteriorid) {
   if (!is.null(posteriorid)) {
@@ -190,7 +191,7 @@ test_that("wrapper attaches trait_data and prior_distns to returned pft", {
   outdir <- withr::local_tempdir()
   result <- get.trait.data.pft(
     pft = make_test_pft(outdir), modeltype = std_modeltype,
-    dbfiles = outdir, dbcon = test_dbcon, trait.names = std_traits
+    dbfiles = outdir, dbcon = test_dbcon, trait.names = std_traits, return_data = TRUE
   )
   withr::defer(cleanup_posterior(test_dbcon, result$posteriorid))
 
@@ -316,7 +317,8 @@ test_that("wrapper attaches trait_data and prior_distns on the cache-HIT path", 
     modeltype   = std_modeltype,
     dbfiles     = outdir2,
     dbcon       = test_dbcon,
-    trait.names = std_traits
+    trait.names = std_traits,
+    return_data = TRUE
   )
 
   expect_true("trait_data"   %in% names(result2),
@@ -354,7 +356,8 @@ test_that("cache-hit in-memory objects match the files copied to outdir", {
     modeltype   = std_modeltype,
     dbfiles     = outdir_hit,
     dbcon       = test_dbcon,
-    trait.names = std_traits
+    trait.names = std_traits,
+    return_data = TRUE
   )
 
   # Load the files the cache copied to outdir_hit
@@ -365,4 +368,46 @@ test_that("cache-hit in-memory objects match the files copied to outdir", {
 
   expect_identical(result_hit$trait_data,   trait_env$trait.data)
   expect_identical(result_hit$prior_distns, prior_env$prior.distns)
+})
+
+test_that("wrapper does NOT attach trait_data/prior_distns by default (legacy)", {
+  test_dbcon <- check_db_test()
+  withr::defer(PEcAn.DB::db.close(test_dbcon))
+  outdir <- withr::local_tempdir()
+  result <- get.trait.data.pft(
+    pft         = make_test_pft(outdir),
+    modeltype   = std_modeltype,
+    dbfiles     = outdir,
+    dbcon       = test_dbcon,
+    trait.names = std_traits
+  )
+  withr::defer(cleanup_posterior(test_dbcon, result$posteriorid))
+  expect_false("trait_data"   %in% names(result))
+  expect_false("prior_distns" %in% names(result))
+})
+
+test_that("wrapper errors for unknown pft_type, not silent fallback", {
+  # Verifies the explicit guard in get.trait.data.pft():
+  # an unrecognised pft_type must throw, not silently fall through
+  # to the species-query path. We mock query_pfts to return a bad record
+  # so no live DB call is needed.
+  fake_record <- data.frame(
+    id       = 1L,
+    pft_type = "weird",
+    name     = std_pft,
+    stringsAsFactors = FALSE
+  )
+  mockery::stub(get.trait.data.pft, "query_pfts", fake_record)
+  fake_dbcon <- structure(list(), class = c("PostgreSQLConnection",
+                                            "DBIConnection"))
+  outdir <- withr::local_tempdir()
+  expect_error(
+    get.trait.data.pft(
+      pft         = make_test_pft(outdir),
+      modeltype   = std_modeltype,
+      dbfiles     = outdir,
+      dbcon       = fake_dbcon,
+      trait.names = std_traits
+    )
+  )
 })

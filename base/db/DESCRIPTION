@@ -81,5 +81,4 @@ LazyLoad: yes
 LazyData: FALSE
 Encoding: UTF-8
 X-schema.org-keywords: PEcAn, database
-Config/roxygen2/version: 8.0.0
 RoxygenNote: 7.3.3

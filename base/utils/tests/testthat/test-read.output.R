@@ -57,6 +57,20 @@ test_that("accepts start and end years as string, number, datetime", {
         expect_length(res_end[["posix"]], 365 * 2)
 })
 
+test_that("accepts NULL as synonym for NA in start.year and end.year", {
+  times_to_netcdf(0:364, "days since 2001-01-01", testdir, "2001.nc")
+  times_to_netcdf(0:364, "days since 2002-01-01", testdir, "2002.nc")
+
+  out_log <- capture.output(type = "message", {
+    res_na   <- read.output(runid = "", outdir = testdir, variables = "Y",
+                            start.year = NA, end.year = NA, dataframe = TRUE)
+    res_null <- read.output(runid = "", outdir = testdir, variables = "Y",
+                            start.year = NULL, end.year = NULL, dataframe = TRUE)
+  })
+  expect_equivalent(res_na, res_null)
+  expect_length(res_null$posix, 365 * 2)
+})
+
 test_that("handles arbitrary time offsets", {
 	times_to_netcdf(365:730, "days since 2003-01-01", testdir, "2004.nc")
 	times_to_netcdf( ((0:364)+916) * 24, "hours since 2002-06-30", testdir, "2005.nc")

@@ -1,5 +1,7 @@
 # PEcAn.SIPNET 1.10.0.9000
 
+* `split_inputs.SIPNET` now avoids internal time format conversions, giving a
+  substantial speedup and reduced memory use when processing multi-year files.
 * Fixed a unit error in model2netcdf.SIPNET's calculation of `GWBI` (kgC/m2/sec)
     from `woodCreation` (actually gC/m2/timestep, was being treated as gC/m2/day).
 * `model2netcdf.SIPNET` now takes NPP directly from sipnet.out rather than repeat

@@ -40,7 +40,7 @@
 #'   print a summary of the means of each variable for each year.
 #' @param start.year,end.year first and last year of output to read.
 #'   Specify as a date-time (only the year portion is used) or as a
-#'   four-digit number or string. If `NA` or `NULL`, reads all years found in
+#'   four-digit number or string. If `NULL`, reads all years found in
 #'   `outdir`.
 #' @return If `dataframe = FALSE`, a vector of output variables. If
 #'   `dataframe = TRUE`, a `data.frame` of output variables with
@@ -50,8 +50,8 @@
 #' @export
 #' @author Michael Dietze, David LeBauer, Alexey Shiklomanov
 read.output <- function(runid, outdir,
-                        start.year = NA,
-                        end.year = NA,
+                        start.year = NULL,
+                        end.year = NULL,
                         variables = "GPP",
                         dataframe = FALSE,
                         pft.name = NULL,

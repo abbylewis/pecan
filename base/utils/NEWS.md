@@ -1,5 +1,9 @@
 # PEcAn.utils 1.8.2
 
+## Changed
+
+* `read.output()`: `start.year` and `end.year` now default to `NULL` (read all years) instead of `NA`, and both `NULL` and `NA` are accepted as "read all years" sentinels (#3987).
+
 ## Added
 
 * New function `nc_write_varfiles()` creates text summaries of the variables in all netCDF files in an output directory, writing either one file named `nc_vars.txt` if `output_mode = "combined"` or a separate `[filename].nc.var` alongside each netCDF if `output_mode = "paired"` (#3611).

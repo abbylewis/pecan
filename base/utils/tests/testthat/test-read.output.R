@@ -58,13 +58,14 @@ test_that("accepts start and end years as string, number, datetime", {
 })
 
 test_that("accepts NULL as synonym for NA in start.year and end.year", {
-  times_to_netcdf(0:364, "days since 2001-01-01", testdir, "2001.nc")
-  times_to_netcdf(0:364, "days since 2002-01-01", testdir, "2002.nc")
+  nulldir <- withr::local_tempdir()
+  times_to_netcdf(0:364, "days since 2001-01-01", nulldir, "2001.nc")
+  times_to_netcdf(0:364, "days since 2002-01-01", nulldir, "2002.nc")
 
   out_log <- capture.output(type = "message", {
-    res_na   <- read.output(runid = "", outdir = testdir, variables = "Y",
+    res_na   <- read.output(runid = "", outdir = nulldir, variables = "Y",
                             start.year = NA, end.year = NA, dataframe = TRUE)
-    res_null <- read.output(runid = "", outdir = testdir, variables = "Y",
+    res_null <- read.output(runid = "", outdir = nulldir, variables = "Y",
                             start.year = NULL, end.year = NULL, dataframe = TRUE)
   })
   expect_equivalent(res_na, res_null)

@@ -33,7 +33,7 @@ sipnet_time_range_idx <- function(yrs, ydays, hrs,
   #      `paste(yr, yday, hr, min, sec)`, which requires a lot of temporary
   #      memory allocations and becomes slow when the data are large.
   #    * Additionally, conversion to and from POSIXt requires thinking about
-  #      timezones, with all the bugs and headaches that ceom with them.
+  #      timezones, with all the bugs and headaches that come with them.
   #      This function avoids times and conversions entirely; start and stop
   #      values always mean exactly what they do in the input file.
   # This way benchmarks two orders of magnitude faster than the Sipnet time

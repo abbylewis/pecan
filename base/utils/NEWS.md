@@ -1,5 +1,9 @@
 # PEcAn.utils 1.8.2
 
+## Fixed
+
+* `distn.stats()`: corrected the Weibull standard deviation formula, which was returning variance (`b^2 * (...)`) instead of SD (`b * sqrt(...)`). The test expectation is also corrected.
+
 ## Changed
 
 * `read.output()`: `start.year` and `end.year` now default to `NULL` (read all years) instead of `NA`, and both `NULL` and `NA` are accepted as "read all years" sentinels (#3987).

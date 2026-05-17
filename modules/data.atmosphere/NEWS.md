@@ -7,6 +7,7 @@
 * `download.ERA5_cds` gains options `time`, `dataset`, `product_type`, all defaulting to the values previously hard-coded (#3547).
 
 ## Fixed
+* Fixed `download_NOAA_GEFS_EFI`: the `sitename` filter compared the argument to itself (`sitename == sitename`), always returning data for all NEON sites instead of the requested one. Changed to `.data$sitename == sitename`.
 * Updated `download.NOAA_GEFS` to work with the current (v12.3) release of GEFS (#3349).
 
 ## Changed

@@ -298,7 +298,13 @@ read.output <- function(runid, outdir,
     }
   }
 
-  model <- as.data.frame(result) # put into a data.frame
+  model <- as.data.frame(result)
+  if (nofiles) {
+    colnames(model) <- variables
+    model[["posix"]] <- NA
+    model[["year"]] <- NA
+    return(model)
+  }
   model[["posix"]] <- as.POSIXct(model[["posix"]], origin = run_origin, tz = "UTC")
   model[["year"]] <- lubridate::year(model[["posix"]])
 

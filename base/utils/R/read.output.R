@@ -63,11 +63,6 @@ read.output <- function(runid, outdir,
   ## cflux = c('GPP', 'NPP', 'NEE', 'TotalResp', 'AutoResp', 'HeteroResp', 'DOC_flux', 'Fire_flux') # kgC m-2 s-1
   ## wflux = c('Evap', 'TVeg', 'Qs', 'Qsb', 'Rainf') # kgH20 m-2 d-1
 
-  if (!isTRUE(verbose)) {
-    loglevel <- PEcAn.logger::logger.setLevel("WARN")
-    on.exit(PEcAn.logger::logger.setLevel(loglevel), add = TRUE)
-  }
-
   if ((missing(runid) || missing(outdir)) && is.null(ncfiles)) {
     PEcAn.logger::logger.severe(
       "`runid` or `outdir` is missing, and `ncfiles` is NULL.",

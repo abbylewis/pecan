@@ -124,7 +124,7 @@ read.output <- function(runid, outdir,
         )
       }
     } else {
-      PEcAn.logger::logger.error(
+      PEcAn.logger::logger.severe(
         "`end.year` must be of type numeric, character, Date, or POSIXt",
         "but given `", end.year, "` which is type `", typeof(end.year), "`."
       )

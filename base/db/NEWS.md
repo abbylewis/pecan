@@ -1,5 +1,9 @@
 # PEcAn.DB 1.8.2
 
+## Fixed
+
+* `query.trait.data()`: the `warning()` call for missing trait data was placed after `return(NA)` and therefore never fired. Moved before the return and changed to `logger.warn()` for consistency with the rest of the codebase.
+
 * Refactored `convert.input()` internals into smaller, and hopefully more testable, chunks. No user-visible changes expected.
 * Roxygen cleanup.
 

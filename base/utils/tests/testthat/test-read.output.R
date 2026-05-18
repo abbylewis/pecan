@@ -89,7 +89,6 @@ test_that("handles arbitrary time offsets", {
 
 test_that("Correct behavior when no NetCDF files present", {
   empty_testdir <- withr::local_tempdir()
-  expected <- "no netCDF files of model output present"
   out_log <- capture.output(type = "message", {
     out <- read.output(runid = "", outdir = empty_testdir,
                 start.year = 2001, end.year = 2002)
@@ -97,6 +96,15 @@ test_that("Correct behavior when no NetCDF files present", {
   expect_match(out_log, "no netCDF files of model output present", all = FALSE)
   expect_match(out_log, "No files found. Returning all NA", all = FALSE)
   expect_equal(out, list(NA))
+
+  out_log_df <- capture.output(type = "message", {
+    out_df <- read.output(runid = "", outdir = empty_testdir,
+                          start.year = 2001, end.year = 2002,
+                          dataframe = TRUE, variables = "AGB")
+  })
+  expect_match(out_log_df, "No files found. Returning all NA", all = FALSE)
+  expect_equal(out_df, data.frame(AGB = NA, posix = NA, year = NA))
+  str(out_df)
 })
 
 test_that("Correctly read all variables, from custom ncfiles", {

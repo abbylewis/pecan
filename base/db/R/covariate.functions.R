@@ -83,7 +83,9 @@ arrhenius.scaling.traits <- function(data, covariates, temp.covariates, new.temp
     #remove temporary covariate column.
     data<-data[,colnames(data)!='temp']
   } else {
-    data <- NULL
+    # No temperature covariates found for any observation; assume all were
+    # measured at missing.temp (default 25 degC) so scaling is a no-op.
+    # Return data unchanged rather than NULL, as documented.
   }
   return(data)
 }
@@ -108,7 +110,7 @@ filter_sunleaf_traits <- function(data, covariates){
     # remove temporary covariate column
     data <- data[,colnames(data)!='canopy_layer']
   } else {
-    data <- NULL
+    # No canopy_layer covariate found; return data unchanged rather than NULL.
   }
   return(data)
 }

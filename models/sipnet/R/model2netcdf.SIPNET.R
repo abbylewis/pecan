@@ -128,7 +128,7 @@ model2netcdf.SIPNET <- function(outdir, sitelat, sitelon, start_date, end_date, 
       # Water pools
       dplyr::across(
         .cols = c(
-          dplyr::all_of(c("soilWater", "soilWetnessFrac", "snow")),
+          dplyr::all_of(c("soilWater", "snow")),
           dplyr::any_of("litterWater") # Only present in V1 output
         ),
         .fns = cm_to_mm
@@ -392,31 +392,3 @@ model2netcdf.SIPNET <- function(outdir, sitelat, sitelon, start_date, end_date, 
     file.remove(sipnet_out_file)
   }
 } # model2netcdf.SIPNET
-#--------------------------------------------------------------------------------------------------#
-
-# Helper Function 
-
-sipnet2datetime <- function(year, doy, hour){
-  
-  hr <- floor(hour)
-  # minsec <- PEcAn.utils::ud_convert(hour - hr, "hour", "min")
-  minsec <- (hour - hr) * 60
-  minute <- floor(minsec)
-  
-  # sec <- PEcAn.utils::ud_convert(minsec - minute, "minute", "second")
-  sec <- (minsec - minute) * 60
-  
-  minute <- ifelse(sec == 60, minute + 1, minute)
-  sec <- ifelse(sec == 60, 0, sec)
-  
-  hr <- ifelse(minute == 60, hr + 1, hr)
-  minute <- ifelse(minute == 60, 0, minute)
-  
-  datetime <- strptime(
-    paste(year, doy, hr, minute, sec),
-    "%Y %j %H %M %S", 
-    tz = "UTC"
-  )
-  
-  as.POSIXct(datetime)
-}

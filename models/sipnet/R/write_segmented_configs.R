@@ -58,6 +58,23 @@ crop2pft_example <- function(crop_code) {
   )
 }
 
+#' Break a Sipnet simulation into time segments with possibly changed parameters
+#'
+#' Each segment will run in its own subdirectory,
+#' starting from the restart file written at the end of the previous segment.
+#' Crop parameters can be altered by specifying a different PFT in the segment
+#' file.
+#'
+#' @param settings a single PEcAn settings object (not MultiSettings)
+#' @param input_design data frame in the format returned by
+#'   `PEcAn.uncertainty::generate_joint_ensemble_design()`,
+#'   reporting which ensemble members to select for each input
+#' @param ... further arguments passed on to `write_segment_configs()`
+#'
+#' @author Alexey Shiklomanov, Chris Black
+#'
+#' @export
+#'
 write_segmented_configs.SIPNET <- function(settings, input_design = NULL, ...) {
   manifest_file <- file.path(settings$outdir, "runs_manifest.csv")
   if (!file.exists(manifest_file)) {

@@ -11,7 +11,9 @@ subset_paths <- function(settings, path_nums) {
     path_idx <- path_nums[[input]]
     all_paths <- settings$run$inputs[[input]]$path
     if (path_idx > length(all_paths)) {
-      PEcAn.logger::logger.severe("No path at input ", sQuote(input), " index ", path_idx)
+      PEcAn.logger::logger.severe(
+        "No path at input ", sQuote(input), " index ", path_idx
+      )
     }
     settings$run$inputs[[input]]$path <- all_paths[[path_idx]]
     # If we define a list of `source`s, also try to subset that (if the lengths
@@ -28,7 +30,7 @@ subset_paths <- function(settings, path_nums) {
         paste(
           "For input %s, number of paths (%d) ",
           "is not equal to number of sources (%d). ",
-          "Assuming these are different things and therefore leaving sources as is."
+          "Assuming these are different things and leaving sources as is."
         ),
         input, n_path, n_source
       ))
@@ -201,13 +203,18 @@ write_segment_configs <- function(
   }
 
   segments <- segments |>
-    # Adds an all-NA pft column if needed without clobbering one that exists already
+    # Adds an all-NA pft column if needed w/o clobbering one that exists already
     dplyr::bind_rows(tibble::tibble(pft = character())) |>
     dplyr::mutate(
       pft = dplyr::coalesce(.data$pft, crop2pft(.data$crop_code)),
-      segment_dir = file.path(segment_rootdir, sprintf("segment_%s", .data$segment_id))
+      segment_dir = file.path(segment_rootdir,
+                              sprintf("segment_%s", .data$segment_id))
     )
-  write.csv(segments, file = file.path(run_dir, "segments.csv"), row.names = FALSE)
+  write.csv(
+    segments,
+    file = file.path(run_dir, "segments.csv"),
+    row.names = FALSE
+  )
 
   jobsh_files <- character()
 

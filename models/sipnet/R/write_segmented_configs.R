@@ -82,7 +82,7 @@ write_segmented_configs.SIPNET <- function(settings, input_design = NULL, ...) {
   if (!file.exists(manifest_file)) {
     PEcAn.logger::logger.severe("Could not find manifest file: ", manifest_file)
   }
-  inputs_runs <- read.csv(manifest_file) |>
+  inputs_runs <- utils::read.csv(manifest_file) |>
     dplyr::filter(.data$site_id == settings$run$site$id) |>
     # TODO the manifest should probably report these already...
     dplyr::mutate(
@@ -106,11 +106,12 @@ write_segmented_configs.SIPNET <- function(settings, input_design = NULL, ...) {
   invisible(new_jobfiles)
 }
 
+#' @importFrom rlang .data .env
 segment_dataframe <- function(run_settings) {
   crop_change_csv <- run_settings$run$inputs$crop_changes$path
   if (!is.null(crop_change_csv)) {
     stopifnot(file.exists(crop_change_csv))
-    crop_cycles <- read.csv(crop_change_csv)
+    crop_cycles <- utils::read.csv(crop_change_csv)
     crop_cycles$date <- as.Date(crop_cycles$date)
   } else {
     events_json <- run_settings$run$inputs$event_json$path
@@ -210,7 +211,7 @@ write_segment_configs <- function(
       segment_dir = file.path(segment_rootdir,
                               sprintf("segment_%s", .data$segment_id))
     )
-  write.csv(
+  utils::write.csv(
     segments,
     file = file.path(run_dir, "segments.csv"),
     row.names = FALSE

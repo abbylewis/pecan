@@ -2,7 +2,7 @@
 #' settings for one ensemble member with one path per input
 #'
 #' @param settings single-site settings object (not Multisettings)
-#' @param inputs named list of input indices (one row of the sample design)
+#' @param path_nums named list of input indices (one row of the sample design)
 subset_paths <- function(settings, path_nums) {
   for (input in names(path_nums)) {
     if (!is.list(settings$run$inputs[[input]])) {

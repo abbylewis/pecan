@@ -194,7 +194,7 @@ write_segment_configs <- function(
   stopifnot(file.exists(ens_samples_file))
   ensemble_samples <- PEcAn.utils::load_local(ens_samples_file)[["ens.samples"]]
   i_param <- run_row[["param"]] %||% 1
-  run_traits <- lapply(ensemble_samples, \(dat) dat[i_param, ])
+  run_traits <- lapply(ensemble_samples, \(dat) dat[i_param, , drop = FALSE])
 
   segments <- segment_dataframe(run_settings)
 

@@ -239,6 +239,7 @@ test_that("fluxes are converted from gC/m2/timestep to kg/m2/sec", {
   )
   expect_equal(pec2$GWBI, sip2$woodCreation / 1000 / ts, tolerance = 1e-6)
 })
+
 test_that("out_day is correct when the first day of output is partial", {
   # Simulate a run where SIPNET started mid-day on day 1 (only 1 timestep),
   # while days 2 and 3 are complete (2 timesteps each, i.e. 12-hour intervals).

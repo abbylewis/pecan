@@ -9,6 +9,11 @@ test_that("calcSpatialCov.matrix returns correct format, dimensions, and values"
   expect_true(is.matrix(res))
   expect_equal(dim(res), c(2, 2))
   
-  expected <- tau * exp(-psi * d)
+expected <- matrix(
+  c(2.00000000000000, 1.21306131942527,
+    1.21306131942527, 2.00000000000000),
+  nrow = 2,
+  byrow = TRUE
+)
   expect_equal(res, expected)
 })

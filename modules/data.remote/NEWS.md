@@ -18,6 +18,10 @@
 * `GEDI_AGB_prep` will use existing local files if present rather than re-download them (#3572).
 * All `*DAAC` functions now take argument `credential_path`, which should be set to the path to a valid `.netrc` file (#3572).
 
+## Fixed
+
+* Removed unused `grid2netcdf` and fixed R CMD check reference notes for `download.LandTrendr.AGB` (#2758).
+
 
 
 # PEcAn.data.remote 1.9.0

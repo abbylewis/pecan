@@ -2,7 +2,8 @@
 
 ## Fixed
 
-* `arrhenius.scaling.traits()` and `filter_sunleaf_traits()`: both functions returned `NULL` instead of the input `data` unchanged when no matching covariates were found. This caused a hard crash (`argument is of length zero`) in `query.trait.data()` whenever temperature-dependent traits (Vcmax, respiration rates) were queried for species where no temperature covariate was recorded in the database. The documented behaviour ("data with no matching covariates will be unchanged") is now implemented correctly.
+* `arrhenius.scaling.traits()`: previously returned `NULL` when no temperature covariates were found, crashing `query.trait.data()` with `argument is of length zero`. The function now drops rows that lack a measurement temperature covariate and emits a `logger.warn()` with the row count. If no observations have any temperature covariate, an empty data frame (zero rows, same columns) is returned. The `missing.temp` argument is retained for backward compatibility but is no longer applied.
+* `filter_sunleaf_traits()`: returned `NULL` instead of `data` unchanged when no `canopy_layer` covariate was found. Now returns the input data frame unmodified in that case, consistent with the more standardised measurement protocol for sun-leaf traits.
 * `query.trait.data()`: the `warning()` call for missing trait data was placed after `return(NA)` and therefore never fired. Moved before the return and changed to `logger.warn()` for consistency with the rest of the codebase.
 
 * Refactored `convert.input()` internals into smaller, and hopefully more testable, chunks. No user-visible changes expected.

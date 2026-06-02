@@ -25,13 +25,17 @@ URL: https://pecanproject.github.io
 BugReports: https://github.com/PecanProject/pecan/issues
 Depends: R (>= 4.1.0)
 Imports:
+    arrow,
     coda,
     curl,
+    DBI,
     dplyr,
+    duckdb,
     foreach,
     fs,
     future,
     furrr,
+    httr2 (>= 1.1.0),
     lubridate,
     magrittr,
     ncdf4 (>= 1.15),
@@ -44,6 +48,7 @@ Imports:
     sf,
     stringr,
     terra,
+    tibble,
     tidyr,
     tidyselect,
     XML (>= 3.98-1.4)

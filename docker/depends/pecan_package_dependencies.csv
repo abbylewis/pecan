@@ -459,7 +459,7 @@
 "PEcAn.workflow","*","base/all","Depends",TRUE
 "PEcAn.workflow","*","modules/assim.batch","Imports",TRUE
 "PEcAn.workflow","*","modules/assim.sequential","Imports",TRUE
-"PEPRMT","*","models/peprmt","Imports",FALSE
+"PEPRMT","*","models/peprmt","Enhances",FALSE
 "plotrix","*","base/qaqc","Imports",FALSE
 "plotrix","*","modules/assim.sequential","Suggests",FALSE
 "plyr",">= 1.8.4","base/visualization","Imports",FALSE

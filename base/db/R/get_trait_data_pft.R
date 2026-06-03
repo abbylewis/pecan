@@ -87,14 +87,23 @@ get_trait_data_pft <- function(pft_name,
     PEcAn.logger::logger.severe("'dbcon' must be a database connection")
   }
 
-  # ---- Resolve PFT to a single database record ----
-  pft_record <- query_pfts(dbcon, pft_name, modeltype, strict = TRUE)
-  if (nrow(pft_record) > 1L) {
-    PEcAn.logger::logger.severe(
-      "Multiple PFTs named '", pft_name, "' found in the database;",
-      " pass modeltype to disambiguate."
-    )
-  }
+ # ---- Resolve PFT to a single database record ----
+ # Note: query_pfts(strict = TRUE) only catches missing PFTs, not multi-PFT
+ # results (setequal() ignores duplicates). So we do both checks explicitly
+ # here and match the wrapper's canonical error wording for test consistency.
+ pft_record <- query_pfts(dbcon, pft_name, modeltype)
+
+ if (nrow(pft_record) == 0L) {
+   PEcAn.logger::logger.severe("PFTs were not found:", pft_name)
+ }
+
+ if (nrow(pft_record) > 1L) {
+   PEcAn.logger::logger.severe(
+     "Multiple PFTs named", pft_name, "found,",
+     "with ids", PEcAn.utils::vecpaste(pft_record[["id"]]),
+     ". Specify modeltype to fix this."
+   )
+ }
 
   pft_id   <- pft_record[["id"]]
   pft_type <- pft_record[["pft_type"]]

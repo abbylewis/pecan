@@ -260,3 +260,67 @@ test_that("errors for unknown pft_type returns an error, not silent fallback", {
     )
   )
 })
+
+test_that("errors when query_pfts returns zero rows", {
+  empty_record <- data.frame(
+    id       = integer(0),
+    pft_type = character(0),
+    name     = character(0)
+  )
+  mockery::stub(get_trait_data_pft, "query_pfts", empty_record)
+
+  fake_dbcon <- structure(list(), class = c("PostgreSQLConnection",
+                                            "DBIConnection"))
+  expect_error(
+    get_trait_data_pft(
+      pft_name    = "DoesNotExist",
+      modeltype   = "SIPNET",
+      dbcon       = fake_dbcon,
+      trait_names = "SLA"
+    ),
+    "PFTs were not found"
+  )
+})
+
+test_that("errors when query_pfts returns multiple rows (multi-modeltype case)", {
+  multi_record <- data.frame(
+    id       = c(1L, 2L),
+    pft_type = c("plant", "plant"),
+    name     = c("temperate.deciduous", "temperate.deciduous"),
+    stringsAsFactors = FALSE
+  )
+  mockery::stub(get_trait_data_pft, "query_pfts", multi_record)
+
+  fake_dbcon <- structure(list(), class = c("PostgreSQLConnection",
+                                            "DBIConnection"))
+  expect_error(
+    get_trait_data_pft(
+      pft_name    = "temperate.deciduous",
+      modeltype   = NULL,
+      dbcon       = fake_dbcon,
+      trait_names = "SLA"
+    ),
+    "Multiple PFTs"
+  )
+})
+
+test_that("errors when query_pfts returns zero rows", {
+  empty_record <- data.frame(
+    id       = integer(0),
+    pft_type = character(0),
+    name     = character(0)
+  )
+  mockery::stub(get_trait_data_pft, "query_pfts", empty_record)
+
+  fake_dbcon <- structure(list(), class = c("PostgreSQLConnection",
+                                            "DBIConnection"))
+  expect_error(
+    get_trait_data_pft(
+      pft_name    = "DoesNotExist",
+      modeltype   = "SIPNET",
+      dbcon       = fake_dbcon,
+      trait_names = "SLA"
+    ),
+    "PFTs were not found"
+  )
+})

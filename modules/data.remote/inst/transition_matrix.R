@@ -1,8 +1,8 @@
-##creates the generalized transition matrix for all parcels by creating crop class sequences
+##creates the transition matricies for all parcels in each county by creating crop class sequences
 
 setwd("/projectnb/dietzelab/ananyak")
-library(data.table)
 library(arrow)
+library(data.table)
 library(dplyr)
 
 ##-----setup------
@@ -30,11 +30,59 @@ crops_full[, `:=`(
   SUBCLASS = as.character(SUBCLASS)
 )]
 
-##-------order for sequence building - add season if needed-------
-setorder(crops_full, parcel_id, year, season)
-write.csv(crops_full, 'crops_full.csv')
+##-----adding county to crops file-----
+library(sf)
+library(tigris)
+options(tigris_use_cache = TRUE)
 
-##-------run some cleaning rules to lower the amount of messy/unrealistic sequences (for 'X' cases)------
+#one row per parcel so repeated years/seasons do not duplicate spatial join
+parcel_unique = crops_full[
+  !is.na(centx) & !is.na(centy),
+  .SD[1],
+  by = parcel_id]
+
+#convert centx/centy to sf; centx/centy in EPSG:3310
+parcel_sf = st_as_sf(
+  parcel_unique,
+  coords = c("centx", "centy"),
+  crs = 3310,
+  remove = FALSE)
+
+#California county boundaries
+ca_counties = counties(state = "CA", cb = TRUE, class = "sf") |>
+  st_transform(4326)
+ca_counties = ca_counties |> st_transform(3310)
+
+#spatial join parcels to counties
+parcel_county = st_join(
+  parcel_sf,
+  ca_counties[, c("NAME", "GEOID")])
+
+#convert back to data.table and rename columns 
+parcel_county_dt = as.data.table(st_drop_geometry(parcel_county))
+setnames(parcel_county_dt, "NAME", "county")
+
+#keep only parcel_id + county info
+parcel_county_lookup = parcel_county_dt[, .(
+  parcel_id,
+  county,
+  county_geoid = GEOID
+)]
+
+# merge county back onto the full crops_full table
+crops_full_county = merge(
+  crops_full,
+  parcel_county_lookup,
+  by = "parcel_id",
+  all.x = TRUE
+)
+
+##-------order for sequence building - add season if needed-------
+setorder(crops_full_county, parcel_id, county, year, season)
+write.csv(crops_full_county, 'crops_full_counties.csv')
+
+
+##-------cleaning rules to lower the amount of messy/unrealistic sequences (for 'X' cases)------
 fix_seq = function(seq) {
   parts = strsplit(seq, "-", fixed = TRUE)[[1]]
   n = length(parts)
@@ -109,30 +157,22 @@ fix_seq = function(seq) {
   paste(parts, collapse = "-")
 }
 
+
+
 ##-----sequence formatting by parcel-----
-
-#for every parcel: season 1 class - season 2 class - ... - season 4 class each year 2018-2023
-#**sequences are way smaller because most data has been removed 
-
-crop_sequences = crops_full[
+crop_sequences = crops_full_county[
   ,
   .(
     crop_sequence = paste(CLASS, collapse = "-"),
     season_sequence = paste(season, collapse = "-")
   ),
-  by = .(parcel_id, year)
+  by = .(county, county_geoid, parcel_id, year)
 ]
 
 ##-------apply sequence-fixing rules-------
 crop_sequences[, crop_sequence := vapply(crop_sequence, fix_seq, character(1))]
-unique(crop_sequences$crop_sequence)
 
 ##------dominant crop and probabilities-------
-unique(crop_sequences[nchar(crop_sequence) == 1, season_sequence])
-
-##add a dominant crop column to crop_sequences (most frequent class) and a probability column 
-#for two character long sequences that are different, make the dominant crop the class in season 2 
-#*season 2 = default dominant crop season  
 seq_lookup = unique(crop_sequences[, .(crop_sequence, season_sequence)])
 
 seq_lookup[, c("dominant_crop", "non_dom_prob") := {
@@ -146,9 +186,6 @@ seq_lookup[, c("dominant_crop", "non_dom_prob") := {
     x = crop_split[[i]]
     s = as.integer(season_split[[i]])
     
-    # special rule:
-    # for length 2 or 3 sequences where all crop classes are different,
-    # use the crop corresponding to season 2
     if (length(x) %in% c(2, 3) &&
         length(unique(x)) == length(x) &&
         2 %in% s) {
@@ -171,92 +208,193 @@ seq_lookup[, c("dominant_crop", "non_dom_prob") := {
 
 crop_sequences = seq_lookup[crop_sequences, on = c("crop_sequence", "season_sequence")]
 
-##store dominant crops&probabilites as a separate dataset
-file = crop_sequences[, c("crop_sequence", "season_sequence", 
-                          'dominant_crop', 'non_dom_prob')]
-write.csv(file, 'dominant_crop_classes.csv')
+##-----standardized year states------
+##parcel_id, year, state, non_dom_prob, optional grouping columns like county
 
-##--------transition matrix items---------
-#transitions between each year using each parcels dominant crop 
-#currently incorporates non dominant probabilities into the transition matrix as weights
-   #transitions with a non dominant prob != 0 gets weighed less in the tmat 
+year_states = copy(crop_sequences)[,.(
+    county,
+    county_geoid,
+    parcel_id,
+    year,
+    state = dominant_crop,
+    non_dom_prob)]
 
-#new df with just dominant crop 
-year_states = copy(crop_sequences)[
-  ,
-  .(parcel_id, year, dominant_crop, non_dom_prob)
-]
+year_states[, state := trimws(as.character(state))]
+year_states[, parcel_id := as.character(parcel_id)]
+year_states[, year := as.integer(year)]
+setorder(year_states, county, parcel_id, year)
 
-year_states[, dominant_crop := trimws(as.character(dominant_crop))]
 
-setorder(year_states, parcel_id, year)
 
-##year to year transitions for each parcel 
-year_states[, `:=`(
-  from = dominant_crop,
-  to = shift(dominant_crop, type = "lead"),
-  next_year = shift(year, type = "lead"),
-  from_non_dom = non_dom_prob,
-  to_non_dom = shift(non_dom_prob, type = "lead")
-), by = parcel_id]
+##-----function for transition format------
+make_transitions = function(
+    year_states,
+    id_col = "parcel_id",
+    time_col = "year",
+    state_col = "state",
+    non_dom_col = "non_dom_prob",
+    min_weight = 0.05) {
+  
+  dt = copy(as.data.table(year_states))
+  
+  setnames(dt, id_col, "id")
+  setnames(dt, time_col, "time")
+  setnames(dt, state_col, "state")
+  
+  if (non_dom_col %in% names(dt)) {
+    setnames(dt, non_dom_col, "non_dom_prob")
+  } else {
+    dt[, non_dom_prob := 0]}
+  
+  setorder(dt, id, time)
+  
+  dt[, `:=`(
+    from = state,
+    to = shift(state, type = "lead"),
+    next_time = shift(time, type = "lead"),
+    from_non_dom = non_dom_prob,
+    to_non_dom = shift(non_dom_prob, type = "lead")
+  ), by = id]
+  
+  transitions = dt[
+    !is.na(from) &
+      !is.na(to) &
+      next_time == time + 1]
+  
+  transitions[, weight := pmax(
+    min_weight,
+    (1 - from_non_dom) * (1 - to_non_dom))]
+  
+  setnames(transitions, "id", id_col)
+  setnames(transitions, "time", time_col)
+  
+  return(transitions)
+}
 
-transitions_full = year_states[
-  !is.na(to) & next_year == year + 1
-]
+##-----function to make a transition matrix------
+make_transition_matrix = function(
+    dt,
+    states_all,
+    from_col = "from",
+    to_col = "to",
+    weight_col = "weight") {
+  
+  dt = copy(as.data.table(dt))
+  
+  setnames(dt, from_col, "from")
+  setnames(dt, to_col, "to")
+  
+  if (weight_col %in% names(dt)) {
+    setnames(dt, weight_col, "weight")
+  } else {
+    dt[, weight := 1]}
+  
+  transitions_weighted = dt[
+    !is.na(from) & !is.na(to),
+    .(N = sum(weight, na.rm = TRUE)),
+    by = .(from, to)]
+  
+  if (nrow(transitions_weighted) == 0) {
+    empty_mat = matrix(
+      0,
+      nrow = length(states_all),
+      ncol = length(states_all),
+      dimnames = list(states_all, states_all))
+    return(empty_mat)}
+  
+  tmat_counts = dcast(
+    transitions_weighted,
+    from ~ to,
+    value.var = "N",
+    fill = 0)
+  
+  ## add missing columns
+  missing_cols = setdiff(states_all, colnames(tmat_counts))
+  for (mc in missing_cols) {
+    tmat_counts[[mc]] = 0}
+  
+  ## add missing rows
+  missing_rows = setdiff(states_all, tmat_counts$from)
+  if (length(missing_rows) > 0) {
+    zero_rows = data.table(from = missing_rows)
+    for (s in states_all) {
+      zero_rows[[s]] = 0}
+    tmat_counts = rbind(tmat_counts, zero_rows, fill = TRUE)}
+  
+  ## order rows/cols
+  tmat_counts[, ord := match(from, states_all)]
+  setorder(tmat_counts, ord)
+  tmat_counts[, ord := NULL]
+  tmat_counts = tmat_counts[, c("from", states_all), with = FALSE]
+  
+  ## convert to probability matrix
+  rn = tmat_counts$from
+  prob_mat = as.matrix(tmat_counts[, ..states_all])
+  storage.mode(prob_mat) = "double"
+  
+  row_totals = rowSums(prob_mat)
+  tmat_final = prob_mat
+  
+  tmat_final[row_totals > 0, ] =
+    prob_mat[row_totals > 0, ] / row_totals[row_totals > 0]
+  
+  tmat_final[row_totals == 0, ] = 0
+  
+  rownames(tmat_final) = rn
+  colnames(tmat_final) = states_all
+  
+  stopifnot(all(rownames(tmat_final) == states_all))
+  stopifnot(all(colnames(tmat_final) == states_all))
+  stopifnot(all(abs(rowSums(tmat_final)[row_totals > 0] - 1) < 1e-10))
+  
+  return(tmat_final)}
 
-##weight column 
-transitions_full[, weight := pmax(0.05, (1 - from_non_dom) * (1 - to_non_dom))]
+##-----function to make transition matrices by a category (crop, county, etc)------
+#avoids having to use split(... by=grouping)
+make_grouped_transition_matrices = function(
+    transitions,
+    states_all,
+    group_cols) {
+  
+  transition_groups = split(
+    transitions,
+    by = group_cols,
+    keep.by = TRUE)
+  
+  transition_mats = lapply(
+    transition_groups,
+    make_transition_matrix,
+    states_all = states_all)
+  
+  return(transition_mats)}
 
-## aggregate weighted counts
-transitions_weighted = transitions_full[
-  ,
-  .(N = sum(weight, na.rm = TRUE)),
-  by = .(from, to)
-]
+
+##-----using functions to make matrices by county------
+transitions_full = make_transitions(
+  year_states = year_states,
+  id_col = "parcel_id",
+  time_col = "year",
+  state_col = "state",
+  non_dom_col = "non_dom_prob")
 
 states_all = c("YP","D","X","T","G","F","P","C","I","V","R")
 
-## cast to count matrix
-tmat_counts = dcast(transitions_weighted, from ~ to, value.var = "N", fill = 0)
+county_transition_mats = make_grouped_transition_matrices(
+  transitions = transitions_full,
+  states_all = states_all,
+  group_cols = "county")
 
-## add missing columns
-missing_cols = setdiff(states_all, colnames(tmat_counts))
-for (mc in missing_cols) tmat_counts[[mc]] = 0
 
-## add missing rows
-missing_rows = setdiff(states_all, tmat_counts$from)
-if (length(missing_rows) > 0) {
-  zero_rows = data.table(from = missing_rows)
-  for (s in states_all) zero_rows[[s]] = 0
-  tmat_counts = rbind(tmat_counts, zero_rows, fill = TRUE)
-}
+##-----save------
+dir.create("county_transition_matrices", showWarnings = FALSE)
 
-## order rows/cols
-tmat_counts[, ord := match(from, states_all)]
-setorder(tmat_counts, ord)
-tmat_counts[, ord := NULL]
-tmat_counts = tmat_counts[, c("from", states_all), with = FALSE]
-
-## convert to matrix
-rn = tmat_counts$from
-prob_mat = as.matrix(tmat_counts[, ..states_all])
-storage.mode(prob_mat) = "double"
-
-## normalize rows safely
-row_totals = rowSums(prob_mat)
-tmat_final = prob_mat
-tmat_final[row_totals > 0, ] = prob_mat[row_totals > 0, ] / row_totals[row_totals > 0]
-tmat_final[row_totals == 0, ] = 0
-
-rownames(tmat_final) = rn
-colnames(tmat_final) = states_all
-
-## checks
-stopifnot(all(rownames(tmat_final) == states_all))
-stopifnot(all(colnames(tmat_final) == states_all))
-stopifnot(all(abs(rowSums(tmat_final)[row_totals > 0] - 1) < 1e-10))
-
-##save outputs##
-write.csv(year_states, "year_states.csv", row.names = FALSE)
-write.csv(transitions_full, "year_to_year_transitions.csv", row.names = FALSE)
-write.csv(tmat_final, "transition_matrix.csv")
+for (cty in names(county_transition_mats)) {
+  
+  safe_name = gsub("[^A-Za-z0-9_]+", "_", cty)
+  
+  write.csv(
+    county_transition_mats[[cty]],
+    file = file.path(
+      "county_transition_matrices",
+      paste0(safe_name, "_transition_matrix.csv")),
+    row.names = TRUE)}

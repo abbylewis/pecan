@@ -125,7 +125,86 @@ write.config.PEPRMT <- function(defaults, trait.values, settings, run.id) {
     dplyr::right_join(met) |>
     dplyr::mutate(site = settings$run$site$id)
 
+  # Event handling
+  event_file <- settings$run$inputs$event_json$path
+  if (!is.null(event_file)) {
+    stopifnot(file.exists(event_file))
+    evts <- jsonlite::read_json(event_file) |>
+      Filter(f = \(x) x$site_id == settings$run$site$id)
+    if (length(evts) < 1) {
+      PEcAn.logger::logger.error(
+        "No events found for site", settings$run$site$id,
+        "in file", event_file
+      )
+    } else if (length(evts) > 1) {
+      PEcAn.logger::logger.warn(
+        "Event file", event_file,
+        "contains multiple entries for site", settings$run$site$id,
+        ". Using only the first one."
+      )
+    }
+    evts <- evts[[1]]$events
+
+    known_event_types <- c("salinity", "elevation")
+    evt_types <- sapply(evts, \(x) x$event_type)
+    use_evt <- evt_types %in% known_event_types
+    if (!all(use_evt)) {
+      PEcAn.logger::logger.info(
+        "Ignoring unsupported event types",
+        sQuote(unique(evt_types[!use_evt]))
+      )
+      evts <- evts[use_evt]
+    }
+    evt_order <- sapply(evts, \(x) x$date) |>
+      as.Date() |>
+      order()
+    evts <- evts[evt_order]
+
+    # need to handle events sequentially so effects can stack
+    # TODO think about efficiency, like, at all
+    for (evt in evts) {
+      run_data <- impose_event_on_data(run_data, evt)
+    }
+  }
+
   utils::write.csv(run_data, file.path(rundir, "run_data.csv"), row.names = FALSE)
   writeLines(jobsh, con = file.path(rundir, "job.sh"))
   Sys.chmod(file.path(rundir, "job.sh"))
 } # write.config.PEPRMT
+
+
+
+impose_event_on_data <- function(data, event) {
+  evt_yr <- lubridate::year(event$date)
+  evt_day <- lubridate::yday(event$date)
+  startline <- min(
+    which(
+      data$Year > evt_yr |
+        (data$Year == evt_yr & data$DOY_disc >= evt_day)
+    )
+  )
+  # lots of options for cleaner structure,
+  # but for now here's some spaghetti code
+  if (event$event_type == "elevation") {
+    # one-time offset assumed to change all future dates by same amount
+    endline <- nrow(data)
+    data$WTD_cm[startline:endline] <- data$WTD_cm[startline:endline] +
+      event$cm_elevation_rise
+  } else if (event$event_type == "salinity") {
+    # Multiplicative change that lasts a set time window (constant for now)
+    end_date <- as.Date(event$date) + lubridate::days(event$days_duration)
+    end_yr <- lubridate::year(end_date)
+    end_day <- lubridate::yday(end_date)
+    endline <- max(
+      which(
+        data$Year < end_yr |
+          (data$Year == end_yr & data$DOY_disc <= end_day)
+      )
+    )
+    data$Salinity_daily_ave_ppt[startline:endline] <-
+      data$Salinity_daily_ave_ppt[startline:endline] *
+        (1 + (event$pct_relative_salinity_change / 100))
+  }
+
+  data
+}

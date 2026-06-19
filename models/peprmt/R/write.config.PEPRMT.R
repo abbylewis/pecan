@@ -12,13 +12,12 @@
 ##' @return configuration file for PEPRMT for given run
 ##' @export
 ##' @author Rob Kooper, edited by Abby Lewis
-##-------------------------------------------------------------------------------------------------#
+## ------------------------------------------------------------------------------------------------#
 write.config.PEPRMT <- function(defaults, trait.values, settings, run.id) {
-
   # find out where to write run/ouput
   rundir <- file.path(settings$host$rundir, run.id)
   outdir <- file.path(settings$host$outdir, run.id)
-  
+
   #-----------------------------------------------------------------------
   # create launch script (which will create symlink)
   if (!is.null(settings$model$jobtemplate) && file.exists(settings$model$jobtemplate)) {
@@ -26,7 +25,7 @@ write.config.PEPRMT <- function(defaults, trait.values, settings, run.id) {
   } else {
     jobsh <- readLines(con = system.file("template.job", package = "PEcAn.PEPRMT"), n = -1)
   }
-  
+
   # create host specific setttings
   hostsetup <- ""
   if (!is.null(settings$model$prerun)) {
@@ -35,7 +34,7 @@ write.config.PEPRMT <- function(defaults, trait.values, settings, run.id) {
   if (!is.null(settings$host$prerun)) {
     hostsetup <- paste(hostsetup, sep = "\n", paste(settings$host$prerun, collapse = "\n"))
   }
-  
+
   hostteardown <- ""
   if (!is.null(settings$model$postrun)) {
     hostteardown <- paste(hostteardown, sep = "\n", paste(settings$model$postrun, collapse = "\n"))
@@ -66,11 +65,13 @@ write.config.PEPRMT <- function(defaults, trait.values, settings, run.id) {
       )
     }
   }
-  
-  params <- c("wetland_type", "a0", "a1", "Ha", "Hd", "T_opt_GPP", "Ea_SOM", 
-              "kM_SOM", "Ea_labile", "kM_labile", "Ea_SOM_CH4", "kM_SOM_CH4", 
-              "Ea_labile_CH4", "kM_labile_CH4", "Ea_oxi_CH4", "kM_oxi_CH4", 
-              "kI_SO4", "kI_NO3", "k_plant_oxi")
+
+  params <- c(
+    "wetland_type", "a0", "a1", "Ha", "Hd", "T_opt_GPP", "Ea_SOM",
+    "kM_SOM", "Ea_labile", "kM_labile", "Ea_SOM_CH4", "kM_SOM_CH4",
+    "Ea_labile_CH4", "kM_labile_CH4", "Ea_oxi_CH4", "kM_oxi_CH4",
+    "kI_SO4", "kI_NO3", "k_plant_oxi"
+  )
   provided_traitnames <- intersect(params, trait_names)
   if (!"wetland_type" %in% provided_traitnames) {
     trait_values["wetland_type"] <- 2
@@ -100,7 +101,7 @@ write.config.PEPRMT <- function(defaults, trait.values, settings, run.id) {
 
   jobsh <- gsub("@BINARY@", settings$model$binary, jobsh)
   jobsh <- gsub("@DELETE_RAW@", as.logical(settings$model$delete.raw %||% FALSE), jobsh)
-  
+
   param_str <- paste0(
     "list(",
     paste(
@@ -109,17 +110,17 @@ write.config.PEPRMT <- function(defaults, trait.values, settings, run.id) {
     ),
     ")"
   )
-  
+
   jobsh <- gsub("@PARAMS@", param_str, jobsh, fixed = TRUE)
 
   # MET
   met_path <- settings$run$inputs$met$path
   met <- utils::read.table(met_path, header = T)
   met_vars <- colnames(met)[!colnames(met) %in% c("Year", "DOY_disc")]
-  
+
   peprmt_specific_input_path <- settings$run$inputs$PEPRMT$path
-  
-  run_data <- utils::read.csv(peprmt_specific_input_path) |> 
+
+  run_data <- utils::read.csv(peprmt_specific_input_path) |>
     dplyr::select(-dplyr::any_of(met_vars)) |>
     dplyr::right_join(met) |>
     dplyr::mutate(site = settings$run$site$id)

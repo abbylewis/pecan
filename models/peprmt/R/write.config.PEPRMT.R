@@ -177,12 +177,16 @@ write.config.PEPRMT <- function(defaults, trait.values, settings, run.id) {
 impose_event_on_data <- function(data, event) {
   evt_yr <- lubridate::year(event$date)
   evt_day <- lubridate::yday(event$date)
-  startline <- min(
-    which(
-      data$Year > evt_yr |
-        (data$Year == evt_yr & data$DOY_disc >= evt_day)
-    )
+  after_start <- which(
+    data$Year > evt_yr |
+      (data$Year == evt_yr & data$DOY_disc >= evt_day)
   )
+  if (length(after_start) == 0) {
+    # event is out of data range
+    return(data)
+  }
+  startline <- min(after_start)
+
   # lots of options for cleaner structure,
   # but for now here's some spaghetti code
   if (event$event_type == "elevation") {
@@ -192,15 +196,18 @@ impose_event_on_data <- function(data, event) {
       event$cm_elevation_rise
   } else if (event$event_type == "salinity") {
     # Multiplicative change that lasts a set time window (constant for now)
-    end_date <- as.Date(event$date) + lubridate::days(event$days_duration)
+    # duration minus 1 because event date is day 1
+    end_date <- as.Date(event$date) + lubridate::days(event$days_duration - 1)
     end_yr <- lubridate::year(end_date)
     end_day <- lubridate::yday(end_date)
-    endline <- max(
-      which(
-        data$Year < end_yr |
-          (data$Year == end_yr & data$DOY_disc <= end_day)
-      )
+    before_end <- which(
+      data$Year < end_yr |
+        (data$Year == end_yr & data$DOY_disc <= end_day)
     )
+    if (length(before_end) == 0) {
+      return(data)
+    }
+    endline <- max(before_end)
     data$Salinity_daily_ave_ppt[startline:endline] <-
       data$Salinity_daily_ave_ppt[startline:endline] *
         (1 + (event$pct_relative_salinity_change / 100))

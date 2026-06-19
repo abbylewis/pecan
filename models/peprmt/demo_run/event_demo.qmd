@@ -45,7 +45,7 @@ library(PEcAn.PEPRMT)
 PEcAn.all::pecan_version()
 
 # prints logger messages into the notebook instead of to the terminal
-#logger.setUseConsole(console = TRUE, stderr = FALSE)
+logger.setUseConsole(console = TRUE, stderr = FALSE)
 # prints messages with levels INFO or higher (WARNING, ERROR, SEVERE)
 # For even more detail, change to "DEBUG"
 logger.setLevel("INFO")

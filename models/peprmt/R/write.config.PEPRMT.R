@@ -151,7 +151,9 @@ write.config.PEPRMT <- function(defaults, trait.values, settings, run.id) {
     if (!all(use_evt)) {
       PEcAn.logger::logger.info(
         "Ignoring unsupported event types",
-        sQuote(unique(evt_types[!use_evt]))
+        sQuote(unique(evt_types[!use_evt])),
+        ".  Supported event types are:",
+        sQuote(known_event_types)
       )
       evts <- evts[use_evt]
     }

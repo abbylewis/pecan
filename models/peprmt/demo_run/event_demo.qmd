@@ -4,7 +4,7 @@ author:
   - "Chris Black"
 ---
 
-# Purpose
+## Purpose
 
 Adds management events to a basic PEPRMT run using PEcAn.
 For demonstration we show a one-time step change in inundation depth and a
@@ -18,7 +18,7 @@ This will require new capabilities for "restarting" the model,
 which exist for other PEcAn models but are not yet implemented for PEPRMT.
 
 
-# Prerequisites
+## Prerequisites
 
 We assume here that you already have PEcAn and PEPRMT installed.
 See run_pecan_peprmt.qmd for installation instructions if needed.
@@ -32,7 +32,7 @@ and this demo uses these files created by it:
 * `data/pfts/default_marginal/`
 
 
-# Setup
+## Setup
 
 
 ```{r}
@@ -51,8 +51,28 @@ logger.setUseConsole(console = TRUE, stderr = FALSE)
 logger.setLevel("INFO")
 ```
 
+### Define outdirs
 
-# Settings
+PEcAn accepts existing output directories and will attempt to overwrite them,
+but this often does not work cleanly.
+We advise always starting fresh.
+
+This check adds a step when trying to rerun the notebook quickly,
+but complaining here is better than clobbering outputs you were counting on.
+
+```{r}
+#| label: outdir-check
+outdirs <- c(noevt = "event_demo_out_noevt", evt = "event_demo_out_evt")
+have_outdirs <- dir.exists(outdirs)
+if (any(have_outdirs)) {
+  logger.severe(
+    "Please move or delete outdir", sQuote(outdirs[have_outdirs]), "first"
+  )
+}
+```
+
+
+## Settings
 
 For brevity let's modify the settings used for the input demo rather than
 start from scratch.
@@ -70,11 +90,11 @@ settings$pfts$pft$posterior.files <-
   file.path("data", "pfts", "default_marginal", "post.distns.RData")
 
 settings_noevt <- settings[1:2] |>
-  setOutDir("event_demo_out_noevt")
+  setOutDir(outdirs[["noevt"]])
 settings_noevt <- PEcAn.settings::prepare.settings(settings_noevt)
 
 settings_evt <- settings[1:2] |>
-  setOutDir("event_demo_out_evt") |>
+  setOutDir(outdirs[["evt"]]) |>
   setEnsemblePaths(
     n_reps = as.numeric(settings$ensemble$size),
     input_type = "event_json",
@@ -100,7 +120,7 @@ write.settings(
 ```
 
 
-# Event files
+## Event files
 
 For demo purposes let's imagine all sites experience a one-time permanent change
 in inundation depth of approximately 30 cm and a temporary step change in
@@ -172,7 +192,9 @@ for (i in seq_len(settings$ensemble$size))  {
 
 ```
 
-# Run model
+## Set up run
+
+### Generate sample design
 
 To get clean comparisons between treatments,
 we'll pair simulations with and without events by using the same ensemble of
@@ -180,7 +202,7 @@ parameter and input values for both runs.
 
 
 ```{r}
-#| label: run
+#| label: design
 evt_design <- generate_joint_ensemble_design(
   settings_evt[[1]],
   settings_evt$ensemble$size
@@ -191,7 +213,12 @@ noevt_design <- evt_design |>
 
 settings_evt$ensemble$id <- rlang::hash(evt_design)
 settings_noevt$ensemble$id <- rlang::hash(noevt_design)
+```
 
+### Write config files
+
+```{r}
+#| label: write-config
 settings_evt <- runModule.run.write.configs(
   settings_evt,
   input_design = evt_design
@@ -208,12 +235,17 @@ settings_noevt <- runModule.run.write.configs(
 
 write.csv(evt_design, file.path(settings_evt$outdir, "input_design.csv"))
 write.csv(noevt_design, file.path(settings_noevt$outdir, "input_design.csv"))
+```
 
+### Run PEPRMT
+
+```{r}
+#| label: run
 runModule_start_model_runs(settings_noevt)
 runModule_start_model_runs(settings_evt)
 ```
 
-# Plot results
+## Plot results
 
 Most non-carbon outputs are not yet written into the PEcAn standard outputs,
 so let's read read the raw PEPRMT output (`out.csv`) to verify the environment

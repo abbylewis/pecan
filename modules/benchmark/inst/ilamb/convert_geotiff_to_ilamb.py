@@ -31,6 +31,7 @@ Author: Tejas Dahiya (Google Summer of Code 2026, PEcAn Project)
 import argparse
 import glob
 import os
+import re
 from datetime import datetime
 
 import numpy as np
@@ -101,10 +102,13 @@ def process_variable_year(base_dir, year, pecan_var, output_dir):
         print(f"  WARNING: {var_dir} not found, skipping")
         return
 
+    # The variable folder also contains precomputed mean and std maps
+    # (mean_<year>_<var>.tiff, std_<year>_<var>.tiff). Match only the
+    # numbered ensemble members so those summary maps are not averaged in.
     files = sorted(
         os.path.join(var_dir, f)
         for f in os.listdir(var_dir)
-        if f.endswith((".tiff", ".tif"))
+        if f.endswith((".tiff", ".tif")) and re.match(r"ensemble_\d+_", f)
     )
     n_ens = len(files)
     print(f"  {pecan_var} -> {cmor_name}: {n_ens} ensemble files")

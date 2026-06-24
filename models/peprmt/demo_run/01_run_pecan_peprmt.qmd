@@ -41,7 +41,7 @@ We are modeling greenhouse gas dynamics (gross primary productivity, ecosystem r
 
 The simulation is run for the duration of data at each site, which ranges from 2011 to 2021.
 
-This scenario is designed to be a minimal, reproducible example to demonstrate how to run PEPRMT within the PEcAn workflow. In later steps, this same framework can be extended to include more ensemble members, longer time periods, or alternative meteorological inputs (e.g., see `pecan/models/peprmt/demo_run/input_demo.qmd` and `pecan/models/peprmt/demo_run/event_demo.qmd`).
+This scenario is designed to be a minimal, reproducible example to demonstrate how to run PEPRMT within the PEcAn workflow. In later steps, this same framework can be extended to include more ensemble members, longer time periods, or alternative meteorological inputs (e.g., see `pecan/models/peprmt/demo_run/02_input_demo.qmd` and `pecan/models/peprmt/demo_run/03_event_demo.qmd`).
 
 ## Prerequisites
 

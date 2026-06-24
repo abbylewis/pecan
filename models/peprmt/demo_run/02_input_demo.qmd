@@ -15,7 +15,7 @@ fig-dpi: 300
 
 # Introduction
 
-Welcome to the second demo workbook for `PEcAn.PEPRMT`! 
+Welcome to the second demo workbook for `PEcAn.PEPRMT`!
 
 If you are new to using PEcAn, we recommend starting with `pecan/models/peprmt/demo_run/01_run_pecan_peprmt.qmd`, which includes more explanation about the fundamental structure of a PEcAn model run. This demo builds on that initial example by showing the process for creating input and meteorological files. PEcAn provides helpers for some of these, while others are (so far) still manual.
 
@@ -152,11 +152,11 @@ Note for future development: We are considering a change in `PEcAn.settings::set
 
 # Inputs
 
-Now that the settings are prepared, the next step is to add input data for each run. For PEPRMT, this includes meteorological driver data (air temperature and light) as well as variables such as water level and salinity that we are supplying manually. 
+Now that the settings are prepared, the next step is to add input data for each run. For PEPRMT, this includes meteorological driver data (air temperature and light) as well as variables such as water level and salinity that we are supplying manually.
 
 ## Meteorology
 
-To provide meteorological input data for each run, we are using ERA5 data that is provided in `raw-data/met`. All ERA5 files are provide in PEcAn standard format, which we can process using `met2model.PEPRMT()` to provide these data in the format PEPRMT expects. 
+To provide meteorological input data for each run, we are using ERA5 data that is provided in `raw-data/met`. All ERA5 files are provide in PEcAn standard format, which we can process using `met2model.PEPRMT()` to provide these data in the format PEPRMT expects.
 
 ```{r load-met}
 # Set up folder for formatted met data
@@ -500,4 +500,3 @@ bind_rows(MCMC = model_output_mcmc,
         axis.text.x = element_text(angle = 45, hjust = 1),
         axis.title.x = element_blank())
 ```
-

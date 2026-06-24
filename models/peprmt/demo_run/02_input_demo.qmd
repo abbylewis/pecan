@@ -46,7 +46,7 @@ Within PEcAn.PEPRMT, this process of building a setting xml document is often ha
 
 - First, set specifications for the run (e.g., ensemble size) and load information about each site.
 
-```{r}
+```{r set-specs}
 # Set the number of ensemble members for this run
 ensemble_size <- 10
 
@@ -71,7 +71,7 @@ site_info <- site_info |>
 
 - Next, load the settings template (provided in `demo_run/raw-data`) and update this template with the specifications provided above
 
-```{r}
+```{r make-settings}
 # Load template
 settings_raw <- read.settings("raw-data/template.xml")
 
@@ -126,7 +126,7 @@ settings$info$notes <- paste("Compiled from template.xml at", Sys.time())
 
 - Now, visualize the completed settings object and export
 
-```{r}
+```{r export_settings}
 # Look at the settings object
 head(settings)
 
@@ -158,7 +158,7 @@ Now that the settings are prepared, the next step is to add input data for each 
 
 To provide meteorological input data for each run, we are using ERA5 data that is provided in `raw-data/met`. All ERA5 files are provide in PEcAn standard format, which we can process using `met2model.PEPRMT()` to provide these data in the format PEPRMT expects. 
 
-```{r}
+```{r load-met}
 # Set up folder for formatted met data
 dir.create(here::here("models","peprmt","demo_run","data","met"))
 
@@ -182,7 +182,7 @@ for(i in 1:nrow(site_info)){
 
 PEPRMT requires a variety of inputs that we are currently supplying manually. These input data are stored in `raw-data/site-data-formatted`, so all we need to do is copy then over to the `data` folder, which is used in our demo run.
 
-```{r}
+```{r load-other-inputs}
 # Set up folder
 dir.create(here::here("models","peprmt","demo_run","data","PEPRMT_specific_inputs"))
 
@@ -254,7 +254,7 @@ Let's run this!
 
 The code below is largely copied from `01_run_pecan_peprmt.qmd`, so this should look familiar. If any of this is confusing, that workbook is a good resource for more documentation.
 
-```{r}
+```{r run-marginal}
 # Set parameters to default_marginal within the settings
 settings$pfts[purrr::map_lgl(settings$pfts, \(x)x$name == "default")]$pft$posterior.files <-
   file.path("data", "pfts", "default_marginal", "post.distns.RData")
@@ -286,7 +286,7 @@ model_output_marginal <- purrr::map2_dfr(
 
 Summarize and visualize outputs
 
-```{r}
+```{r vis-marginal}
 # Summarize
 model_output_marginal |>
   mutate(site_id = sub("ENS-\\d+-", "", run_id)) |>
@@ -443,7 +443,7 @@ model_output_mcmc <- purrr::map2_dfr(
 
 Summarize and visualize outputs
 
-```{r}
+```{r vis-mcmc}
 model_output_mcmc |>
   mutate(site_id = sub("ENS-\\d+-", "", run_id)) |>
   group_by(site_id, year) |>
@@ -474,9 +474,11 @@ model_output_mcmc |>
         axis.title.x = element_blank())
 ```
 
-And one last visualization comparing the two approaches
+## Visualize
 
-```{r}
+One last visualization comparing the two approaches
+
+```{r vis-both}
 bind_rows(MCMC = model_output_mcmc,
           Marginal = model_output_marginal,
           .id = "Approach") |>

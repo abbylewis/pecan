@@ -67,7 +67,7 @@ write.config.PEPRMT <- function(defaults, trait.values, settings, run.id) {
   }
 
   params <- c(
-    "wetland_type", "a0", "a1", "Ha", "Hd", "T_opt_GPP", "Ea_SOM",
+    "wetland_type", "LUE", "a0", "a1", "Ha", "Hd", "T_opt_GPP", "Ea_SOM",
     "kM_SOM", "Ea_labile", "kM_labile", "Ea_SOM_CH4", "kM_SOM_CH4",
     "Ea_labile_CH4", "kM_labile_CH4", "Ea_oxi_CH4", "kM_oxi_CH4",
     "kI_SO4", "kI_NO3", "k_plant_oxi"

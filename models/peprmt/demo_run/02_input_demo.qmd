@@ -93,7 +93,7 @@ settings <- settings_raw |>
   createMultiSiteSettings(site_info) |>
 
   # Set run start and end dates to match available met data
-  # (as hard-coded in site-info.csv -- consider getting from elsewhere?)
+  # (as hard-coded in site_info.csv -- consider getting from elsewhere?)
   # If dates were equal for all sites, setDates() above this would handle this
   papply(function(s) {
     s$run$start.date <- s$run$site$met.start

@@ -81,23 +81,35 @@ met2model.PEPRMT <- function(in.path, in.prefix, outfolder, start_date, end_date
     ## extract variables
     lat  <- ncdf4::ncvar_get(nc, "latitude")
     lon  <- ncdf4::ncvar_get(nc, "longitude")
-    Tair <- ncdf4::ncvar_get(nc, "air_temperature")  ## in Kelvin
-    SW <- ncdf4::ncvar_get(nc, "surface_downwelling_shortwave_flux_in_air") #Shortwave
+    Tair <- ncdf4::ncvar_get(nc, "air_temperature")
+    SW   <- ncdf4::ncvar_get(nc, "surface_downwelling_shortwave_flux_in_air")
+    P    <- ncdf4::ncvar_get(nc, "air_pressure")
+    q    <- ncdf4::ncvar_get(nc, "specific_humidity")
+    
     ncdf4::nc_close(nc)
-
+    
     ## build day of year
     diy <- PEcAn.utils::days_in_year(Year)
     doy <- rep(seq_len(diy), each = timestep.s / dt)[seq_along(sec)]
-
-    ## Aggregate variables up to daily
-    TA_C            <- PEcAn.utils::ud_convert(tapply(Tair, doy, mean, na.rm = TRUE), "Kelvin", "Celsius")
-    #Consider using a different met source for PAR (since this only has SW)
-    PAR_umol_m2_day <- tapply(2.114 * SW * dt, doy, sum, na.rm = TRUE) / (24*60*60) 
-    #https://rdrr.io/cran/LakeMetabolizer/man/sw.to.par.html
+    
+    ## convert temperature to Celsius
+    TA_C_hourly <- PEcAn.utils::ud_convert(Tair, "Kelvin", "Celsius")
+    
+    ## calculate VPD at original timestep
+    ea <- (q * P) / (0.622 + 0.378 * q)
+    es <- 610.8 * exp((17.27 * TA_C_hourly) / (TA_C_hourly + 237.3))
+    VPD_hourly <- (es - ea) / 1000
+    
+    ## aggregate variables up to daily
+    TA_C            <- tapply(TA_C_hourly, doy, mean, na.rm = TRUE)
+    # Consider using a different met source for PAR (since this only has SW)
+    PAR_umol_m2_day <- tapply(2.114 * SW * dt, doy, sum, na.rm = TRUE) / (24 * 60 * 60)
+    # https://rdrr.io/cran/LakeMetabolizer/man/sw.to.par.html
+    VPD_kPa         <- tapply(VPD_hourly, doy, mean, na.rm = TRUE)
     DOY_disc        <- tapply(doy, doy, mean)
 
     ## build data matrix
-    tmp <- cbind(DOY_disc, PAR_umol_m2_day, TA_C, Year)
+    tmp <- cbind(DOY_disc, PAR_umol_m2_day, TA_C, VPD_kPa, Year)
 
     ##filter out days not included in start or end date
     if(Year == start_year){
@@ -138,9 +150,9 @@ met2model.PEPRMT <- function(in.path, in.prefix, outfolder, start_date, end_date
   DOY = as.integer(Dates - as.Date(start_date))+1
   
   #column order matters
-  final <- cbind(out, DOY, Year) %>%
-    data.frame() %>%
-    select(all_of(c("Year", "DOY_disc",  "DOY", "TA_C", "PAR_umol_m2_day")))
+  final <- cbind(out, DOY, Year) |>
+    data.frame() |>
+    dplyr::select(all_of(c("Year", "DOY_disc",  "DOY", "TA_C", "PAR_umol_m2_day", "VPD_kPa")))
   
   utils::write.table(final, out.file.full, quote = FALSE, sep = " ", row.names = FALSE, col.names = TRUE)
 
